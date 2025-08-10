@@ -6,6 +6,10 @@
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#2b4c7e" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+<!-- Viewport for mobile devices -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -14,38 +18,103 @@ body {
     padding: 10px;
     background: linear-gradient(135deg, #f0f4f9, #d9e4f5);
     color: #333;
+    font-size: 1rem;
+    line-height: 1.4;
 }
+
+@media (max-width: 700px) {
+  body {
+    max-width: 100%;
+    margin: 10px;
+    padding: 10px 15px;
+  }
+}
+
 h2, h3 { color: #2b4c7e; margin-bottom: 10px; }
+
 button, input, select {
-    width: 100%; padding: 10px; margin-top: 6px;
-    font-size: 1rem; box-sizing: border-box;
-    border-radius: 6px; border: 1px solid #ccc;
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    font-size: 1.1rem;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    touch-action: manipulation;
 }
+
 button {
-    background: #2b4c7e; color: white; cursor: pointer;
+    background: #2b4c7e;
+    color: white;
+    cursor: pointer;
+    user-select: none;
 }
-button:hover { background: #1f3557; }
+
+button:hover {
+    background: #1f3557;
+}
 
 #user-info {
     position: fixed; top: 10px; left: 10px;
-    background: white; padding: 10px 15px; border-radius: 8px;
-    font-weight: bold; display: none; z-index: 100;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: none;
+    z-index: 100;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: calc(100vw - 20px);
+    word-wrap: break-word;
 }
-#logoutBtn { background: #e74c3c; margin-top: 8px; }
-#logoutBtn:hover { background: #c0392b; }
+
+@media (max-width: 500px) {
+    #user-info {
+      font-size: 0.9rem;
+      padding: 8px 10px;
+      top: auto;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 95vw;
+      text-align: center;
+    }
+}
+
+#logoutBtn {
+    background: #e74c3c;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    padding: 8px;
+}
+
+#logoutBtn:hover {
+    background: #c0392b;
+}
 
 #login-form, #report-form {
-    background: white; padding: 20px; border-radius: 10px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
-label { font-weight: bold; margin-top: 15px; display: block; }
+
+label {
+    font-weight: bold;
+    margin-top: 15px;
+    display: block;
+}
 
 .rules-list {
-    margin-top: 10px; max-height: 250px; overflow-y: auto;
-    border: 1px solid #ccc; padding: 10px; border-radius: 6px;
+    margin-top: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
     background: #fafafa;
 }
+
 .rule-item {
     padding: 8px;
     border-radius: 5px;
@@ -55,36 +124,71 @@ label { font-weight: bold; margin-top: 15px; display: block; }
     justify-content: space-between;
     align-items: center;
 }
-.rule-item:hover { background: #e6f0ff; }
-.rule-item.selected { background: #2b4c7e; color: white; }
-.rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
+.rule-item:hover {
+    background: #e6f0ff;
+}
+.rule-item.selected {
+    background: #2b4c7e;
+    color: white;
+}
+
+.rule-details {
+    font-size: 0.9rem;
+    color: inherit;
+    margin-top: 4px;
+    flex-basis: 100%;
+}
+
 .rule-qty {
     width: 50px;
     margin-left: 10px;
+    font-size: 1rem;
 }
 
-.action-buttons { margin-top: 20px; text-align: center; }
-.action-buttons button {
-    width: auto; padding: 10px 15px; margin: 5px;
-    border-radius: 25px; font-weight: bold;
+.action-buttons {
+    margin-top: 20px;
+    text-align: center;
 }
-.action-buttons button:nth-child(1) { background: #27ae60; }
-.action-buttons button:nth-child(1):hover { background: #1e8449; }
-.action-buttons button:nth-child(2) { background: #2980b9; }
-.action-buttons button:nth-child(2):hover { background: #1f6391; }
+.action-buttons button {
+    width: auto;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+    user-select: none;
+}
+.action-buttons button:nth-child(1) {
+    background: #27ae60;
+}
+.action-buttons button:nth-child(1):hover {
+    background: #1e8449;
+}
+.action-buttons button:nth-child(2) {
+    background: #2980b9;
+}
+.action-buttons button:nth-child(2):hover {
+    background: #1f6391;
+}
 
 #shopContainer, #creditsSenderContainer {
-    border: 1px solid #ccc; padding: 15px; margin-top: 15px;
-    border-radius: 8px; background: white;
-    max-height: 0; overflow: hidden; opacity: 0;
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 8px;
+    background: white;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
     transform: scaleY(0.9);
     transition: all 0.4s ease;
 }
 #shopContainer.show, #creditsSenderContainer.show {
-    max-height: 800px; opacity: 1; transform: scaleY(1);
+    max-height: 800px;
+    opacity: 1;
+    transform: scaleY(1);
 }
 
-/* Welcome overlay styles */
 #welcomeOverlay {
   position: fixed;
   top:0; left:0; right:0; bottom:0;
@@ -151,17 +255,17 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
 <div id="shopContainer">
     <h3>- Days Shop</h3>
-   <button class="btnshop" onclick="buyItem(1000, -5)">Buy: 1000 credits → -5 days</button><br>
-<button onclick="buyItem(2000, -15)">Buy: 2000 credits → -15 days</button><br>
-<button onclick="buyItem(4000, -25)">Buy: 4000 credits → -25 days</button><br>
-<button onclick="buyItem(5000, -35)">Buy: 5000 credits → -35 days</button><br>
-<button onclick="buyItem(6000, -45)">Buy: 6000 credits → -45 days</button><br><br>
-<button onclick="buyItem(7000, -55)">Buy: 7000 credits → -55 days</button><br><br>
-<button onclick="buyItem(8000, -65)">Buy: 8000 credits → -65 days</button><br><br>
-<button onclick="buyItem(9000, -75)">Buy: 9000 credits → -75 days</button><br><br>
-<button onclick="buyItem(10000, -85)">Buy: 10000 credits → -85 days</button><br><br>
-<button onclick="buyItem(11000, -100)">Buy: 11000 credits → -100 days</button><br><br>
-<button onclick="buyInfiniteCredits()">Buy: Infinite Credits (2.5s) → 16,000 credits</button><br><br>
+    <button class="btnshop" onclick="buyItem(1000, -5)">Buy: 1000 credits → -5 days</button><br>
+    <button onclick="buyItem(2000, -15)">Buy: 2000 credits → -15 days</button><br>
+    <button onclick="buyItem(4000, -25)">Buy: 4000 credits → -25 days</button><br>
+    <button onclick="buyItem(5000, -35)">Buy: 5000 credits → -35 days</button><br>
+    <button onclick="buyItem(6000, -45)">Buy: 6000 credits → -45 days</button><br><br>
+    <button onclick="buyItem(7000, -55)">Buy: 7000 credits → -55 days</button><br><br>
+    <button onclick="buyItem(8000, -65)">Buy: 8000 credits → -65 days</button><br><br>
+    <button onclick="buyItem(9000, -75)">Buy: 9000 credits → -75 days</button><br><br>
+    <button onclick="buyItem(10000, -85)">Buy: 10000 credits → -85 days</button><br><br>
+    <button onclick="buyItem(11000, -100)">Buy: 11000 credits → -100 days</button><br><br>
+    <button onclick="buyInfiniteCredits()">Buy: Infinite Credits (2.5s) → 16,000 credits</button><br><br>
 </div>
 
 <div id="creditsSenderContainer">
@@ -169,7 +273,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
     <label>Send to:</label>
     <select id="sendToUser"></select>
     <label>Amount:</label>
-    <input type="number" id="sendAmount" min="1">
+    <input type="number" id="sendAmount" min="1" />
     <button onclick="sendCredits()">Send</button>
 </div>
 
@@ -329,151 +433,164 @@ async function login(username, password, keep) {
             welcomeAudio.play();
             // Hide overlay with fade out
             welcomeOverlay.style.transition = "opacity 0.7s ease";
-            welcomeOverlay.style.opacity = "0";
+            welcomeOverlay.style.opacity = 0;
             setTimeout(() => {
                 welcomeOverlay.style.display = "none";
-                welcomeOverlay.style.opacity = "1";
+                welcomeOverlay.style.opacity = 1;
                 resolve();
             }, 700);
         }
         welcomeOverlay.addEventListener("click", onClick);
     });
 
-    daysSpan.textContent = data.days || 0;
-    creditsSpan.textContent = data.credits || 0;
-    sigDaysLeftSpan.textContent = daysLeft;
-
-    document.getElementById("user-info").style.display = "block";
+    // Show user info and main forms
     document.getElementById("login-form").style.display = "none";
     document.getElementById("report-form").style.display = "block";
     document.getElementById("action-buttons").style.display = "block";
+    document.getElementById("user-info").style.display = "block";
     logoutBtn.style.display = "inline-block";
     reporterInput.value = username;
-
+    daysSpan.textContent = data.days || 0;
+    creditsSpan.textContent = data.credits || 0;
+    sigDaysLeftSpan.textContent = daysLeft;
     await loadUsersDropdowns();
-
-    // Prompt renewal if 5 or fewer days left
-    if (daysLeft <= 5) {
-        if(confirm(`Your signature expires in ${daysLeft} day(s). Do you want to renew your signature now?`)) {
-            window.location.href = "signature.html?user=" + encodeURIComponent(username);
-            return;
-        }
-    }
 }
 
-document.getElementById("loginBtn").addEventListener("click", () => {
-    const u = username.value.trim().toLowerCase(), p = password.value, keep = keepSignedIn.checked;
-    if (!u || !p) return alert("Enter username and password");
-    login(u, p, keep);
-});
-
-logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("savedUser");
-    localStorage.removeItem("savedPass");
-    location.reload();
-});
-
-window.addEventListener("load", () => {
-    const u = localStorage.getItem("savedUser"), p = localStorage.getItem("savedPass");
-    if (u && p) login(u, p, true);
-});
-
-window.togglePanel = function(id) {
-    document.getElementById(id).classList.toggle("show");
+logoutBtn.onclick = () => {
+    currentUser = null;
+    currentUserData = null;
+    document.getElementById("login-form").style.display = "block";
+    document.getElementById("report-form").style.display = "none";
+    document.getElementById("action-buttons").style.display = "none";
+    document.getElementById("user-info").style.display = "none";
+    logoutBtn.style.display = "none";
 };
 
-window.buyItem = async function(price, dayChange) {
-    if (!currentUserData) return;
-    if ((currentUserData.credits || 0) < price) return alert("Not enough credits");
-    currentUserData.credits -= price; currentUserData.days = (currentUserData.days || 0) + dayChange;
-    await update(ref(db, `users/${currentUser}`), { credits: currentUserData.credits, days: currentUserData.days });
-    creditsSpan.textContent = currentUserData.credits; daysSpan.textContent = currentUserData.days;
-    alert(`Purchased! Days changed by ${dayChange}`);
+document.getElementById("loginBtn").onclick = () => {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const keep = document.getElementById("keepSignedIn").checked;
+    if (!username || !password) return alert("Please enter username and password.");
+    login(username, password, keep);
 };
 
-window.sendCredits = async function() {
-    const toUser = sendToUserSelect.value;
-    const amount = parseInt(sendAmount.value);
-    if (!toUser) return alert("Select a user");
-    if (!amount || amount <= 0) return alert("Enter valid amount");
-
-    // Refresh latest credits
-    const selfSnap = await get(ref(db, `users/${currentUser}`));
-    if (!selfSnap.exists()) return alert("Your account could not be found");
-    currentUserData = selfSnap.val();
-
-    if ((currentUserData.credits || 0) < amount) {
-        alert("Not enough credits");
-        return;
-    }
-
-    const toSnap = await get(ref(db, `users/${toUser}`));
-    if (!toSnap.exists()) return alert("Recipient not found");
-    const toData = toSnap.val();
-
-    await update(ref(db, `users/${currentUser}`), { credits: currentUserData.credits - amount });
-    await update(ref(db, `users/${toUser}`), { credits: (toData.credits || 0) + amount });
-
-    creditsSpan.textContent = currentUserData.credits - amount;
-    alert(`Sent ${amount} credits to ${toUser}`);
-
-    sendAmount.value = "";
-};
-
-document.getElementById("reportForm").addEventListener("submit", async e => {
+document.getElementById("reportForm").onsubmit = async e => {
     e.preventDefault();
     if (!currentUser) return alert("Please login first.");
     const reportedUser = reportedUserSelect.value;
-    if (!reportedUser) return alert("Select a user to report.");
+    if (!reportedUser) return alert("Please select the user you want to report.");
 
-    // Collect selected rules and quantities
+    // Collect selected rules and total days
     const selectedRules = [];
-    document.querySelectorAll('.rule-item.selected').forEach(item => {
+    let totalDays = 0;
+    document.querySelectorAll('.rule-item').forEach(item => {
         const qty = parseInt(item.querySelector('input').value) || 0;
         if (qty > 0) {
-            const ruleId = item.dataset.id;
-            const ruleInfo = rules.find(r => r.id === ruleId);
-            if(ruleInfo){
-                selectedRules.push({
-                    id: ruleId,
-                    title: ruleInfo.title,
-                    qty,
-                    totalDays: qty * ruleInfo.days
-                });
-            }
+            selectedRules.push({
+                id: item.dataset.id,
+                title: item.querySelector('strong').textContent,
+                qty: qty,
+                daysPerOffense: parseInt(item.dataset.days)
+            });
+            totalDays += qty * parseInt(item.dataset.days);
         }
     });
 
-    if (selectedRules.length === 0) {
-        alert("Select at least one broken rule with quantity.");
-        return;
-    }
+    if (selectedRules.length === 0) return alert("Please select at least one rule broken.");
 
-    const totalDays = selectedRules.reduce((sum, r) => sum + r.totalDays, 0);
-
-    // Push report to Firebase reports node (pending review)
-    const newReport = {
+    // Create report object
+    const report = {
         reporter: currentUser,
         reportedUser,
-        brokenRules: selectedRules,
+        rules: selectedRules,
         totalDays,
-        timestamp: Date.now(),
-        status: null // pending
+        timestamp: Date.now()
     };
 
-    try {
-        await push(ref(db, "reports"), newReport);
-        alert("Report submitted successfully and is pending review.");
-        document.getElementById("reportForm").reset();
-        document.querySelectorAll('.rule-item').forEach(item => {
-            item.classList.remove('selected');
-            item.querySelector('input').value = 0;
-        });
-        updateTotalDays();
-    } catch (err) {
-        alert("Error submitting report: " + err.message);
-    }
-});
+    // Push report to Firebase
+    await push(ref(db, "reports"), report);
+    alert("Report submitted successfully!");
+
+    // Reset form
+    document.getElementById("reportForm").reset();
+    renderRules();
+    updateTotalDays();
+};
+
+// Toggle panels (shop, send credits)
+function togglePanel(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle("show");
+}
+window.togglePanel = togglePanel;
+
+// Buy item from shop (deduct credits, add days)
+async function buyItem(cost, daysToAdd) {
+    if (!currentUser) return alert("Please login first.");
+    if ((currentUserData.credits || 0) < cost) return alert("Not enough credits.");
+    // Update Firebase user credits and days
+    await update(ref(db, `users/${currentUser}`), {
+        credits: (currentUserData.credits || 0) - cost,
+        days: (currentUserData.days || 0) + Math.abs(daysToAdd)
+    });
+    // Refresh data locally
+    currentUserData.credits -= cost;
+    currentUserData.days += Math.abs(daysToAdd);
+    creditsSpan.textContent = currentUserData.credits;
+    daysSpan.textContent = currentUserData.days;
+    alert(`Bought item for ${cost} credits. Days adjusted by ${daysToAdd}.`);
+}
+window.buyItem = buyItem;
+
+async function buyInfiniteCredits() {
+    if (!currentUser) return alert("Please login first.");
+    // Add 16000 credits and charge 2.5 seconds = 2.5 days?
+    // You may want to adjust this logic
+    await update(ref(db, `users/${currentUser}`), {
+        credits: (currentUserData.credits || 0) + 16000,
+        days: (currentUserData.days || 0) + 3
+    });
+    currentUserData.credits += 16000;
+    currentUserData.days += 3;
+    creditsSpan.textContent = currentUserData.credits;
+    daysSpan.textContent = currentUserData.days;
+    alert("Bought infinite credits (2.5s) for 16,000 credits.");
+}
+window.buyInfiniteCredits = buyInfiniteCredits;
+
+async function sendCredits() {
+    if (!currentUser) return alert("Please login first.");
+    const toUser = sendToUserSelect.value;
+    const amount = parseInt(document.getElementById("sendAmount").value);
+    if (!toUser) return alert("Select a user to send credits to.");
+    if (!amount || amount <= 0) return alert("Enter a valid amount.");
+
+    if ((currentUserData.credits || 0) < amount) return alert("Not enough credits.");
+
+    // Update sender and receiver credits
+    const senderRef = ref(db, `users/${currentUser}`);
+    const receiverRef = ref(db, `users/${toUser}`);
+
+    // Atomic update
+    const updates = {};
+    updates[`users/${currentUser}/credits`] = currentUserData.credits - amount;
+
+    // Fetch receiver credits first
+    const receiverSnap = await get(receiverRef);
+    if (!receiverSnap.exists()) return alert("Receiver user not found.");
+    const receiverCredits = receiverSnap.val().credits || 0;
+
+    updates[`users/${toUser}/credits`] = receiverCredits + amount;
+
+    await update(ref(db), updates);
+
+    currentUserData.credits -= amount;
+    creditsSpan.textContent = currentUserData.credits;
+
+    alert(`Sent ${amount} credits to ${toUser}.`);
+}
+window.sendCredits = sendCredits;
+
 </script>
 
 </body>
