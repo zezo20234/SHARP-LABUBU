@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Create Your Signature</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2b4c7e" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f9;
+    margin: 0; padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+#signatureBox {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+}
+canvas {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    touch-action: none;
+}
+button, select {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 100%;
+    font-size: 1rem;
+}
+button {
+    background: #2b4c7e;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+button:hover {
+    background: #1f3557;
+}
+</style>
+</head>
+<body>
+<div id="signatureBox">
+    <h2>Create Your Signature</h2>
+    <canvas id="sigCanvas" width="380" height="150"></canvas><br>
+    <button id="clearBtn">Clear Signature</button>
+    <br>
+    <label for="validityMonths">Validity Period (Months):</label>
+    <select id="validityMonths">
+      <option value="1">1 Month</option>
+      <option value="2">2 Months</option>
+      <option value="3">3 Months</option>
+      <option value="4">4 Months</option>
+      <option value="5">5 Months</option>
+      <option value="6">6 Months</option>
+      <option value="7">7 Months</option>
+      <option value="8">8 Months</option>
+    </select>
+    <button id="saveBtn">Save Signature</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+    authDomain: "sharplabubu.firebaseapp.com",
+    databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+    projectId: "sharplabubu",
+    storageBucket: "sharplabubu.firebasestorage.app",
+    messagingSenderId: "596148393481",
+    appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+    measurementId: "G-4M25R3BF08"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const canvas = document.getElementById("sigCanvas");
+const ctx = canvas.getContext("2d");
+const clearBtn = document.getElementById("clearBtn");
+const saveBtn = document.getElementById("saveBtn");
+const monthsSelect = document.getElementById("validityMonths");
+
+let drawing = false;
+
+function isCanvasBlank(c) {
+    const blank = document.createElement('canvas');
+    blank.width = c.width;
+    blank.height = c.height;
+    return c.toDataURL() === blank.toDataURL();
+}
+
+function startDrawing(e) {
+    drawing = true;
+    draw(e);
+}
+function stopDrawing() {
+    drawing = false;
+    ctx.beginPath();
+}
+function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+    } else {
+        x = e.clientX - rect.left;
+        y = e.clientY - rect.top;
+    }
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#2b4c7e";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+}
+
+canvas.addEventListener("mousedown", startDrawing);
+canvas.addEventListener("mouseup", stopDrawing);
+canvas.addEventListener("mouseout", stopDrawing);
+canvas.addEventListener("mousemove", draw);
+
+canvas.addEventListener("touchstart", startDrawing);
+canvas.addEventListener("touchend", stopDrawing);
+canvas.addEventListener("touchcancel", stopDrawing);
+canvas.addEventListener("touchmove", draw);
+
+clearBtn.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+function getUserFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("user");
+}
+
+saveBtn.addEventListener("click", async () => {
+    if (isCanvasBlank(canvas)) {
+        alert("Please draw your signature first.");
+        return;
+    }
+    const user = getUserFromURL();
+    if (!user) {
+        alert("User not specified.");
+        return;
+    }
+    const months = parseInt(monthsSelect.value);
+    if (isNaN(months) || months < 1 || months > 8) {
+        alert("Please select a valid validity period.");
+        return;
+    }
+
+    const signatureDataUrl = canvas.toDataURL();
+
+    // Save signature and expiry timestamp (months * 30 days)
+    const expiry = Date.now() + months * 30 * 24 * 60 * 60 * 1000;
+
+    await update(ref(db, `users/${user}`), {
+        signature: {
+            dataUrl: signatureDataUrl,
+            expiry
+        }
+    });
+
+    alert("Signature saved successfully!");
+
+    // Redirect back to main page and log in the user automatically
+    window.location.href = `index.html?user=${encodeURIComponent(user)}`;
+});
+
+// Auto-fill and redirect if user param exists
+window.onload = () => {
+    const user = getUserFromURL();
+    if (!user) {
+        alert("User not specified. Please login first.");
+        window.location.href = "index.html";
+        return;
+    }
+};
+
+</script>
+</body>
+</html>
