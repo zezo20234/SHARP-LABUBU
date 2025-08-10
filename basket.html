@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Archived Reports Basket</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2b4c7e" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 10px;
+    background: #f7f9fc;
+    color: #222;
+  }
+  h1 {
+    color: #2b4c7e;
+    text-align: center;
+  }
+  .report {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+  }
+  .report-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .rules-list {
+    margin-left: 15px;
+    margin-bottom: 8px;
+  }
+  .rules-list li {
+    margin-bottom: 4px;
+  }
+  label {
+    font-weight: bold;
+  }
+  select, button {
+    padding: 6px 10px;
+    margin-top: 6px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  button {
+    background-color: #2b4c7e;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  button:hover {
+    background-color: #1f3557;
+  }
+  .timestamp {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Archived Reports Basket</h1>
+
+<div id="basketContainer">Loading archived reports...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+  authDomain: "sharplabubu.firebaseapp.com",
+  databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+  projectId: "sharplabubu",
+  storageBucket: "sharplabubu.firebasestorage.app",
+  messagingSenderId: "596148393481",
+  appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+  measurementId: "G-4M25R3BF08"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const basketContainer = document.getElementById("basketContainer");
+
+// Format timestamp nicely
+function formatDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleString();
+}
+
+async function loadBasket() {
+  basketContainer.textContent = "Loading archived reports...";
+  try {
+    const basketSnap = await get(ref(db, "reportsBasket"));
+    if (!basketSnap.exists()) {
+      basketContainer.textContent = "No archived reports found.";
+      return;
+    }
+
+    const reports = basketSnap.val();
+    basketContainer.innerHTML = "";
+
+    for (const [reportId, report] of Object.entries(reports)) {
+      const div = document.createElement("div");
+      div.className = "report";
+      div.dataset.reportId = reportId;
+
+      let rulesHtml = "<ul class='rules-list'>";
+      if (Array.isArray(report.brokenRules)) {
+        report.brokenRules.forEach(rule => {
+          rulesHtml += `<li><strong>${rule.title}</strong> x${rule.qty} → ${rule.totalDays} days</li>`;
+        });
+      } else {
+        rulesHtml += "<li><em>No broken rules data</em></li>";
+      }
+      rulesHtml += "</ul>";
+
+      div.innerHTML = `
+        <div class="report-header">
+          Reporter: <strong>${report.reporter}</strong> | Reported User: <strong>${report.reportedUser}</strong><br/>
+          Total Days Penalty: <strong>${report.totalDays || 0}</strong><br/>
+          Status: <strong>${report.status || "N/A"}</strong><br/>
+          <span class="timestamp">Submitted: ${formatDate(report.timestamp)} | Moved: ${formatDate(report.movedAt)}</span>
+        </div>
+        ${rulesHtml}
+        <label for="statusSelect_${reportId}">Change Status:</label>
+        <select id="statusSelect_${reportId}">
+          <option value="accepted" ${report.status === "accepted" ? "selected" : ""}>Accepted</option>
+          <option value="declined" ${report.status === "declined" ? "selected" : ""}>Declined</option>
+          <option value="">(none)</option>
+        </select>
+        <button class="saveBtn">Save</button>
+      `;
+
+      basketContainer.appendChild(div);
+
+      // Save button logic
+      const saveBtn = div.querySelector(".saveBtn");
+      const select = div.querySelector("select");
+
+      saveBtn.onclick = async () => {
+        const newStatus = select.value || null;
+        try {
+          await update(ref(db, `reportsBasket/${reportId}`), { status: newStatus });
+          alert("Status updated!");
+        } catch (err) {
+          alert("Error updating status: " + err.message);
+        }
+      };
+    }
+
+  } catch (err) {
+    basketContainer.textContent = "Error loading archived reports: " + err.message;
+  }
+}
+
+loadBasket();
+
+</script>
+
+</body>
+</html>
