@@ -83,9 +83,38 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 #shopContainer.show, #creditsSenderContainer.show {
     max-height: 800px; opacity: 1; transform: scaleY(1);
 }
+
+/* Welcome overlay styles */
+#welcomeOverlay {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(80, 80, 80, 0.7);
+  color: white;
+  font-size: 2rem;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  cursor: pointer;
+  text-align: center;
+  padding: 20px;
+}
+#welcomeOverlay small {
+  font-size: 1.2rem;
+  margin-top: 15px;
+  opacity: 0.8;
+}
 </style>
 </head>
 <body>
+
+<!-- Welcome Overlay -->
+<div id="welcomeOverlay">
+  <div id="welcomeText"></div>
+  <small>Click to continue</small>
+</div>
+<audio id="welcomeAudio" src="header-39344.mp3"></audio>
 
 <div id="user-info">
     Days: <span id="days-count">0</span> | Credits: <span id="credits-count">0</span> | Signature Days Left: <span id="sig-days-left">0</span>
@@ -122,8 +151,17 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
 <div id="shopContainer">
     <h3>- Days Shop</h3>
-    <button onclick="buyItem(1000, -5)">Buy: 1000 credits → -5 days</button><br>
-    <button onclick="buyItem(2000, -15)">Buy: 2000 credits → -15 days</button><br>
+   <button class="btnshop" onclick="buyItem(1000, -5)">Buy: 1000 credits → -5 days</button><br>
+<button onclick="buyItem(2000, -15)">Buy: 2000 credits → -15 days</button><br>
+<button onclick="buyItem(4000, -25)">Buy: 4000 credits → -25 days</button><br>
+<button onclick="buyItem(5000, -35)">Buy: 5000 credits → -35 days</button><br>
+<button onclick="buyItem(6000, -45)">Buy: 6000 credits → -45 days</button><br><br>
+<button onclick="buyItem(7000, -55)">Buy: 7000 credits → -55 days</button><br><br>
+<button onclick="buyItem(8000, -65)">Buy: 8000 credits → -65 days</button><br><br>
+<button onclick="buyItem(9000, -75)">Buy: 9000 credits → -75 days</button><br><br>
+<button onclick="buyItem(10000, -85)">Buy: 10000 credits → -85 days</button><br><br>
+<button onclick="buyItem(11000, -100)">Buy: 11000 credits → -100 days</button><br><br>
+<button onclick="buyInfiniteCredits()">Buy: Infinite Credits (2.5s) → 16,000 credits</button><br><br>
 </div>
 
 <div id="creditsSenderContainer">
@@ -160,6 +198,10 @@ const reportedUserSelect = document.getElementById("reportedUser");
 const sendToUserSelect = document.getElementById("sendToUser");
 const reporterInput = document.getElementById("reporter");
 const logoutBtn = document.getElementById("logoutBtn");
+
+const welcomeOverlay = document.getElementById("welcomeOverlay");
+const welcomeText = document.getElementById("welcomeText");
+const welcomeAudio = document.getElementById("welcomeAudio");
 
 const rules = [
     { id: 'no_hit', title: 'No hit', days: 1, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
@@ -275,6 +317,28 @@ async function login(username, password, keep) {
 
     currentUser = username;
     currentUserData = data;
+
+    // Show welcome overlay
+    welcomeText.textContent = `Welcome back, ${username}!`;
+    welcomeOverlay.style.display = "flex";
+
+    // Wait for user click, play audio, then continue
+    await new Promise(resolve => {
+        function onClick() {
+            welcomeOverlay.removeEventListener("click", onClick);
+            welcomeAudio.play();
+            // Hide overlay with fade out
+            welcomeOverlay.style.transition = "opacity 0.7s ease";
+            welcomeOverlay.style.opacity = "0";
+            setTimeout(() => {
+                welcomeOverlay.style.display = "none";
+                welcomeOverlay.style.opacity = "1";
+                resolve();
+            }, 700);
+        }
+        welcomeOverlay.addEventListener("click", onClick);
+    });
+
     daysSpan.textContent = data.days || 0;
     creditsSpan.textContent = data.credits || 0;
     sigDaysLeftSpan.textContent = daysLeft;
@@ -349,74 +413,68 @@ window.sendCredits = async function() {
 
     await update(ref(db, `users/${currentUser}`), { credits: currentUserData.credits - amount });
     await update(ref(db, `users/${toUser}`), { credits: (toData.credits || 0) + amount });
-    currentUserData.credits -= amount;
-    creditsSpan.textContent = currentUserData.credits;
 
+    creditsSpan.textContent = currentUserData.credits - amount;
     alert(`Sent ${amount} credits to ${toUser}`);
+
+    sendAmount.value = "";
 };
 
-// Report form submit
 document.getElementById("reportForm").addEventListener("submit", async e => {
     e.preventDefault();
-    if (!currentUser) return alert("Login first");
-    const target = reportedUserSelect.value;
-    if (!target) return alert("Select user reported");
+    if (!currentUser) return alert("Please login first.");
+    const reportedUser = reportedUserSelect.value;
+    if (!reportedUser) return alert("Select a user to report.");
 
-    // Collect selected rules with quantity
-    const penalties = [];
-    let totalDays = 0;
-    document.querySelectorAll(".rule-item").forEach(item => {
-        if (item.classList.contains("selected")) {
-            const qty = parseInt(item.querySelector("input").value) || 1;
-            penalties.push({ id: item.dataset.id, qty });
-            totalDays += qty * parseInt(item.dataset.days);
+    // Collect selected rules and quantities
+    const selectedRules = [];
+    document.querySelectorAll('.rule-item.selected').forEach(item => {
+        const qty = parseInt(item.querySelector('input').value) || 0;
+        if (qty > 0) {
+            const ruleId = item.dataset.id;
+            const ruleInfo = rules.find(r => r.id === ruleId);
+            if(ruleInfo){
+                selectedRules.push({
+                    id: ruleId,
+                    title: ruleInfo.title,
+                    qty,
+                    totalDays: qty * ruleInfo.days
+                });
+            }
         }
     });
 
-    if (totalDays === 0) return alert("Select at least one rule violation");
+    if (selectedRules.length === 0) {
+        alert("Select at least one broken rule with quantity.");
+        return;
+    }
 
-    // Push report
-    const reportsRef = ref(db, "reports");
-    await push(reportsRef, {
+    const totalDays = selectedRules.reduce((sum, r) => sum + r.totalDays, 0);
+
+    // Push report to Firebase reports node (pending review)
+    const newReport = {
         reporter: currentUser,
-        reported: target,
-        penalties,
+        reportedUser,
+        brokenRules: selectedRules,
         totalDays,
-        timestamp: Date.now()
-    });
+        timestamp: Date.now(),
+        status: null // pending
+    };
 
-    // Add days to reported user
-    const targetRef = ref(db, `users/${target}`);
-    const targetSnap = await get(targetRef);
-    if (!targetSnap.exists()) return alert("Reported user not found");
-    const targetData = targetSnap.val();
-    const newDays = (targetData.days || 0) + totalDays;
-    await update(targetRef, { days: newDays });
-    alert(`Report submitted. ${totalDays} days added to ${target}.`);
-    updateTotalDays();
-    // Reset form
-    document.querySelectorAll(".rule-item.selected").forEach(item => {
-        item.classList.remove("selected");
-        item.querySelector("input").value = 0;
-    });
-    reportedUserSelect.value = "";
+    try {
+        await push(ref(db, "reports"), newReport);
+        alert("Report submitted successfully and is pending review.");
+        document.getElementById("reportForm").reset();
+        document.querySelectorAll('.rule-item').forEach(item => {
+            item.classList.remove('selected');
+            item.querySelector('input').value = 0;
+        });
+        updateTotalDays();
+    } catch (err) {
+        alert("Error submitting report: " + err.message);
+    }
 });
-
-// Disable forms on logout
-function resetForm() {
-    document.getElementById("user-info").style.display = "none";
-    document.getElementById("login-form").style.display = "block";
-    document.getElementById("report-form").style.display = "none";
-    document.getElementById("action-buttons").style.display = "none";
-    logoutBtn.style.display = "none";
-    currentUser = null;
-    currentUserData = null;
-    username.value = "";
-    password.value = "";
-    reportedUserSelect.innerHTML = "";
-    sendToUserSelect.innerHTML = "";
-}
-
 </script>
+
 </body>
 </html>
