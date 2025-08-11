@@ -30,7 +30,10 @@ body {
   }
 }
 
-h2, h3 { color: #2b4c7e; margin-bottom: 10px; }
+h2, h3 { 
+    color: #2b4c7e; 
+    margin-bottom: 10px; 
+}
 
 button, input, select {
     width: 100%;
@@ -56,7 +59,9 @@ button:hover {
 }
 
 #user-info {
-    position: fixed; top: 10px; left: 10px;
+    position: fixed; 
+    top: 10px; 
+    left: 10px;
     background: white;
     padding: 10px 15px;
     border-radius: 8px;
@@ -128,8 +133,9 @@ label {
     background: #e6f0ff;
 }
 .rule-item.selected {
-    background: #2b4c7e;
+    background: #d20e0e;
     color: white;
+    animation: bounceForward 0.45s ease; /* Slower, smoother bounce */
 }
 
 .rule-details {
@@ -185,11 +191,10 @@ label {
 }
 #shopContainer.show, #creditsSenderContainer.show {
     max-height: 800px;
-    overflow-y: auto;   /* Allow scrolling */
+    overflow-y: auto;
     opacity: 1;
     transform: scaleY(1);
 }
-
 
 #welcomeOverlay {
   position: fixed;
@@ -211,6 +216,31 @@ label {
   margin-top: 15px;
   opacity: 0.8;
 }
+
+/* === NEW ANIMATIONS === */
+
+/* Button bounce backward (away) */
+@keyframes bounceBack {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.92); }
+  60%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+button:active {
+  animation: bounceBack 0.25s ease;
+}
+
+/* Rule bounce forward (towards) */
+@keyframes bounceForward {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  60%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.rule-item.bounce {
+  animation: bounceForward 0.25s ease;
+}
+
 </style>
 </head>
 <body>
@@ -505,13 +535,54 @@ logoutBtn.onclick = () => {
     logoutBtn.style.display = "none";
 };
 
+// === KEEP ME SIGNED IN LOGIC ===
+
+// When the login button is clicked
 document.getElementById("loginBtn").onclick = () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     const keep = document.getElementById("keepSignedIn").checked;
     if (!username || !password) return alert("Please enter username and password.");
+
+    // Save credentials depending on keep setting
+    if (keep) {
+        localStorage.setItem("loginData", JSON.stringify({ username, password }));
+        sessionStorage.removeItem("loginData");
+    } else {
+        sessionStorage.setItem("loginData", JSON.stringify({ username, password }));
+        localStorage.removeItem("loginData");
+    }
+
     login(username, password, keep);
 };
+
+// When logout is clicked
+logoutBtn.onclick = () => {
+    currentUser = null;
+    currentUserData = null;
+    localStorage.removeItem("loginData");
+    sessionStorage.removeItem("loginData");
+    document.getElementById("login-form").style.display = "block";
+    document.getElementById("report-form").style.display = "none";
+    document.getElementById("action-buttons").style.display = "none";
+    document.getElementById("user-info").style.display = "none";
+    logoutBtn.style.display = "none";
+};
+
+// Auto-login if saved credentials exist
+window.addEventListener("load", () => {
+    let saved = localStorage.getItem("loginData") || sessionStorage.getItem("loginData");
+    if (saved) {
+        try {
+            const { username, password } = JSON.parse(saved);
+            // Silent = true will skip welcome overlay on page load
+            login(username, password, true, true);
+        } catch (e) {
+            console.error("Failed to parse saved login:", e);
+        }
+    }
+});
+
 
 document.getElementById("reportForm").onsubmit = async e => {
     e.preventDefault();
@@ -547,8 +618,45 @@ document.getElementById("reportForm").onsubmit = async e => {
     };
 
     // Push report to Firebase
-    await push(ref(db, "reports"), report);
-    alert("Report submitted successfully!");
+   try {
+  const autoAcceptSnap = await get(ref(db, "settings/autoAcceptReports"));
+  const autoAccept = autoAcceptSnap.exists() && autoAcceptSnap.val() === true;
+
+  if (autoAccept) {
+    // Auto accept: directly update user's days
+    const userRef = ref(db, `users/${reportedUser}`);
+    const userSnap = await get(userRef);
+    if (!userSnap.exists()) return alert("Reported user does not exist.");
+
+    const userData = userSnap.val();
+    const newDays = (Number(userData.days || 0) + Number(totalDays));
+
+    await update(userRef, { days: newDays });
+    alert("Report auto accepted: days added directly.");
+
+  } else {
+    // Auto accept OFF: push report for manual approval
+    const newReportRef = push(ref(db, "reports"));
+    await update(newReportRef, {
+      reporter: currentUser,
+      reportedUser,
+      rules: selectedRules,
+      totalDays,
+      timestamp: Date.now()
+    });
+    alert("Report submitted for manual approval.");
+  }
+
+  // Reset form and UI
+  document.getElementById("reportForm").reset();
+  renderRules();
+  updateTotalDays();
+
+} catch (error) {
+  console.error("Error submitting report:", error);
+  alert("Failed to submit report: " + error.message);
+}
+
 
     // Reset form
     document.getElementById("reportForm").reset();
