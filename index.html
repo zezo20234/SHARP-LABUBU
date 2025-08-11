@@ -287,7 +287,7 @@ button:active {
 
 <div id="shopContainer">
     <h3>- Days Shop (Spend LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> to reduce days)</h3>
-     <button onclick="buyItem(1000, 5)">Buy: 150 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 1 day</button><br>
+     <button onclick="buyItem(150, 1)">Buy: 150 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 1 day</button><br>
     <button onclick="buyItem(500, 5)">Buy: 500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 5 days</button><br>
     <button onclick="buyItem(1500, 15)">Buy: 1500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 15 days</button><br>
     <button onclick="buyItem(2500, 25)">Buy: 2500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 25 days</button><br>
@@ -678,21 +678,40 @@ async function buyItem(cost, daysToRemove) {
     if ((currentUserData.credits || 0) < cost) return alert("Not enough credits.");
     if ((currentUserData.days || 0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
 
-    // Update Firebase user credits and days (deduct credits and remove days)
+    // 🔊 Play Apple Pay sound immediately
+    const applePayAudio = document.getElementById("applePayAudio");
+    let audioPromise = Promise.resolve();
+    if (applePayAudio) {
+        applePayAudio.currentTime = 0;
+        audioPromise = applePayAudio.play().catch(err => {
+            console.error("Audio play failed:", err);
+        });
+    }
+
+    // Update Firebase while sound plays
     await update(ref(db, `users/${currentUser}`), {
         credits: (currentUserData.credits || 0) - cost,
         days: (currentUserData.days || 0) - daysToRemove
     });
 
-    // Refresh data locally
     currentUserData.credits -= cost;
     currentUserData.days -= daysToRemove;
 
     creditsSpan.textContent = currentUserData.credits;
     daysSpan.textContent = currentUserData.days;
 
+    // Wait for the audio to finish (if it started)
+    if (applePayAudio && applePayAudio.duration > 0) {
+        await new Promise(resolve => {
+            applePayAudio.onended = resolve;
+        });
+    } else {
+        await audioPromise; // In case duration isn't loaded yet
+    }
+
     alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days.`);
 }
+
 window.buyItem = buyItem;
 
 
@@ -747,7 +766,7 @@ window.sendCredits = sendCredits;
 
 </script>
 
-
+<audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
+<audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
 </body>
 </html>
-
