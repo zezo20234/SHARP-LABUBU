@@ -768,5 +768,132 @@ window.sendCredits = sendCredits;
 
 <audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
 <audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
+<!-- EVENTS SECTION -->
+<hr>
+<div id="eventsSection">
+  <h2>Events</h2>
+  <div id="eventsList">Loading events...</div>
+</div>
+
+<script type="module">
+import { getDatabase, ref, onValue, remove } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+// Get the already initialized app and database
+const app = getApp();
+const db = getDatabase(app);
+
+function formatCountdown(msLeft) {
+  if (msLeft <= 0) return "Expired";
+  
+  const totalSeconds = Math.floor(msLeft / 1000);
+  const days = Math.floor(totalSeconds / (24 * 3600));
+  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  let parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0 || days > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+  
+  return parts.join(" ");
+}
+
+const eventsListEl = document.getElementById("eventsList");
+const eventsRef = ref(db, "events");
+
+function renderEvents(events) {
+  eventsListEl.innerHTML = "";
+  const now = Date.now();
+  let hasEvents = false;
+
+  Object.entries(events || {}).forEach(([eventId, ev]) => {
+    if (!ev.endTime || now > ev.endTime) {
+      remove(ref(db, `events/${eventId}`));
+      return;
+    }
+    hasEvents = true;
+
+    const div = document.createElement("div");
+    div.className = "event-item";
+    div.style.border = "1px solid #ccc";
+    div.style.padding = "10px";
+    div.style.margin = "10px 0";
+    div.style.borderRadius = "5px";
+    div.style.background = "#f9f9f9";
+
+    const titleEl = document.createElement("h3");
+    titleEl.textContent = ev.title;
+
+    const descEl = document.createElement("p");
+    descEl.textContent = ev.description;
+
+    const countdownEl = document.createElement("small");
+    countdownEl.style.fontWeight = "bold";
+
+    div.appendChild(titleEl);
+    div.appendChild(descEl);
+    div.appendChild(countdownEl);
+    eventsListEl.appendChild(div);
+
+    function updateCountdown() {
+      const msLeft = ev.endTime - Date.now();
+      if (msLeft <= 0) {
+        countdownEl.textContent = "Expired";
+        remove(ref(db, `events/${eventId}`));
+        div.remove();
+        return;
+      }
+      countdownEl.textContent = `Ends in ${formatCountdown(msLeft)}`;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  });
+
+  if (!hasEvents) {
+    eventsListEl.textContent = "No active events.";
+  }
+}
+
+onValue(eventsRef, snap => {
+  if (snap.exists()) {
+    renderEvents(snap.val());
+  } else {
+    eventsListEl.textContent = "No active events.";
+  }
+});
+</script>
+<style>
+  #refreshBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: transform 1s ease;
+    z-index: 1000; /* ensures it's above other elements */
+  }
+  #refreshBtn.spin {
+    transform: rotate(360deg);
+  }
+</style>
+
+<button id="refreshBtn" title="Refresh 🔄">🔄 Refresh</button>
+
+<script>
+  const btn = document.getElementById('refreshBtn');
+  btn.addEventListener('click', () => {
+    btn.classList.add('spin');
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
+  });
+</script>
+
 </body>
 </html>
