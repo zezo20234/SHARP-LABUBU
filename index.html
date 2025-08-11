@@ -389,75 +389,111 @@ async function loadUsersDropdowns() {
         });
     }
 }
-
 async function login(username, password, keep) {
-    const snap = await get(ref(db, `users/${username}`));
-    if (!snap.exists()) return alert("User not found");
-    const data = snap.val();
-    if (data.password !== password) return alert("Incorrect password");
+  const userRef = ref(db, `users/${username}`);
+  const snap = await get(userRef);
+  if (!snap.exists()) return alert("User not found");
+  const data = snap.val();
+  if (data.password !== password) return alert("Incorrect password");
 
-    // Check signature
-    const sig = data.signature;
-    let now = Date.now();
-    let sigExpired = true;
-    let daysLeft = 0;
+  currentUser = username;
+  currentUserData = data;
 
-    if (sig && sig.expiry) {
-        const expiry = sig.expiry;
-        if (expiry > now) {
-            sigExpired = false;
-            daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
-        }
-    }
+  // Get signature expiry and last login time
+  const signature = data.signature || null;
+  const expiry = signature?.expiry || 0;
+  const lastLogin = data.lastLogin || 0;
 
-    if (sigExpired) {
-        // Reset user (clear days, credits, signature)
-        await update(ref(db, `users/${username}`), {
-            days: 0,
-            credits: 0,
-            signature: null
-        });
-        alert("Your signature expired or not found. You need to create a new signature now.");
-        window.location.href = "signature.html?user=" + encodeURIComponent(username);
-        return;
-    }
-
-    currentUser = username;
-    currentUserData = data;
-
-    // Show welcome overlay
-    welcomeText.textContent = `Welcome back, ${username}!`;
-    welcomeOverlay.style.display = "flex";
-
-    // Wait for user click, play audio, then continue
-    await new Promise(resolve => {
-        function onClick() {
-            welcomeOverlay.removeEventListener("click", onClick);
-            welcomeAudio.play();
-            // Hide overlay with fade out
-            welcomeOverlay.style.transition = "opacity 0.7s ease";
-            welcomeOverlay.style.opacity = 0;
-            setTimeout(() => {
-                welcomeOverlay.style.display = "none";
-                welcomeOverlay.style.opacity = 1;
-                resolve();
-            }, 700);
-        }
-        welcomeOverlay.addEventListener("click", onClick);
+  // Check if signature exists and not expired (expiry is timestamp in ms)
+  if (!signature || expiry <= Date.now()) {
+    // Signature expired or missing, reset days, credits, signature and redirect
+    await update(userRef, {
+      days: 0,
+      credits: 0,
+      signature: null,
+      lastLogin: Date.now()
     });
+    alert("Your signature expired or not found. You need to create a new signature now.");
+    window.location.href = "signature.html?user=" + encodeURIComponent(username);
+    return;
+  }
 
-    // Show user info and main forms
-    document.getElementById("login-form").style.display = "none";
-    document.getElementById("report-form").style.display = "block";
-    document.getElementById("action-buttons").style.display = "block";
-    document.getElementById("user-info").style.display = "block";
-    logoutBtn.style.display = "inline-block";
-    reporterInput.value = username;
-    daysSpan.textContent = data.days || 0;
-    creditsSpan.textContent = data.credits || 0;
-    sigDaysLeftSpan.textContent = daysLeft;
-    await loadUsersDropdowns();
+  // Calculate how many midnights passed since last login
+  const now = new Date();
+  const lastLoginDate = new Date(lastLogin);
+
+  // Function to get the midnight (00:00:00) time for a given date
+  function getMidnight(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  const nowMidnight = getMidnight(now);
+  const lastLoginMidnight = getMidnight(lastLoginDate);
+
+  // Calculate full days passed between last login midnight and now midnight
+  // This is the number of midnights passed
+  const msPerDay = 1000 * 60 * 60 * 24;
+  let daysPassed = Math.floor((nowMidnight - lastLoginMidnight) / msPerDay);
+
+  // If user is logging in for the first time, lastLogin might be 0, handle that
+  if (!lastLogin || lastLogin === 0) {
+    daysPassed = 0; // no days to subtract
+  }
+
+  // Subtract daysPassed from current days, but don't go below 0
+  let updatedDays = (data.days || 0) - daysPassed;
+  if (updatedDays < 0) updatedDays = 0;
+
+  // Also check signature expiry days left (full days remaining from expiry timestamp)
+  const msLeft = expiry - Date.now();
+  const sigDaysLeft = Math.ceil(msLeft / msPerDay);
+  const displayDaysLeft = sigDaysLeft > 0 ? sigDaysLeft : 0;
+
+  // Save the updated days and lastLogin time to Firebase
+  await update(userRef, {
+    days: updatedDays,
+    lastLogin: Date.now()
+  });
+
+  // Update local data
+  currentUserData.days = updatedDays;
+  currentUserData.lastLogin = Date.now();
+
+  // Show welcome overlay
+  welcomeText.textContent = `Welcome back, ${username}!`;
+  welcomeOverlay.style.display = "flex";
+
+  // Wait for user click, play audio, then continue
+  await new Promise(resolve => {
+    function onClick() {
+      welcomeOverlay.removeEventListener("click", onClick);
+      welcomeAudio.play();
+      // Hide overlay with fade out
+      welcomeOverlay.style.transition = "opacity 0.7s ease";
+      welcomeOverlay.style.opacity = 0;
+      setTimeout(() => {
+        welcomeOverlay.style.display = "none";
+        welcomeOverlay.style.opacity = 1;
+        resolve();
+      }, 700);
+    }
+    welcomeOverlay.addEventListener("click", onClick);
+  });
+
+  // Show user info and main forms
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("report-form").style.display = "block";
+  document.getElementById("action-buttons").style.display = "block";
+  document.getElementById("user-info").style.display = "block";
+  logoutBtn.style.display = "inline-block";
+  reporterInput.value = username;
+  daysSpan.textContent = updatedDays;
+  creditsSpan.textContent = data.credits || 0;
+  sigDaysLeftSpan.textContent = displayDaysLeft;
+
+  await loadUsersDropdowns();
 }
+
 
 logoutBtn.onclick = () => {
     currentUser = null;
@@ -601,67 +637,6 @@ window.sendCredits = sendCredits;
 
 </script>
 
-<script type="module">
-  import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-  const sigDaysLeftSpan = document.getElementById("sig-days-left");
-
-  // Clear any existing interval
-  if (window.sigDaysLeftInterval) clearInterval(window.sigDaysLeftInterval);
-
-  // Call this function after login with fresh user data
-  async function startSignatureDaysLeftSync() {
-    if (!currentUser || !currentUserData) return;
-
-    // Initial calculation and display
-    updateDaysLeftUI();
-
-    // Update every minute
-    window.sigDaysLeftInterval = setInterval(updateDaysLeftUI, 60000);
-  }
-
-  async function updateDaysLeftUI() {
-    if (!currentUser || !currentUserData) {
-      sigDaysLeftSpan.textContent = "0";
-      return;
-    }
-
-    // Refresh user data from Firebase to get latest signature expiry
-    const userSnap = await get(ref(db, `users/${currentUser}`));
-    if (!userSnap.exists()) {
-      sigDaysLeftSpan.textContent = "0";
-      return;
-    }
-    currentUserData = userSnap.val();
-
-    let daysLeft = 0;
-    const now = Date.now();
-
-    if (currentUserData.signature && currentUserData.signature.expiry) {
-      if (currentUserData.signature.expiry > now) {
-        daysLeft = Math.ceil((currentUserData.signature.expiry - now) / (1000 * 60 * 60 * 24));
-      } else {
-        daysLeft = 0;
-      }
-    }
-
-    sigDaysLeftSpan.textContent = daysLeft;
-
-    // Optionally, if signature expired, you can handle auto-logout or reload here
-    if (daysLeft <= 0) {
-      alert("Your signature has expired. Please renew.");
-      // You can redirect or logout here if desired:
-      // window.location.href = "signature.html?user=" + encodeURIComponent(currentUser);
-      clearInterval(window.sigDaysLeftInterval);
-    }
-  }
-
-  // Hook into your existing login function by calling startSignatureDaysLeftSync after successful login.
-  // Example: inside your login(username, password, keep) function, after setting currentUser and currentUserData:
-  // await startSignatureDaysLeftSync();
-
-  window.startSignatureDaysLeftSync = startSignatureDaysLeftSync;
-</script>
 
 </body>
 </html>
