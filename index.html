@@ -185,9 +185,11 @@ label {
 }
 #shopContainer.show, #creditsSenderContainer.show {
     max-height: 800px;
+    overflow-y: auto;   /* Allow scrolling */
     opacity: 1;
     transform: scaleY(1);
 }
+
 
 #welcomeOverlay {
   position: fixed;
@@ -255,16 +257,17 @@ label {
 
 <div id="shopContainer">
     <h3>- Days Shop (Spend LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> to reduce days)</h3>
-    <button onclick="buyItem(1000, 5)">Buy: 1000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 5 days</button><br>
-    <button onclick="buyItem(2000, 15)">Buy: 2000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 15 days</button><br>
-    <button onclick="buyItem(4000, 25)">Buy: 4000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 25 days</button><br>
-    <button onclick="buyItem(5000, 35)">Buy: 5000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 35 days</button><br>
-    <button onclick="buyItem(6000, 45)">Buy: 6000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 45 days</button><br><br>
-    <button onclick="buyItem(7000, 55)">Buy: 7000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 55 days</button><br><br>
-    <button onclick="buyItem(8000, 65)">Buy: 8000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 65 days</button><br><br>
-    <button onclick="buyItem(9000, 75)">Buy: 9000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 75 days</button><br><br>
-    <button onclick="buyItem(10000, 85)">Buy: 10000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 85 days</button><br><br>
-    <button onclick="buyItem(11000, 100)">Buy: 11000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 100 days</button><br><br>
+     <button onclick="buyItem(1000, 5)">Buy: 150 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 1 day</button><br>
+    <button onclick="buyItem(500, 5)">Buy: 500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 5 days</button><br>
+    <button onclick="buyItem(1500, 15)">Buy: 1500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 15 days</button><br>
+    <button onclick="buyItem(2500, 25)">Buy: 2500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 25 days</button><br>
+    <button onclick="buyItem(3500, 35)">Buy: 3500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 35 days</button><br>
+    <button onclick="buyItem(4500, 45)">Buy: 4500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 45 days</button><br><br>
+    <button onclick="buyItem(5500, 55)">Buy: 5500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 55 days</button><br><br>
+    <button onclick="buyItem(6500, 65)">Buy: 6500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 65 days</button><br><br>
+    <button onclick="buyItem(7500, 75)">Buy: 7500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 75 days</button><br><br>
+    <button onclick="buyItem(9000, 85)">Buy: 9000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 85 days</button><br><br>
+    <button onclick="buyItem(10500, 100)">Buy: 10500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 100 days</button><br><br>
 </div>
 
 
@@ -598,7 +601,67 @@ window.sendCredits = sendCredits;
 
 </script>
 
+<script type="module">
+  import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const sigDaysLeftSpan = document.getElementById("sig-days-left");
+
+  // Clear any existing interval
+  if (window.sigDaysLeftInterval) clearInterval(window.sigDaysLeftInterval);
+
+  // Call this function after login with fresh user data
+  async function startSignatureDaysLeftSync() {
+    if (!currentUser || !currentUserData) return;
+
+    // Initial calculation and display
+    updateDaysLeftUI();
+
+    // Update every minute
+    window.sigDaysLeftInterval = setInterval(updateDaysLeftUI, 60000);
+  }
+
+  async function updateDaysLeftUI() {
+    if (!currentUser || !currentUserData) {
+      sigDaysLeftSpan.textContent = "0";
+      return;
+    }
+
+    // Refresh user data from Firebase to get latest signature expiry
+    const userSnap = await get(ref(db, `users/${currentUser}`));
+    if (!userSnap.exists()) {
+      sigDaysLeftSpan.textContent = "0";
+      return;
+    }
+    currentUserData = userSnap.val();
+
+    let daysLeft = 0;
+    const now = Date.now();
+
+    if (currentUserData.signature && currentUserData.signature.expiry) {
+      if (currentUserData.signature.expiry > now) {
+        daysLeft = Math.ceil((currentUserData.signature.expiry - now) / (1000 * 60 * 60 * 24));
+      } else {
+        daysLeft = 0;
+      }
+    }
+
+    sigDaysLeftSpan.textContent = daysLeft;
+
+    // Optionally, if signature expired, you can handle auto-logout or reload here
+    if (daysLeft <= 0) {
+      alert("Your signature has expired. Please renew.");
+      // You can redirect or logout here if desired:
+      // window.location.href = "signature.html?user=" + encodeURIComponent(currentUser);
+      clearInterval(window.sigDaysLeftInterval);
+    }
+  }
+
+  // Hook into your existing login function by calling startSignatureDaysLeftSync after successful login.
+  // Example: inside your login(username, password, keep) function, after setting currentUser and currentUserData:
+  // await startSignatureDaysLeftSync();
+
+  window.startSignatureDaysLeftSync = startSignatureDaysLeftSync;
+</script>
 
 </body>
 </html>
-
