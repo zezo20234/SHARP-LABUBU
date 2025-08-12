@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#2b4c7e" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
 <style>
 body {
@@ -133,7 +133,7 @@ label {
     background: #e6f0ff;
 }
 .rule-item.selected {
-    background: #2b4c7e; /* Changed from red to blue for better contrast */
+    background: #ff0000; /* Changed from red to blue for better contrast */
     color: white;
     animation: bounceForward 0.45s ease;
 }
@@ -294,7 +294,7 @@ button:active {
         <label>Your Username</label>
         <input type="text" id="reporter" readonly />
         <label>Who is this report on?</label>
-        <select id="reportedUser" required></select>
+        <select id="reportedUser" required ></select>
         <label>Rules broken:</label>
         <div class="rules-list" id="rulesList"></div>
         <div id="total-days">Total Days Penalty: 0</div>
@@ -983,4 +983,3 @@ onValue(eventsRef, (snapshot) => {
 
 </body>
 </html>
-
