@@ -7,8 +7,7 @@
 <meta name="theme-color" content="#2b4c7e" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-<!-- Viewport for mobile devices -->
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
 body {
@@ -23,11 +22,11 @@ body {
 }
 
 @media (max-width: 700px) {
-  body {
-    max-width: 100%;
-    margin: 10px;
-    padding: 10px 15px;
-  }
+    body {
+        max-width: 100%;
+        margin: 10px;
+        padding: 10px 15px;
+    }
 }
 
 h2, h3 { 
@@ -59,30 +58,31 @@ button:hover {
 }
 
 #user-info {
-    position: fixed; 
-    top: 10px; 
-    left: 10px;
-    background: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    display: none;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    max-width: calc(100vw - 20px);
-    word-wrap: break-word;
+position: fixed;
+top: 10px;
+left: 10px;
+background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(15px);
+border-radius: 20px;
+padding: 10px 20px;
+font-weight: bold;
+border: 1px solid rgba(255, 255, 255, 0.2);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+display: none;
+color: blue; /* ALL TEXT COLOR SET TO BLUE */
+z-index: 9999; /* HIGHEST Z-INDEX */
 }
 
 @media (max-width: 500px) {
     #user-info {
-      font-size: 0.9rem;
-      padding: 8px 10px;
-      top: auto;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 95vw;
-      text-align: center;
+        font-size: 0.9rem;
+        padding: 8px 10px;
+        top: auto;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 95vw;
+        text-align: center;
     }
 }
 
@@ -133,9 +133,9 @@ label {
     background: #e6f0ff;
 }
 .rule-item.selected {
-    background: #d20e0e;
+    background: #2b4c7e; /* Changed from red to blue for better contrast */
     color: white;
-    animation: bounceForward 0.45s ease; /* Slower, smoother bounce */
+    animation: bounceForward 0.45s ease;
 }
 
 .rule-details {
@@ -177,7 +177,15 @@ label {
     background: #1f6391;
 }
 
-#shopContainer, #creditsSenderContainer {
+.action-buttons button:nth-child(3) {
+    background: #8e44ad; /* Points exchange button color */
+}
+.action-buttons button:nth-child(3):hover {
+    background: #6a2a89;
+}
+
+
+#shopContainer, #creditsSenderContainer, #pointsExchangeContainer {
     border: 1px solid #ccc;
     padding: 15px;
     margin-top: 15px;
@@ -189,7 +197,7 @@ label {
     transform: scaleY(0.9);
     transition: all 0.4s ease;
 }
-#shopContainer.show, #creditsSenderContainer.show {
+#shopContainer.show, #creditsSenderContainer.show, #pointsExchangeContainer.show {
     max-height: 800px;
     overflow-y: auto;
     opacity: 1;
@@ -197,63 +205,78 @@ label {
 }
 
 #welcomeOverlay {
-  position: fixed;
-  top:0; left:0; right:0; bottom:0;
-  background: rgba(80, 80, 80, 0.7);
-  color: white;
-  font-size: 2rem;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  cursor: pointer;
-  text-align: center;
-  padding: 20px;
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(80, 80, 80, 0.7);
+    color: white;
+    font-size: 2rem;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    cursor: pointer;
+    text-align: center;
+    padding: 20px;
 }
 #welcomeOverlay small {
-  font-size: 1.2rem;
-  margin-top: 15px;
-  opacity: 0.8;
+    font-size: 1.2rem;
+    margin-top: 15px;
+    opacity: 0.8;
 }
 
-/* === NEW ANIMATIONS === */
+/* === ANIMATIONS === */
 
 /* Button bounce backward (away) */
 @keyframes bounceBack {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(0.92); }
-  60%  { transform: scale(1.02); }
-  100% { transform: scale(1); }
+    0%   { transform: scale(1); }
+    30%  { transform: scale(0.92); }
+    60%  { transform: scale(1.02); }
+    100% { transform: scale(1); }
 }
 button:active {
-  animation: bounceBack 0.25s ease;
+    animation: bounceBack 0.25s ease;
 }
 
 /* Rule bounce forward (towards) */
 @keyframes bounceForward {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.08); }
-  60%  { transform: scale(0.98); }
-  100% { transform: scale(1); }
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.08); }
+    60%  { transform: scale(0.98); }
+    100% { transform: scale(1); }
 }
 .rule-item.bounce {
-  animation: bounceForward 0.25s ease;
+    animation: bounceForward 0.25s ease;
+}
+
+/* === EVENTS SECTION STYLING === */
+#eventsSection {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+.event-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background: #f9f9f9;
 }
 
 </style>
 </head>
 <body>
 
-<!-- Welcome Overlay -->
 <div id="welcomeOverlay">
-  <div id="welcomeText"></div>
-  <small>Click to continue</small>
+    <div id="welcomeText"></div>
+    <small>Click to continue</small>
 </div>
 <audio id="welcomeAudio" src="header-39344.mp3"></audio>
 
 <div id="user-info">
-    Days: <span id="days-count">0</span> | LAZUZU <img src="LAZUZU.jpg" style="width:1em;height:1em;vertical-align:middle;">: <span id="credits-count">0</span> | Signature Days Left: <span id="sig-days-left">0</span>
+    Days: <span id="days-count">0</span> | LAZUZU <img src="LAZUZU.jpg" style="width:1em;height:1em;vertical-align:middle;">: <span id="credits-count">0</span> | Points: <span id="points-count">0</span> | Signature Days Left: <span id="sig-days-left">0</span>
     <button id="logoutBtn" style="display:none;">Logout</button>
 </div>
 
@@ -283,23 +306,19 @@ button:active {
     <hr>
     <button onclick="togglePanel('shopContainer')">Toggle Shop</button>
     <button onclick="togglePanel('creditsSenderContainer')">Toggle Send LAZUZU <img src="LAZUZU.jpg" style="width:1em;height:1em;vertical-align:middle;"></button>
+    <button onclick="togglePanel('pointsExchangeContainer')">Toggle Points Exchange</button>
 </div>
 
 <div id="shopContainer">
     <h3>- Days Shop (Spend LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> to reduce days)</h3>
-     <button onclick="buyItem(150, 1)">Buy: 150 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 1 day</button><br>
-    <button onclick="buyItem(500, 5)">Buy: 500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 5 days</button><br>
-    <button onclick="buyItem(1500, 15)">Buy: 1500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 15 days</button><br>
-    <button onclick="buyItem(2500, 25)">Buy: 2500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 25 days</button><br>
-    <button onclick="buyItem(3500, 35)">Buy: 3500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 35 days</button><br>
-    <button onclick="buyItem(4500, 45)">Buy: 4500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 45 days</button><br><br>
-    <button onclick="buyItem(5500, 55)">Buy: 5500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 55 days</button><br><br>
-    <button onclick="buyItem(6500, 65)">Buy: 6500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 65 days</button><br><br>
-    <button onclick="buyItem(7500, 75)">Buy: 7500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 75 days</button><br><br>
-    <button onclick="buyItem(9000, 85)">Buy: 9000 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 85 days</button><br><br>
-    <button onclick="buyItem(10500, 100)">Buy: 10500 LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove 100 days</button><br><br>
+    <div id="shopItems"></div>
 </div>
 
+<div id="pointsExchangeContainer">
+    <h3>Points Exchange (Trade Points for LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;">)</h3>
+    
+    <div id="pointsExchangeItems"></div>
+</div>
 
 <div id="creditsSenderContainer">
     <h3>Send LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"></h3>
@@ -310,10 +329,22 @@ button:active {
     <button onclick="sendCredits()">Send</button>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, update, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+<hr>
+<div id="eventsSection">
+    <h2>Events</h2>
+    <div id="eventsList">Loading events...</div>
+</div>
 
+<audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
+<audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
+
+<script type="module">
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// === FIREBASE CONFIG ===
+// WARNING: Exposing API keys like this is a security risk.
+// For production, consider using Firebase Hosting or a backend server.
 const firebaseConfig = {
     apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
     authDomain: "sharplabubu.firebaseapp.com",
@@ -324,45 +355,85 @@ const firebaseConfig = {
     appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
     measurementId: "G-4M25R3BF08"
 };
-const app = initializeApp(firebaseConfig);
+
+let app;
+try {
+    app = getApp();
+} catch (e) {
+    app = initializeApp(firebaseConfig);
+}
 const db = getDatabase(app);
 
+// === GLOBAL VARIABLES & DOM REFERENCES ===
 let currentUser = null, currentUserData = null;
 const daysSpan = document.getElementById("days-count");
 const creditsSpan = document.getElementById("credits-count");
+const pointsSpan = document.getElementById("points-count");
 const sigDaysLeftSpan = document.getElementById("sig-days-left");
 const reportedUserSelect = document.getElementById("reportedUser");
 const sendToUserSelect = document.getElementById("sendToUser");
 const reporterInput = document.getElementById("reporter");
 const logoutBtn = document.getElementById("logoutBtn");
-
 const welcomeOverlay = document.getElementById("welcomeOverlay");
 const welcomeText = document.getElementById("welcomeText");
 const welcomeAudio = document.getElementById("welcomeAudio");
+const eventsListEl = document.getElementById("eventsList");
 
+// === DATA ===
 const rules = [
-    { id: 'no_hit', title: 'No hit', days: 1, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
-    { id: 'no_scream', title: 'No scream', days: 5, details: 'Speak calmly, only when you are excited or angry +5 days.' },
-    { id: 'no_cry', title: 'No cry', days: 1, details: 'Crying is not allowed +1 days.' },
-    { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
-    { id: 'no_fetn', title: 'No fetn', days: 100, details: 'Don\'t make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +100 days.' },
-    { id: 'no_bother', title: 'No bother', days: 5, details: 'Respect others. Don’t annoy them. +5 days.' },
-    { id: 'respect', title: 'You have to respect', days: 10, details: 'Treat everyone kindly and with respect, always. +10 days.' },
-    { id: 'cute', title: 'CUTE +50 DAYS', days: 50, details: 'Be cute for 5 minutes = +50 days!' },
-    { id: 'no_listen', title: 'No listen', days: 50, details: 'You have to listen! If not, +50 days.' },
-    { id: 'play_zezo', title: 'Play with Zezo', days: 50, details: 'You must play with Zezo. If not, +50 days.' },
-    { id: 'no_sad', title: 'No sad', days: 10, details: 'Don’t be sad or +10 days.' },
-    { id: 'no_devices', title: 'No devices when u have days each minute = 5 days', days: 5, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
-    { id: 'no_copy', title: 'No copy', days: 100, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
-    { id: 'no_angry', title: 'No angry', days: 5, details: 'Don’t be mad +5 days.' },
-    { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 50, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
-    { id: 'no_lie', title: 'No lie', days: 30, details: 'Do not lie, always tell the truth. +30 days.' },
-    { id: 'no_pause', title: 'No pause', days: 10, details: 'No pauses. +10 days.' },
-    { id: 'no_push', title: 'No push', days: 10, details: 'No push. +10 days.' },
-    { id: 'no_3ADY', title: 'No 3ADY', days: 25, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
+    { id: 'no_hit', title: 'No hit', days: 1, points: 10, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
+    { id: 'no_scream', title: 'No scream', days: 5, points: 10, details: 'Speak calmly, only when you are excited or angry +5 days.' },
+    { id: 'no_cry', title: 'No cry', days: 1, points: 10, details: 'Crying is not allowed +1 days.' },
+    { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, points: 10, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
+    { id: 'no_fetn', title: 'No fetn', days: 100, points: 10, details: 'Don\'t make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +100 days.' },
+    { id: 'no_bother', title: 'No bother', days: 5, points: 10, details: 'Respect others. Don’t annoy them. +5 days.' },
+    { id: 'respect', title: 'You have to respect', days: 10, points: 10, details: 'Treat everyone kindly and with respect, always. +10 days.' },
+    { id: 'cute', title: 'CUTE +50 DAYS', days: 50, points: 10, details: 'Be cute for 5 minutes = +50 days!' },
+    { id: 'no_listen', title: 'No listen', days: 50, points: 10, details: 'You have to listen! If not, +50 days.' },
+    { id: 'play_zezo', title: 'Play with Zezo', days: 50, points: 10, details: 'You must play with Zezo. If not, +50 days.' },
+    { id: 'no_sad', title: 'No sad', days: 10, points: 10, details: 'Don’t be sad or +10 days.' },
+    { id: 'no_devices', title: 'No devices when u have days each minute = 5 days', days: 5, points: 10, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
+    { id: 'no_copy', title: 'No copy', days: 100, points: 10, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
+    { id: 'no_angry', title: 'No angry', days: 5, points: 10, details: 'Don’t be mad +5 days.' },
+    { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 50, points: 10, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
+    { id: 'no_lie', title: 'No lie', days: 30, points: 10, details: 'Do not lie, always tell the truth. +30 days.' },
+    { id: 'no_pause', title: 'No pause', days: 10, points: 10, details: 'No pauses. +10 days.' },
+    { id: 'no_push', title: 'No push', days: 10, points: 10, details: 'No push. +10 days.' },
+    { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 10, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
 ];
 
-// Render rules list
+
+const shopItems = [
+    { cost: 200, days: 1 },
+{ cost: 550, days: 5 },
+{ cost: 1550, days: 15 },
+{ cost: 2550, days: 25 },
+{ cost: 3550, days: 35 },
+{ cost: 4550, days: 45 },
+{ cost: 5550, days: 55 },
+{ cost: 6550, days: 65 },
+{ cost: 7550, days: 75 },
+{ cost: 9050, days: 85 },
+{ cost: 10550, days: 100 }
+
+];
+
+const pointsExchangeItems = [
+    { points: 100, credits: 500 },
+    { points: 500, credits: 5500 },
+    { points: 1000, credits: 12000 },
+    { points: 2000, credits: 24000 },
+    { points: 3000, credits: 37000 },
+    { points: 4000, credits: 50000 },
+];
+
+
+// === CORE FUNCTIONS ===
+
+/**
+ * Render the rules list dynamically.
+ * Moved logic into this function for better code organization.
+ */
 function renderRules() {
     const container = document.getElementById('rulesList');
     container.innerHTML = '';
@@ -371,6 +442,7 @@ function renderRules() {
         div.className = 'rule-item';
         div.dataset.id = r.id;
         div.dataset.days = r.days;
+        div.dataset.points = r.points;
 
         const textContainer = document.createElement('div');
         textContainer.style.flex = "1";
@@ -388,20 +460,31 @@ function renderRules() {
 
         div.addEventListener('click', (e) => {
             if (e.target.tagName.toLowerCase() !== 'input') {
+                // Clicking the container toggles the selection and sets qty to 1 or 0
                 div.classList.toggle('selected');
-                if (div.classList.contains('selected') && qtyInput.value == 0) qtyInput.value = 1;
-                else if (!div.classList.contains('selected')) qtyInput.value = 0;
+                if (div.classList.contains('selected') && qtyInput.value == 0) {
+                    qtyInput.value = 1;
+                } else if (!div.classList.contains('selected')) {
+                    qtyInput.value = 0;
+                }
                 updateTotalDays();
             }
         });
 
         container.appendChild(div);
-        if (i < rules.length - 1) container.appendChild(document.createElement('hr'));
+        if (i < rules.length - 1) {
+              const hr = document.createElement('hr');
+              hr.style.margin = '5px 0';
+              container.appendChild(hr);
+        }
     });
 }
-
 renderRules();
 
+
+/**
+ * Calculates and updates the total days penalty display.
+ */
 function updateTotalDays() {
     let total = 0;
     document.querySelectorAll('.rule-item').forEach(item => {
@@ -412,6 +495,9 @@ function updateTotalDays() {
     document.getElementById('total-days').textContent = `Total Days Penalty: ${total}`;
 }
 
+/**
+ * Populates user dropdowns for reporting and sending credits.
+ */
 async function loadUsersDropdowns() {
     const snap = await get(ref(db, "users"));
     if (snap.exists()) {
@@ -423,132 +509,151 @@ async function loadUsersDropdowns() {
         });
     }
 }
-async function login(username, password, keep) {
-  const userRef = ref(db, `users/${username}`);
-  const snap = await get(userRef);
-  if (!snap.exists()) return alert("User not found");
-  const data = snap.val();
-  if (data.password !== password) return alert("Incorrect password");
 
-  currentUser = username;
-  currentUserData = data;
+/**
+ * Handles user login and data updates.
+ * @param {string} username
+ * @param {string} password
+ * @param {boolean} keep
+ * @param {boolean} isAutoLogin
+ */
+async function login(username, password, keep, isAutoLogin = false) {
+    const userRef = ref(db, `users/${username}`);
+    const snap = await get(userRef);
+    if (!snap.exists()) return alert("User not found");
+    const data = snap.val();
+    if (data.password !== password) return alert("Incorrect password");
 
-  // Get signature expiry and last login time
-  const signature = data.signature || null;
-  const expiry = signature?.expiry || 0;
-  const lastLogin = data.lastLogin || 0;
+    currentUser = username;
+    currentUserData = data;
 
-  // Check if signature exists and not expired (expiry is timestamp in ms)
-  if (!signature || expiry <= Date.now()) {
-    // Signature expired or missing, reset days, credits, signature and redirect
-    await update(userRef, {
-      days: 0,
-      credits: 0,
-      signature: null,
-      lastLogin: Date.now()
-    });
-    alert("Your signature expired or not found. You need to create a new signature now.");
-    window.location.href = "signature.html?user=" + encodeURIComponent(username);
-    return;
-  }
+    const signature = data.signature || null;
+    const expiry = signature?.expiry || 0;
+    const lastLogin = data.lastLogin || 0;
 
-  // Calculate how many midnights passed since last login
-  const now = new Date();
-  const lastLoginDate = new Date(lastLogin);
-
-  // Function to get the midnight (00:00:00) time for a given date
-  function getMidnight(d) {
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-
-  const nowMidnight = getMidnight(now);
-  const lastLoginMidnight = getMidnight(lastLoginDate);
-
-  // Calculate full days passed between last login midnight and now midnight
-  // This is the number of midnights passed
-  const msPerDay = 1000 * 60 * 60 * 24;
-  let daysPassed = Math.floor((nowMidnight - lastLoginMidnight) / msPerDay);
-
-  // If user is logging in for the first time, lastLogin might be 0, handle that
-  if (!lastLogin || lastLogin === 0) {
-    daysPassed = 0; // no days to subtract
-  }
-
-  // Subtract daysPassed from current days, but don't go below 0
-  let updatedDays = (data.days || 0) - daysPassed;
-  if (updatedDays < 0) updatedDays = 0;
-
-  // Also check signature expiry days left (full days remaining from expiry timestamp)
-  const msLeft = expiry - Date.now();
-  const sigDaysLeft = Math.ceil(msLeft / msPerDay);
-  const displayDaysLeft = sigDaysLeft > 0 ? sigDaysLeft : 0;
-
-  // Save the updated days and lastLogin time to Firebase
-  await update(userRef, {
-    days: updatedDays,
-    lastLogin: Date.now()
-  });
-
-  // Update local data
-  currentUserData.days = updatedDays;
-  currentUserData.lastLogin = Date.now();
-
-  // Show welcome overlay
-  welcomeText.textContent = `Welcome back, ${username}!`;
-  welcomeOverlay.style.display = "flex";
-
-  // Wait for user click, play audio, then continue
-  await new Promise(resolve => {
-    function onClick() {
-      welcomeOverlay.removeEventListener("click", onClick);
-      welcomeAudio.play();
-      // Hide overlay with fade out
-      welcomeOverlay.style.transition = "opacity 0.7s ease";
-      welcomeOverlay.style.opacity = 0;
-      setTimeout(() => {
-        welcomeOverlay.style.display = "none";
-        welcomeOverlay.style.opacity = 1;
-        resolve();
-      }, 700);
+    if (!signature || expiry <= Date.now()) {
+        await update(userRef, { days: 0, credits: 0, points: 0, signature: null, lastLogin: Date.now() });
+        alert("Your signature expired or not found. You need to create a new signature now.");
+        window.location.href = "signature.html?user=" + encodeURIComponent(username);
+        return;
     }
-    welcomeOverlay.addEventListener("click", onClick);
-  });
 
-  // Show user info and main forms
-  document.getElementById("login-form").style.display = "none";
-  document.getElementById("report-form").style.display = "block";
-  document.getElementById("action-buttons").style.display = "block";
-  document.getElementById("user-info").style.display = "block";
-  logoutBtn.style.display = "inline-block";
-  reporterInput.value = username;
-  daysSpan.textContent = updatedDays;
-  creditsSpan.textContent = data.credits || 0;
-  sigDaysLeftSpan.textContent = displayDaysLeft;
+    const now = new Date();
+    const lastLoginDate = new Date(lastLogin);
 
-  await loadUsersDropdowns();
+    function getMidnight(d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    const nowMidnight = getMidnight(now);
+    const lastLoginMidnight = getMidnight(lastLoginDate);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    let daysPassed = 0;
+    if (lastLogin) {
+        daysPassed = Math.floor((nowMidnight - lastLoginMidnight) / msPerDay);
+    }
+    
+    let updatedDays = (data.days || 0) - daysPassed;
+    if (updatedDays < 0) updatedDays = 0;
+
+    const msLeft = expiry - Date.now();
+    const sigDaysLeft = Math.ceil(msLeft / msPerDay);
+    const displayDaysLeft = sigDaysLeft > 0 ? sigDaysLeft : 0;
+
+    await update(userRef, {
+        days: updatedDays,
+        lastLogin: Date.now()
+    });
+    
+    currentUserData.days = updatedDays;
+    currentUserData.lastLogin = Date.now();
+    
+    if (!isAutoLogin) {
+        welcomeText.textContent = `Welcome back, ${username}!`;
+        welcomeOverlay.style.display = "flex";
+        await new Promise(resolve => {
+            function onClick() {
+                welcomeOverlay.removeEventListener("click", onClick);
+                welcomeAudio.play();
+                welcomeOverlay.style.transition = "opacity 0.7s ease";
+                welcomeOverlay.style.opacity = 0;
+                setTimeout(() => {
+                    welcomeOverlay.style.display = "none";
+                    welcomeOverlay.style.opacity = 1;
+                    resolve();
+                }, 700);
+            }
+            welcomeOverlay.addEventListener("click", onClick);
+        });
+    }
+
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("report-form").style.display = "block";
+    document.getElementById("action-buttons").style.display = "block";
+    document.getElementById("user-info").style.display = "block";
+    logoutBtn.style.display = "inline-block";
+    reporterInput.value = username;
+    daysSpan.textContent = updatedDays;
+    creditsSpan.textContent = data.credits || 0;
+    pointsSpan.textContent = data.points || 0;
+    sigDaysLeftSpan.textContent = displayDaysLeft;
+
+    await loadUsersDropdowns();
 }
 
-
-logoutBtn.onclick = () => {
+/**
+ * Handles the logout process.
+ */
+function logout() {
     currentUser = null;
     currentUserData = null;
+    localStorage.removeItem("loginData");
+    sessionStorage.removeItem("loginData");
     document.getElementById("login-form").style.display = "block";
     document.getElementById("report-form").style.display = "none";
     document.getElementById("action-buttons").style.display = "none";
     document.getElementById("user-info").style.display = "none";
     logoutBtn.style.display = "none";
-};
+}
 
-// === KEEP ME SIGNED IN LOGIC ===
+/**
+ * Renders shop items dynamically from a data array.
+ */
+function renderShopItems() {
+    const shopContainer = document.getElementById('shopItems');
+    shopContainer.innerHTML = '';
+    shopItems.forEach(item => {
+        shopContainer.innerHTML += `
+            <button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} LAZUZU <img src="LAZUZU.jpg" style="width:2em;height:2em;vertical-align:middle;"> → Remove ${item.days} days</button><br>
+        `;
+    });
+}
+renderShopItems();
 
-// When the login button is clicked
+
+/**
+ * Renders points exchange items dynamically from a data array.
+ */
+function renderPointsExchangeItems() {
+    const exchangeContainer = document.getElementById('pointsExchangeItems');
+    exchangeContainer.innerHTML = '';
+    pointsExchangeItems.forEach(item => {
+        exchangeContainer.innerHTML += `
+            <button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} LAZUZU</button><br>
+        `;
+    });
+}
+renderPointsExchangeItems();
+
+
+// === EVENT LISTENERS ===
+
 document.getElementById("loginBtn").onclick = () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     const keep = document.getElementById("keepSignedIn").checked;
     if (!username || !password) return alert("Please enter username and password.");
-
-    // Save credentials depending on keep setting
+    
     if (keep) {
         localStorage.setItem("loginData", JSON.stringify({ username, password }));
         sessionStorage.removeItem("loginData");
@@ -560,26 +665,13 @@ document.getElementById("loginBtn").onclick = () => {
     login(username, password, keep);
 };
 
-// When logout is clicked
-logoutBtn.onclick = () => {
-    currentUser = null;
-    currentUserData = null;
-    localStorage.removeItem("loginData");
-    sessionStorage.removeItem("loginData");
-    document.getElementById("login-form").style.display = "block";
-    document.getElementById("report-form").style.display = "none";
-    document.getElementById("action-buttons").style.display = "none";
-    document.getElementById("user-info").style.display = "none";
-    logoutBtn.style.display = "none";
-};
+logoutBtn.onclick = logout;
 
-// Auto-login if saved credentials exist
 window.addEventListener("load", () => {
     let saved = localStorage.getItem("loginData") || sessionStorage.getItem("loginData");
     if (saved) {
         try {
             const { username, password } = JSON.parse(saved);
-            // Silent = true will skip welcome overlay on page load
             login(username, password, true, true);
         } catch (e) {
             console.error("Failed to parse saved login:", e);
@@ -594,145 +686,190 @@ document.getElementById("reportForm").onsubmit = async e => {
     const reportedUser = reportedUserSelect.value;
     if (!reportedUser) return alert("Please select the user you want to report.");
 
-    // Collect selected rules and total days
     const selectedRules = [];
     let totalDays = 0;
+    let totalPoints = 0;
     document.querySelectorAll('.rule-item').forEach(item => {
         const qty = parseInt(item.querySelector('input').value) || 0;
         if (qty > 0) {
+            const daysPerOffense = parseInt(item.dataset.days);
+            const pointsPerOffense = parseInt(item.dataset.points);
             selectedRules.push({
                 id: item.dataset.id,
                 title: item.querySelector('strong').textContent,
                 qty: qty,
-                daysPerOffense: parseInt(item.dataset.days)
+                daysPerOffense: daysPerOffense,
+                pointsPerOffense: pointsPerOffense
             });
-            totalDays += qty * parseInt(item.dataset.days);
+            totalDays += daysPerOffense * qty;
+            totalPoints += pointsPerOffense * qty;
         }
     });
 
     if (selectedRules.length === 0) return alert("Please select at least one rule broken.");
 
-    // Create report object
     const report = {
         reporter: currentUser,
         reportedUser,
         rules: selectedRules,
         totalDays,
+        totalPoints,
         timestamp: Date.now()
     };
 
-    // Push report to Firebase
-   try {
-  const autoAcceptSnap = await get(ref(db, "settings/autoAcceptReports"));
-  const autoAccept = autoAcceptSnap.exists() && autoAcceptSnap.val() === true;
+    try {
+        const autoAcceptSnap = await get(ref(db, "settings/autoAcceptReports"));
+        const autoAccept = autoAcceptSnap.exists() && autoAcceptSnap.val() === true;
 
-  if (autoAccept) {
-    // Auto accept: directly update user's days
-    const userRef = ref(db, `users/${reportedUser}`);
-    const userSnap = await get(userRef);
-    if (!userSnap.exists()) return alert("Reported user does not exist.");
+        if (autoAccept) {
+            const reportedUserRef = ref(db, `users/${reportedUser}`);
+            const reporterUserRef = ref(db, `users/${currentUser}`);
 
-    const userData = userSnap.val();
-    const newDays = (Number(userData.days || 0) + Number(totalDays));
+            const [reportedUserSnap, reporterUserSnap] = await Promise.all([
+                get(reportedUserRef),
+                get(reporterUserRef)
+            ]);
 
-    await update(userRef, { days: newDays });
-    alert("Report auto accepted: days added directly.");
+            const reportedUserData = reportedUserSnap.val();
+            const reporterUserData = reporterUserSnap.val();
+            
+            const newReportedDays = (Number(reportedUserData.days || 0) + Number(totalDays));
+            const newReporterPoints = (Number(reporterUserData.points || 0) + Number(totalPoints));
 
-  } else {
-    // Auto accept OFF: push report for manual approval
-    const newReportRef = push(ref(db, "reports"));
-    await update(newReportRef, {
-      reporter: currentUser,
-      reportedUser,
-      rules: selectedRules,
-      totalDays,
-      timestamp: Date.now()
-    });
-    alert("Report submitted for manual approval.");
-  }
+            const updates = {};
+            updates[`users/${reportedUser}/days`] = newReportedDays;
+            updates[`users/${currentUser}/points`] = newReporterPoints;
+            await update(ref(db), updates);
 
-  // Reset form and UI
-  document.getElementById("reportForm").reset();
-  renderRules();
-  updateTotalDays();
+            currentUserData.points = newReporterPoints;
+            pointsSpan.textContent = currentUserData.points;
 
-} catch (error) {
-  console.error("Error submitting report:", error);
-  alert("Failed to submit report: " + error.message);
-}
+            alert(`Report auto accepted: ${totalDays} days added to ${reportedUser}, and you received ${totalPoints} points.`);
+        } else {
+            const newReportRef = push(ref(db, "reports"));
+            await update(newReportRef, report);
+            alert("Report submitted for manual approval. You will receive points upon approval.");
+        }
 
+        // Reset form and UI
+        document.getElementById("reportForm").reset();
+        renderRules();
+        updateTotalDays();
 
-    // Reset form
-    document.getElementById("reportForm").reset();
-    renderRules();
-    updateTotalDays();
+    } catch (error) {
+        console.error("Error submitting report:", error);
+        alert("Failed to submit report: " + error.message);
+    }
 };
 
-// Toggle panels (shop, send credits)
+
+// === SHOP & CREDITS FUNCTIONS ===
+
+/**
+ * Toggles the visibility of a panel (shop, sender, etc.).
+ * @param {string} id
+ */
 function togglePanel(id) {
     const el = document.getElementById(id);
     el.classList.toggle("show");
 }
 window.togglePanel = togglePanel;
 
+/**
+ * Handles buying an item from the shop.
+ * @param {number} cost
+ * @param {number} daysToRemove
+ */
 async function buyItem(cost, daysToRemove) {
     if (!currentUser) return alert("Please login first.");
     if ((currentUserData.credits || 0) < cost) return alert("Not enough credits.");
     if ((currentUserData.days || 0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
 
-    // 🔊 Play Apple Pay sound immediately
     const applePayAudio = document.getElementById("applePayAudio");
-    let audioPromise = Promise.resolve();
-    if (applePayAudio) {
-        applePayAudio.currentTime = 0;
-        audioPromise = applePayAudio.play().catch(err => {
-            console.error("Audio play failed:", err);
-        });
+    try {
+        await applePayAudio.play();
+    } catch (e) {
+        console.error("Audio play failed:", e);
     }
 
-    // Update Firebase while sound plays
-    await update(ref(db, `users/${currentUser}`), {
-        credits: (currentUserData.credits || 0) - cost,
-        days: (currentUserData.days || 0) - daysToRemove
-    });
+    try {
+        // Calculate the credit distribution
+        const bankAmount = Math.floor(cost * 0.70); // 70% to 'bank'
+        const zezoAmount = cost - bankAmount; // Remaining 30% to 'zezo'
 
-    currentUserData.credits -= cost;
-    currentUserData.days -= daysToRemove;
+        const userRef = ref(db, `users/${currentUser}`);
+        const bankRef = ref(db, `users/bank`); // Reference for user 'bank'
+        const zezoRef = ref(db, `users/zezo`); // Reference for user 'zezo'
 
-    creditsSpan.textContent = currentUserData.credits;
-    daysSpan.textContent = currentUserData.days;
+        const [bankSnap, zezoSnap] = await Promise.all([
+            get(bankRef),
+            get(zezoRef)
+        ]);
 
-    // Wait for the audio to finish (if it started)
-    if (applePayAudio && applePayAudio.duration > 0) {
-        await new Promise(resolve => {
-            applePayAudio.onended = resolve;
-        });
-    } else {
-        await audioPromise; // In case duration isn't loaded yet
+        const bankData = bankSnap.exists() ? bankSnap.val() : { credits: 0 };
+        const zezoData = zezoSnap.exists() ? zezoSnap.val() : { credits: 0 };
+
+        const updates = {};
+        updates[`users/${currentUser}/credits`] = (currentUserData.credits || 0) - cost;
+        updates[`users/${currentUser}/days`] = (currentUserData.days || 0) - daysToRemove;
+        updates[`users/bank/credits`] = (bankData.credits || 0) + bankAmount;
+        updates[`users/zezo/credits`] = (zezoData.credits || 0) + zezoAmount;
+
+        await update(ref(db), updates);
+
+        // Update local data and UI
+        currentUserData.credits -= cost;
+        currentUserData.days -= daysToRemove;
+
+        creditsSpan.textContent = currentUserData.credits;
+        daysSpan.textContent = currentUserData.days;
+        
+        alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days. 70% went to Bank and 30% went to Zezo.`);
+
+    } catch (error) {
+        console.error("Error buying item:", error);
+        alert("Failed to complete purchase: " + error.message);
     }
-
-    alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days.`);
 }
-
 window.buyItem = buyItem;
 
 
-async function buyInfiniteCredits() {
+/**
+ * Handles exchanging points for credits.
+ * @param {number} pointsToExchange
+ * @param {number} creditsToReceive
+ */
+async function exchangePoints(pointsToExchange, creditsToReceive) {
     if (!currentUser) return alert("Please login first.");
-    // Add 16000 credits and charge 2.5 seconds = 2.5 days?
-    // You may want to adjust this logic
-    await update(ref(db, `users/${currentUser}`), {
-        credits: (currentUserData.credits || 0) + 16000,
-        days: (currentUserData.days || 0) + 3
-    });
-    currentUserData.credits += 16000;
-    currentUserData.days += 3;
-    creditsSpan.textContent = currentUserData.credits;
-    daysSpan.textContent = currentUserData.days;
-    alert("Bought infinite credits (2.5s) for 16,000 credits.");
-}
-window.buyInfiniteCredits = buyInfiniteCredits;
+    if ((currentUserData.points || 0) < pointsToExchange) return alert("Not enough points to make this exchange.");
 
+    const newPoints = (currentUserData.points || 0) - pointsToExchange;
+    const newCredits = (currentUserData.credits || 0) + creditsToReceive;
+
+    try {
+        const userRef = ref(db, `users/${currentUser}`);
+        await update(userRef, {
+            points: newPoints,
+            credits: newCredits
+        });
+
+        currentUserData.points = newPoints;
+        currentUserData.credits = newCredits;
+        pointsSpan.textContent = currentUserData.points;
+        creditsSpan.textContent = currentUserData.credits;
+
+        alert(`Exchanged ${pointsToExchange} points for ${creditsToReceive} credits!`);
+    } catch (error) {
+        console.error("Error exchanging points:", error);
+        alert("Failed to complete exchange.");
+    }
+}
+window.exchangePoints = exchangePoints;
+
+
+/**
+ * Handles sending credits to another user.
+ */
 async function sendCredits() {
     if (!currentUser) return alert("Please login first.");
     const toUser = sendToUserSelect.value;
@@ -742,223 +879,107 @@ async function sendCredits() {
 
     if ((currentUserData.credits || 0) < amount) return alert("Not enough credits.");
 
-    // Update sender and receiver credits
     const senderRef = ref(db, `users/${currentUser}`);
     const receiverRef = ref(db, `users/${toUser}`);
 
-    // Atomic update
-    const updates = {};
-    updates[`users/${currentUser}/credits`] = currentUserData.credits - amount;
+    try {
+        const receiverSnap = await get(receiverRef);
+        if (!receiverSnap.exists()) return alert("Receiver user not found.");
+        const receiverCredits = receiverSnap.val().credits || 0;
 
-    // Fetch receiver credits first
-    const receiverSnap = await get(receiverRef);
-    if (!receiverSnap.exists()) return alert("Receiver user not found.");
-    const receiverCredits = receiverSnap.val().credits || 0;
+        const updates = {};
+        updates[`users/${currentUser}/credits`] = (currentUserData.credits || 0) - amount;
+        updates[`users/${toUser}/credits`] = receiverCredits + amount;
+        
+        await update(ref(db), updates);
 
-    updates[`users/${toUser}/credits`] = receiverCredits + amount;
+        currentUserData.credits -= amount;
+        creditsSpan.textContent = currentUserData.credits;
+        
+        alert(`Sent ${amount} credits to ${toUser}.`);
 
-    await update(ref(db), updates);
-
-    currentUserData.credits -= amount;
-    creditsSpan.textContent = currentUserData.credits;
-
-    alert(`Sent ${amount} credits to ${toUser}.`);
+    } catch (error) {
+        console.error("Error sending credits:", error);
+        alert("Failed to send credits.");
+    }
 }
 window.sendCredits = sendCredits;
 
-</script>
-
-<audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
-<audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
-<!-- EVENTS SECTION -->
-<hr>
-<div id="eventsSection">
-  <h2>Events</h2>
-  <div id="eventsList">Loading events...</div>
-</div>
-
-<script type="module">
-import { getDatabase, ref, onValue, remove } 
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-// Get the already initialized app and database
-const app = getApp();
-const db = getDatabase(app);
-
+// === EVENTS SECTION LOGIC ===
 function formatCountdown(msLeft) {
-  if (msLeft <= 0) return "Expired";
-  
-  const totalSeconds = Math.floor(msLeft / 1000);
-  const days = Math.floor(totalSeconds / (24 * 3600));
-  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  let parts = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0 || days > 0) parts.push(`${hours}h`);
-  if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes}m`);
-  parts.push(`${seconds}s`);
-  
-  return parts.join(" ");
+    if (msLeft <= 0) return "Expired";
+    
+    const totalSeconds = Math.floor(msLeft / 1000);
+    const days = Math.floor(totalSeconds / (24 * 3600));
+    const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    let parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0 || days > 0) parts.push(`${hours}h`);
+    if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes}m`);
+    parts.push(`${seconds}s`);
+    
+    return parts.join(" ");
 }
 
-const eventsListEl = document.getElementById("eventsList");
 const eventsRef = ref(db, "events");
 
 function renderEvents(events) {
-  eventsListEl.innerHTML = "";
-  const now = Date.now();
-  let hasEvents = false;
+    eventsListEl.innerHTML = "";
+    const now = Date.now();
+    let hasEvents = false;
 
-  Object.entries(events || {}).forEach(([eventId, ev]) => {
-    if (!ev.endTime || now > ev.endTime) {
-      remove(ref(db, `events/${eventId}`));
-      return;
+    Object.entries(events || {}).forEach(([eventId, ev]) => {
+        if (!ev.endTime || now > ev.endTime) {
+            remove(ref(db, `events/${eventId}`));
+            return;
+        }
+        hasEvents = true;
+
+        const div = document.createElement("div");
+        div.className = "event-item";
+
+        const titleEl = document.createElement("h4");
+        titleEl.textContent = ev.title;
+        div.appendChild(titleEl);
+
+        const detailsEl = document.createElement("p");
+        detailsEl.textContent = ev.description;
+        div.appendChild(detailsEl);
+
+        const countdownEl = document.createElement("p");
+        countdownEl.className = "countdown";
+        div.appendChild(countdownEl);
+
+        function updateCountdown() {
+            const msLeft = ev.endTime - Date.now();
+            if (msLeft <= 0) {
+                countdownEl.textContent = "Time left: Expired";
+                remove(ref(db, `events/${eventId}`));
+                return;
+            }
+            countdownEl.textContent = `Time left: ${formatCountdown(msLeft)}`;
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        eventsListEl.appendChild(div);
+    });
+
+    if (!hasEvents) {
+        eventsListEl.textContent = "No active events at this time.";
     }
-    hasEvents = true;
-
-    const div = document.createElement("div");
-    div.className = "event-item";
-    div.style.border = "1px solid #ccc";
-    div.style.padding = "10px";
-    div.style.margin = "10px 0";
-    div.style.borderRadius = "5px";
-    div.style.background = "#f9f9f9";
-
-    const titleEl = document.createElement("h3");
-    titleEl.textContent = ev.title;
-
-    const descEl = document.createElement("p");
-    descEl.textContent = ev.description;
-
-    const countdownEl = document.createElement("small");
-    countdownEl.style.fontWeight = "bold";
-
-    div.appendChild(titleEl);
-    div.appendChild(descEl);
-    div.appendChild(countdownEl);
-    eventsListEl.appendChild(div);
-
-    function updateCountdown() {
-      const msLeft = ev.endTime - Date.now();
-      if (msLeft <= 0) {
-        countdownEl.textContent = "Expired";
-        remove(ref(db, `events/${eventId}`));
-        div.remove();
-        return;
-      }
-      countdownEl.textContent = `Ends in ${formatCountdown(msLeft)}`;
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-  });
-
-  if (!hasEvents) {
-    eventsListEl.textContent = "No active events.";
-  }
 }
 
-onValue(eventsRef, snap => {
-  if (snap.exists()) {
-    renderEvents(snap.val());
-  } else {
-    eventsListEl.textContent = "No active events.";
-  }
+onValue(eventsRef, (snapshot) => {
+    const events = snapshot.val();
+    renderEvents(events);
 });
+
 </script>
-<style>
-  #refreshBtn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    cursor: pointer;
-    border: none;
-    background: none;
-    transition: transform 1s ease;
-    z-index: 1000; /* ensures it's above other elements */
-  }
-  #refreshBtn.spin {
-    transform: rotate(360deg);
-  }
-</style>
-
-<button id="refreshBtn" title="Refresh 🔄">🔄 Refresh</button>
-
-<script>
-  const btn = document.getElementById('refreshBtn');
-  btn.addEventListener('click', () => {
-    btn.classList.add('spin');
-    setTimeout(() => {
-      location.reload();
-    }, 1000);
-  });
-
-  
-</script>
-<script>
-document.getElementById("reportForm").addEventListener("submit", function(e) {
-    e.preventDefault(); // stop form refresh
-
-    const webhookURL = "https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL";
-    const reporter = document.getElementById("reporter").value.trim();
-    const reportedUser = document.getElementById("reportedUser").value.trim();
-    
-    // Get the total days penalty from the correct element (which is a div)
-    const totalDaysText = document.getElementById("total-days").textContent;
-    const totalDays = totalDaysText.match(/\d+/)[0] || "0"; 
-
-    // Create a list of the rules that were broken, including the penalty days and quantity
-    const brokenRules = [];
-    document.querySelectorAll('.rule-item').forEach(item => {
-        const qty = parseInt(item.querySelector('input').value) || 0;
-        if (qty > 0) {
-            const title = item.querySelector('strong').textContent;
-            const daysPer = parseInt(item.dataset.days);
-            brokenRules.push(`- ${title} (x${qty}) for ${qty * daysPer} days`);
-        }
-    });
-    const rulesList = brokenRules.join('\n') || "No rules specified.";
-
-
-    // Map reported users to Discord mentions
-    const mentionMap = {
-        "layan": "<@1367185737446985738>", // Replace with actual user IDs
-        "zezo": "<@1388958062500647064>", // Replace with actual user IDs
-        "asser": "<@1367187821542117558>" // Replace with actual user IDs
-    };
-
-    const mention = mentionMap[reportedUser.toLowerCase()] || "";
-
-    const message = `📢 **New Report Submitted**\n`
-                  + `**Reporter:** ${reporter}\n`
-                  + `**Reported User:** ${reportedUser} ${mention}\n`
-                  + `**Broken Rules:**\n${rulesList}\n`
-                  + `**Total Days:** ${totalDays}`;
-
-    fetch(webhookURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: message })
-    })
-    .then(res => {
-        if (res.ok) {
-            alert("Report sent successfully!");
-        } else {
-            alert("Failed to send report.");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error sending report.");
-    });
-});
-</script>
-<button onclick="window.location.href='https://zezo20234.github.io/problem/'">
-  Open Problem Page
-</button>
 
 </body>
 </html>
