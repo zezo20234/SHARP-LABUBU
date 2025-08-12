@@ -893,6 +893,66 @@ onValue(eventsRef, snap => {
       location.reload();
     }, 1000);
   });
+
+  
+</script>
+<script>
+document.getElementById("reportForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // stop form refresh
+
+    const webhookURL = "https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL";
+    const reporter = document.getElementById("reporter").value.trim();
+    const reportedUser = document.getElementById("reportedUser").value.trim();
+    
+    // Get the total days penalty from the correct element (which is a div)
+    const totalDaysText = document.getElementById("total-days").textContent;
+    const totalDays = totalDaysText.match(/\d+/)[0] || "0"; 
+
+    // Create a list of the rules that were broken, including the penalty days and quantity
+    const brokenRules = [];
+    document.querySelectorAll('.rule-item').forEach(item => {
+        const qty = parseInt(item.querySelector('input').value) || 0;
+        if (qty > 0) {
+            const title = item.querySelector('strong').textContent;
+            const daysPer = parseInt(item.dataset.days);
+            brokenRules.push(`- ${title} (x${qty}) for ${qty * daysPer} days`);
+        }
+    });
+    const rulesList = brokenRules.join('\n') || "No rules specified.";
+
+
+    // Map reported users to Discord mentions
+    const mentionMap = {
+        "layan": "<@1367185737446985738>", // Replace with actual user IDs
+        "zezo": "<@1388958062500647064>", // Replace with actual user IDs
+        "asser": "<@1367187821542117558>" // Replace with actual user IDs
+    };
+
+    const mention = mentionMap[reportedUser.toLowerCase()] || "";
+
+    const message = `📢 **New Report Submitted**\n`
+                  + `**Reporter:** ${reporter}\n`
+                  + `**Reported User:** ${reportedUser} ${mention}\n`
+                  + `**Broken Rules:**\n${rulesList}\n`
+                  + `**Total Days:** ${totalDays}`;
+
+    fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message })
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("Report sent successfully!");
+        } else {
+            alert("Failed to send report.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error sending report.");
+    });
+});
 </script>
 
 </body>
