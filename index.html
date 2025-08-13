@@ -381,25 +381,24 @@ const eventsListEl = document.getElementById("eventsList");
 
 // === DATA ===
 const rules = [
-    { id: 'no_hit', title: 'No hit', days: 1, points: 10, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
-    { id: 'no_scream', title: 'No scream', days: 5, points: 10, details: 'Speak calmly, only when you are excited or angry +5 days.' },
-    { id: 'no_cry', title: 'No cry', days: 1, points: 10, details: 'Crying is not allowed +1 days.' },
-    { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, points: 10, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
-    { id: 'no_fetn', title: 'No fetn', days: 100, points: 10, details: 'Don\'t make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +100 days.' },
-    { id: 'no_bother', title: 'No bother', days: 5, points: 10, details: 'Respect others. Don’t annoy them. +5 days.' },
-    { id: 'respect', title: 'You have to respect', days: 10, points: 10, details: 'Treat everyone kindly and with respect, always. +10 days.' },
-    { id: 'cute', title: 'CUTE +50 DAYS', days: 50, points: 10, details: 'Be cute for 5 minutes = +50 days!' },
-    { id: 'no_listen', title: 'No listen', days: 50, points: 10, details: 'You have to listen! If not, +50 days.' },
-    { id: 'play_zezo', title: 'Play with Zezo', days: 50, points: 10, details: 'You must play with Zezo. If not, +50 days.' },
-    { id: 'no_sad', title: 'No sad', days: 10, points: 10, details: 'Don’t be sad or +10 days.' },
-    { id: 'no_devices', title: 'No devices when u have days each minute = 5 days', days: 5, points: 10, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
-    { id: 'no_copy', title: 'No copy', days: 100, points: 10, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
-    { id: 'no_angry', title: 'No angry', days: 5, points: 10, details: 'Don’t be mad +5 days.' },
-    { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 50, points: 10, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
-    { id: 'no_lie', title: 'No lie', days: 30, points: 10, details: 'Do not lie, always tell the truth. +30 days.' },
-    { id: 'no_pause', title: 'No pause', days: 10, points: 10, details: 'No pauses. +10 days.' },
-    { id: 'no_push', title: 'No push', days: 10, points: 10, details: 'No push. +10 days.' },
-    { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 10, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
+    { id: 'no_hit', title: 'No hit', days: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
+    { id: 'no_scream', title: 'No scream', days: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 days.' },
+    { id: 'no_cry', title: 'No cry', days: 1, points: 12.5, details: 'Crying is not allowed +1 days.' },
+    { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, points: 15, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
+    { id: 'no_fetn', title: 'No fetn', days: 25, points: 15, details: 'Don\'t make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 days.' },
+    { id: 'no_bother', title: 'No bother', days: 5, points: 12.5, details: 'Respect others. Don’t annoy them. +5 days.' },
+    { id: 'respect', title: 'You have to respect', days: 10, points: 12.5, details: 'Treat everyone kindly and with respect, always. +10 days.' },
+    { id: 'no_listen', title: 'No listen', days: 25, points: 15, details: 'You have to listen! If not, +25 days.' },
+    { id: 'play_zezo', title: 'Play with Zezo', days: 25, points: 15, details: 'You must play with Zezo. If not, +25 days.' },
+    { id: 'no_sad', title: 'No sad', days: 10, points: 12.5, details: 'Don’t be sad or +10 days.' },
+    { id: 'no_devices', title: 'No devices when u have days = 5 days', days: 5, points: 12.5, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
+    { id: 'no_copy', title: 'No copy', days: 25, points: 15, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
+    { id: 'no_angry', title: 'No angry', days: 5, points: 12.5, details: 'Don’t be mad +5 days.' },
+    { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
+    { id: 'no_lie', title: 'No lie', days: 25, points: 15, details: 'Do not lie, always tell the truth. +25 days.' },
+    { id: 'no_pause', title: 'No pause', days: 10, points: 12.5, details: 'No pauses. +10 days.' },
+    { id: 'no_push', title: 'No push', days: 10, points: 12.5, details: 'No push. +10 days.' },
+    { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
 ];
 
 
@@ -413,8 +412,8 @@ const shopItems = [
 { cost: 5550, days: 55 },
 { cost: 6550, days: 65 },
 { cost: 7550, days: 75 },
-{ cost: 9050, days: 85 },
-{ cost: 10550, days: 100 }
+{ cost: 9050, days: 85, points: 60},
+{ cost: 10550, days: 100, points: 75}
 
 ];
 
