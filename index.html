@@ -798,7 +798,7 @@ console.error("Audio play failed:", e);
 
 try {
 // Calculate the credit distribution
-const bankAmount = Math.floor(cost * 0.70); // 70% to 'bank'
+const bankAmount = Math.floor(cost * 0.90); // 70% to 'bank'
 const zezoAmount = cost - bankAmount; // Remaining 30% to 'zezo'
 
 const userRef = ref(db, `users/${currentUser}`);
@@ -1044,5 +1044,6 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
 </script>
 </body>
 </html>
+
 
 
