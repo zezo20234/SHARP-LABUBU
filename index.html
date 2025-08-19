@@ -8,7 +8,7 @@
 <style>
 /* --- Page base --- */
 :root{
-  --island-bg: #000;   /* Black by default */
+  --island-bg: #000;    /* Black by default */
   --island-text: #fff;
   --island-radius: 28px;
   --island-padding: 10px 14px;
@@ -179,7 +179,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 </div>
 <audio id="welcomeAudio" src="header-39344.mp3"></audio>
 
-<!-- DYNAMIC ISLAND -->
 <div id="dynamic-island" role="region" aria-label="User status island" title="Tap to open">
   <div class="island-display" id="islandDisplay">
     <div class="island-metric" data-type="days">
@@ -187,7 +186,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <span class="value" id="days-count">0</span>
     </div>
     <div class="island-metric" data-type="credits">
-      <!-- replaced text "LAZUZU" with coin image -->
       <span class="label"><img src="egpcoin.png" alt="coin" class="island-icon coin-icon"></span>
       <span class="value" id="credits-count">0</span>
     </div>
@@ -204,7 +202,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
   <span id="notifyDot" aria-hidden="true"></span>
 </div>
 
-<!-- SEAMLESS ISLAND MENU (position/size set by JS to match island) -->
 <div id="islandMenu" aria-hidden="true" role="dialog" aria-label="Island menu">
   <div class="menu-inner">
     <div class="menu-actions" role="tablist" aria-label="Island actions">
@@ -217,7 +214,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <button id="menuSendNotificationBtn">Send Notification</button>
     </div>
 
-    <!-- panels inside the island menu -->
     <div id="panelShop" class="menu-panel">
       <div class="panel-inner">
         <h4 style="margin:0 0 8px 0;">Days Shop (Spend <img src="egpcoin.png" alt="coin" class="coin-icon"> to remove days)</h4>
@@ -252,7 +248,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       </div>
     </div>
 
-    <!-- NOTIFICATIONS PANEL -->
     <div id="panelNotifications" class="menu-panel">
       <div class="panel-inner">
         <h4 style="margin:0 0 8px 0;">Your Notifications</h4>
@@ -260,7 +255,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       </div>
     </div>
 
-    <!-- SEND NOTIFICATION PANEL -->
     <div id="panelSendNotification" class="menu-panel">
       <div class="panel-inner">
         <h4 style="margin:0 0 8px 0;">Send Notification</h4>
@@ -274,7 +268,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       </div>
     </div>
 
-    <!-- customize palette -->
     <div id="panelCustomize" class="menu-panel">
       <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;">
         <div style="font-weight:700;">Choose island color</div>
@@ -293,7 +286,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
   </div>
 </div>
 
-<!-- LOGIN & REPORT (main page content) -->
 <div id="login-form">
 <h2>Login</h2>
 <input type="text" id="username" placeholder="Username" />
@@ -822,14 +814,6 @@ document.getElementById('reportForm').onsubmit = async e => {
       alert('Report submitted for manual approval. You will receive points upon approval.');
     }
 
-    // send summary to Discord webhook (optional)
-    try{
-      const webhookURL = 'https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL';
-      const brokenRules = selectedRules.map(r=>`- ${r.title} (x${r.qty}) = ${r.qty * r.daysPerOffense} days`).join('\n') || 'No rules specified.';
-      const message = `📢 **New Report Submitted**\n**Reporter:** ${currentUser}\n**Reported User:** ${reportedUser}\n**Broken Rules:**\n${brokenRules}\n**Total Days:** ${totalDays}`;
-      await fetch(webhookURL, { method:'POST', headers:{ 'Content-Type':'application/json'}, body: JSON.stringify({ content: message }) });
-    }catch(err){ console.error('Discord webhook failed', err); }
-
     document.getElementById('reportForm').reset(); renderRules(); updateTotalDays();
   }catch(error){ console.error('Error submitting report:', error); alert('Failed to submit report: ' + error.message); }
 }
@@ -869,6 +853,64 @@ document.getElementById('sendPointsBtn').addEventListener('click', ()=> sendPoin
 // expose logout to window (in case needed elsewhere)
 window.logout = logout;
 
+</script>
+<script>
+document.getElementById("reportForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // stop form refresh
+
+    const webhookURL = "https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL";
+    const reporter = document.getElementById("reporter").value.trim();
+    const reportedUser = document.getElementById("reportedUser").value.trim();
+   
+    // Get the total days penalty from the correct element (which is a div)
+    const totalDaysText = document.getElementById("total-days").textContent;
+    const totalDays = totalDaysText.match(/\d+/)[0] || "0";
+
+    // Create a list of the rules that were broken, including the penalty days and quantity
+    const brokenRules = [];
+    document.querySelectorAll('.rule-item').forEach(item => {
+        const qty = parseInt(item.querySelector('input').value) || 0;
+        if (qty > 0) {
+            const title = item.querySelector('strong').textContent;
+            const daysPer = parseInt(item.dataset.days);
+            brokenRules.push(`- ${title} (x${qty}) for ${qty * daysPer} days`);
+        }
+    });
+    const rulesList = brokenRules.join('\n') || "No rules specified.";
+
+
+    // Map reported users to Discord mentions
+    const mentionMap = {
+        "layan": "<@1367185737446985738>", // Replace with actual user IDs
+        "zezo": "<@1388958062500647064>", // Replace with actual user IDs
+        "asser": "<@1367187821542117558>" // Replace with actual user IDs
+    };
+
+    const mention = mentionMap[reportedUser.toLowerCase()] || "";
+
+    const message = `📢 **New Report Submitted**\n`
+                  + `**Reporter:** ${reporter}\n`
+                  + `**Reported User:** ${reportedUser} ${mention}\n`
+                  + `**Broken Rules:**\n${rulesList}\n`
+                  + `**Total Days:** ${totalDays}`;
+
+    fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message })
+    })
+    .then(res => {
+        if (res.ok) {
+            alert("Report sent successfully!");
+        } else {
+            alert("Failed to send report.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error sending report.");
+    });
+});
 </script>
 
 </body>
