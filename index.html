@@ -1,1 +1,737 @@
-<h1>THE LABUBU IS NOW BROKEN WAIT FOR REPAIR</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Login, Report, Shop & Credits Sender with Dynamic Island</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+<style>
+/* --- Page base --- */
+:root{
+  --island-bg: #000;   /* Black by default */
+  --island-text: #fff;
+  --island-radius: 28px;
+  --island-padding: 10px 14px;
+}
+body {
+  font-family: Arial, sans-serif;
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 10px;
+  background: linear-gradient(135deg, #f0f4f9, #d9e4f5);
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+@media (max-width: 700px) {
+  body { max-width: 100%; margin: 10px; padding: 10px 15px; }
+}
+
+h2, h3 { color: #2b4c7e; margin-bottom: 10px; }
+
+button, input, select { width: 100%; max-width: 100%; padding: 12px; margin-top: 6px; font-size: 1.1rem; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; touch-action: manipulation; }
+button { background: #2b4c7e; color: white; cursor: pointer; user-select: none; }
+button:hover { background: #1f3557; }
+
+/* --- Dynamic Island (top middle) --- */
+#dynamic-island {
+  position: fixed;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--island-bg);
+  color: var(--island-text);
+  padding: var(--island-padding);
+  border-radius: var(--island-radius);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  min-width: 180px;
+  max-width: 92vw;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer; /* clickable anywhere */
+  user-select: none;
+  transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease;
+}
+
+/* island content */
+.island-display { display:flex; align-items:center; gap:8px; min-width:160px; }
+.island-metric { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+.island-metric .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); }
+.island-metric .value { font-weight:700; font-size:1rem; color: var(--island-text); }
+.island-icon { width:1.3em; height:1.3em; display:inline-block; vertical-align:middle; }
+
+/* small menu button at right (visual only — whole island is clickable) */
+#islandMenuBtn { background: rgba(255,255,255,0.06); color: inherit; border: none; border-radius: 10px; padding: 6px 8px; cursor:pointer; }
+#islandMenuBtn:active { transform: scale(0.98); }
+
+/* --- Seamless expanding menu that looks like same island --- */
+#islandMenu {
+  position: fixed;
+  z-index: 99998;
+  background: var(--island-bg);
+  color: var(--island-text);
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.3);
+  transform-origin: top center;
+  overflow: hidden;
+  transition: transform 220ms ease, opacity 200ms ease, height 250ms ease, top 200ms ease, left 200ms ease;
+  opacity: 0;
+  transform: scaleY(0.95);
+  pointer-events: none;
+}
+
+/* when open, we apply this class via JS */
+#islandMenu.open { opacity: 1; transform: scaleY(1); pointer-events: auto; }
+
+/* menu inner layout */
+#islandMenu .menu-inner {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* top button row inside the menu (visually continuous with island) */
+.menu-actions { display:flex; gap:8px; }
+.menu-actions button {
+  flex:1;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--island-text);
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.menu-actions button.active { outline: 2px solid rgba(255,255,255,0.15); }
+
+/* content panels inside menu (shop, send, exchange, send points) */
+.menu-panel { display:none; background: transparent; color: var(--island-text); }
+.menu-panel.show { display:block; }
+
+/* panels inner controls (make them look like part of island) */
+.menu-panel .panel-inner {
+  margin-top: 8px;
+  background: rgba(255,255,255,0.02);
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.menu-panel label { color: var(--island-text); font-weight:600; display:block; margin-bottom:6px; }
+.menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
+.menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
+
+/* small note: ensure panels scroll if tall */
+#islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
+
+/* remove old user-info box styles by not using it anymore (kept for compatibility) */
+
+/* forms and containers (kept for page content outside island menu) */
+#login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+label { font-weight: bold; margin-top: 15px; display: block; }
+.rules-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #fafafa; }
+.rule-item { padding: 8px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease; display: flex; justify-content: space-between; align-items: center; }
+.rule-item:hover { background: #e6f0ff; }
+.rule-item.selected { background: #2b4c7e; color: white; }
+.rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
+.rule-qty { width: 50px; margin-left: 10px; font-size: 1rem; }
+
+/* event section */
+#eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+.event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
+
+/* palette black sw border */
+.palette .sw[data-color="black"] { border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 1px 2px rgba(0,0,0,0.5) inset; }
+
+/* small responsive tweaks */
+@media (max-width: 420px) {
+  .menu-actions { flex-wrap: wrap; }
+  .menu-actions button { font-size: 0.9rem; padding: 8px; }
+  #dynamic-island { padding: 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div id="welcomeOverlay">
+  <div id="welcomeText"></div>
+  <small>Click to continue</small>
+</div>
+<audio id="welcomeAudio" src="header-39344.mp3"></audio>
+
+<!-- DYNAMIC ISLAND -->
+<div id="dynamic-island" role="region" aria-label="User status island" title="Tap to open">
+  <div class="island-display" id="islandDisplay">
+    <div class="island-metric" data-type="days">
+      <span class="label">Days</span>
+      <span class="value" id="days-count">0</span>
+    </div>
+    <div class="island-metric" data-type="credits">
+      <span class="label">LAZUZU</span>
+      <img src="LAZUZU.jpg" alt="L" class="island-icon">
+      <span class="value" id="credits-count">0</span>
+    </div>
+    <div class="island-metric" data-type="points">
+      <span class="label">Points</span>
+      <span class="value" id="points-count">0</span>
+    </div>
+    <div class="island-metric" data-type="sig">
+      <span class="label">Signature</span>
+      <span class="value" id="sig-days-left">0</span>
+    </div>
+  </div>
+  <button id="islandMenuBtn" aria-hidden="true">≡</button>
+</div>
+
+<!-- SEAMLESS ISLAND MENU (position/size set by JS to match island) -->
+<div id="islandMenu" aria-hidden="true" role="dialog" aria-label="Island menu">
+  <div class="menu-inner">
+    <div class="menu-actions" role="tablist" aria-label="Island actions">
+      <button id="menuShopBtn">Shop</button>
+      <button id="menuSendCreditsBtn">Send LAZUZU</button>
+      <button id="menuExchangeBtn">Exchange</button>
+      <button id="menuSendPointsBtn">Send Points</button>
+      <button id="menuCustomizeBtn">Customize</button>
+    </div>
+
+    <!-- panels inside the island menu -->
+    <div id="panelShop" class="menu-panel">
+      <div class="panel-inner">
+        <h4 style="margin:0 0 8px 0;">Days Shop (Spend LAZUZU to remove days)</h4>
+        <div id="shopItems"></div>
+      </div>
+    </div>
+
+    <div id="panelSendCredits" class="menu-panel">
+      <div class="panel-inner">
+        <label>Send to:</label>
+        <select id="sendToUser"></select>
+        <label>Amount:</label>
+        <input type="number" id="sendAmount" min="1" />
+        <button id="sendBtn">Send LAZUZU</button>
+      </div>
+    </div>
+
+    <div id="panelExchange" class="menu-panel">
+      <div class="panel-inner">
+        <h4 style="margin:0 0 8px 0;">Points Exchange</h4>
+        <div id="pointsExchangeItems"></div>
+      </div>
+    </div>
+
+    <div id="panelSendPoints" class="menu-panel">
+      <div class="panel-inner">
+        <label>Send points to:</label>
+        <select id="sendPointsToUser"></select>
+        <label>Points amount:</label>
+        <input type="number" id="sendPointsAmount" min="1" />
+        <button id="sendPointsBtn">Send Points</button>
+      </div>
+    </div>
+
+    <!-- customize palette -->
+    <div id="panelCustomize" class="menu-panel">
+      <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-weight:700;">Choose island color</div>
+        <div class="palette" id="colorPalette" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <div class="sw" data-color="black" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#000,#000);cursor:pointer;"></div>
+          <div class="sw" data-color="red" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff4b4b,#c0392b);cursor:pointer;"></div>
+          <div class="sw" data-color="orange" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff8a00,#ff5e00);cursor:pointer;"></div>
+          <div class="sw" data-color="yellow" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ffd54a,#ffb300);cursor:pointer;"></div>
+          <div class="sw" data-color="purple" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#9b59b6,#6a2a89);cursor:pointer;"></div>
+          <div class="sw" data-color="pink" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff7eb6,#ff4d94);cursor:pointer;"></div>
+          <div class="sw" data-color="green" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#2ecc71,#27ae60);cursor:pointer;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LOGIN & REPORT (main page content) -->
+<div id="login-form">
+<h2>Login</h2>
+<input type="text" id="username" placeholder="Username" />
+<input type="password" id="password" placeholder="Password" />
+<label><input type="checkbox" id="keepSignedIn"> Keep me signed in</label>
+<button id="loginBtn">Login</button>
+</div>
+
+<div id="report-form" style="display:none;">
+<h2>Report Form</h2>
+<form id="reportForm">
+<label>Your Username</label>
+<input type="text" id="reporter" readonly />
+<label>Who is this report on?</label>
+<select id="reportedUser" required ></select>
+<label>Rules broken:</label>
+<div class="rules-list" id="rulesList"></div>
+<div id="total-days">Total Days Penalty: 0</div>
+<button type="submit" style="margin-top:20px;">Submit Report</button>
+</form>
+</div>
+
+<hr>
+<div id="eventsSection">
+<h2>Events</h2>
+<div id="eventsList">Loading events...</div>
+</div>
+
+<audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
+<audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
+
+<script type="module">
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// === FIREBASE CONFIG ===
+const firebaseConfig = {
+  apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+  authDomain: "sharplabubu.firebaseapp.com",
+  databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+  projectId: "sharplabubu",
+  storageBucket: "sharplabubu.firebasestorage.app",
+  messagingSenderId: "596148393481",
+  appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+  measurementId: "G-4M25R3BF08"
+};
+
+let app;
+try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
+const db = getDatabase(app);
+
+// === GLOBALS ===
+let currentUser = null, currentUserData = null;
+const daysSpan = document.getElementById("days-count");
+const creditsSpan = document.getElementById("credits-count");
+const pointsSpan = document.getElementById("points-count");
+const sigDaysLeftSpan = document.getElementById("sig-days-left");
+const reportedUserSelect = document.getElementById("reportedUser");
+const sendToUserSelect = document.getElementById("sendToUser");
+const sendPointsToUserSelect = document.getElementById("sendPointsToUser");
+const reporterInput = document.getElementById("reporter");
+const welcomeOverlay = document.getElementById("welcomeOverlay");
+const welcomeText = document.getElementById("welcomeText");
+const welcomeAudio = document.getElementById("welcomeAudio");
+
+// === DATA ARRAYS ===
+const rules = [
+  { id: 'no_hit', title: 'No hit', days: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
+  { id: 'no_scream', title: 'No scream', days: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 days.' },
+  { id: 'no_cry', title: 'No cry', days: 1, points: 12.5, details: 'Crying is not allowed +1 days.' },
+  { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, points: 15, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
+  { id: 'no_fetn', title: 'No fetn', days: 25, points: 15, details: "Don't make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 days." },
+  { id: 'no_bother', title: 'No bother', days: 5, points: 12.5, details: 'Respect others. Don’t annoy them. +5 days.' },
+  { id: 'respect', title: 'You have to respect', days: 10, points: 12.5, details: 'Treat everyone kindly and with respect, always. +10 days.' },
+  { id: 'no_listen', title: 'No listen', days: 25, points: 15, details: 'You have to listen! If not, +25 days.' },
+  { id: 'play_zezo', title: 'Play with Zezo', days: 25, points: 15, details: 'You must play with Zezo. If not, +25 days.' },
+  { id: 'no_sad', title: 'No sad', days: 10, points: 12.5, details: 'Don’t be sad or +10 days.' },
+  { id: 'no_devices', title: 'No devices when u have days = 5 days', days: 5, points: 12.5, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
+  { id: 'no_copy', title: 'No copy', days: 25, points: 15, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
+  { id: 'no_angry', title: 'No angry', days: 5, points: 12.5, details: 'Don’t be mad +5 days.' },
+  { id: 'no_askzezo', title: 'dont asks zezo', days: 15, points: 12.5, details: 'Don’t ask zezo about any events or discord all instructions are put +15 days.' },
+  { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
+  { id: 'no_lie', title: 'No lie', days: 25, points: 15, details: 'Do not lie, always tell the truth. +25 days.' },
+  { id: 'no_pause', title: 'No pause', days: 10, points: 12.5, details: 'No pauses. +10 days.' },
+  { id: 'no_pinch', title: 'No pinch', days: 15, points: 12.5, details: 'No pinch. +15 days.' },
+  { id: 'no_push', title: 'No push', days: 10, points: 12.5, details: 'No push. +10 days.' },
+  { id: 'no_scare', title: 'No scare', days: 10, points: 12.5, details: 'No scare. +10 days.' },
+  { id: 'no_dumb', title: 'No dumb', days: 15, points: 15, details: 'No dumb. +15 days.' },
+  { id: 'no_discord', title: 'no discord', days: 25, points: 12.5, details: 'if you dont see discord labubu messgaes +25 days.' },
+  { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
+];
+
+const shopItems = [ { cost:200, days:1 },{ cost:550, days:5 },{ cost:1550, days:15 },{ cost:2550, days:25 },{ cost:3550, days:35 },{ cost:4550, days:45 },{ cost:5550, days:55 },{ cost:6550, days:65 },{ cost:7550, days:75 },{ cost:9050, days:85, points:60},{ cost:10550, days:100, points:75} ];
+
+const pointsExchangeItems = [ { points:100, credits:500 },{ points:500, credits:5500 },{ points:1000, credits:12000 },{ points:2000, credits:24000 },{ points:3000, credits:37000 },{ points:4000, credits:50000 } ];
+
+// === RENDER RULES ===
+function renderRules() {
+  const container = document.getElementById('rulesList');
+  container.innerHTML = '';
+  rules.forEach((r,i)=>{
+    const div = document.createElement('div');
+    div.className = 'rule-item';
+    div.dataset.id = r.id; div.dataset.days = r.days; div.dataset.points = r.points;
+    const textContainer = document.createElement('div'); textContainer.style.flex = '1'; textContainer.innerHTML = `<strong>${r.title}</strong><div class="rule-details">${r.details}</div>`;
+    const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.min=0; qtyInput.value=0; qtyInput.className='rule-qty'; qtyInput.addEventListener('input', updateTotalDays);
+    div.appendChild(textContainer); div.appendChild(qtyInput);
+    div.addEventListener('click',(e)=>{ if(e.target.tagName.toLowerCase() !== 'input'){ div.classList.toggle('selected'); if(div.classList.contains('selected') && qtyInput.value==0) qtyInput.value = 1; else if(!div.classList.contains('selected')) qtyInput.value = 0; updateTotalDays(); } });
+    container.appendChild(div);
+    if(i < rules.length -1){ const hr = document.createElement('hr'); hr.style.margin='5px 0'; container.appendChild(hr); }
+  });
+}
+renderRules();
+
+function updateTotalDays(){ let total = 0; document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; const daysPer = parseInt(item.dataset.days); total += daysPer * qty; }); document.getElementById('total-days').textContent = `Total Days Penalty: ${total}`; }
+
+// === USERS DROPDOWNS ===
+async function loadUsersDropdowns(){
+  const snap = await get(ref(db, "users"));
+  if(snap.exists()){
+    reportedUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
+    sendToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
+    sendPointsToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
+    Object.keys(snap.val()).forEach(user=>{
+      reportedUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+      if(user !== currentUser) {
+        sendToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+        sendPointsToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+      }
+    });
+  }
+}
+
+// === LOGIN / LOGOUT ===
+async function login(username, password, keep, isAutoLogin = false){
+  const userRef = ref(db, `users/${username}`);
+  const snap = await get(userRef);
+  if(!snap.exists()) return alert("User not found");
+  const data = snap.val();
+  if(data.password !== password) return alert("Incorrect password");
+
+  currentUser = username; currentUserData = data;
+
+  const signature = data.signature || null; const expiry = signature?.expiry || 0;
+  if(!signature || expiry <= Date.now()){
+    await update(userRef, { days: 0, credits: 0, points: 0, signature: null, lastLogin: Date.now() });
+    alert("Your signature expired or not found. You need to create a new signature now.");
+    window.location.href = "signature.html?user=" + encodeURIComponent(username);
+    return;
+  }
+
+  const now = new Date(); const lastLogin = data.lastLogin || 0;
+  function getMidnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  const nowMidnight = getMidnight(now); const lastLoginMidnight = getMidnight(new Date(lastLogin));
+  const msPerDay = 1000*60*60*24; let daysPassed = 0;
+  if(lastLogin) daysPassed = Math.floor((nowMidnight - lastLoginMidnight) / msPerDay);
+  let updatedDays = (data.days || 0) - daysPassed; if(updatedDays < 0) updatedDays = 0;
+  const msLeft = expiry - Date.now(); const sigDaysLeft = Math.ceil(msLeft / msPerDay); const displayDaysLeft = sigDaysLeft > 0 ? sigDaysLeft : 0;
+
+  await update(userRef, { days: updatedDays, lastLogin: Date.now() });
+  currentUserData.days = updatedDays; currentUserData.lastLogin = Date.now();
+
+  if(!isAutoLogin){
+    welcomeText.textContent = `Welcome back, ${username}!`;
+    welcomeOverlay.style.display = "flex";
+    await new Promise(resolve=>{ function onClick(){ welcomeOverlay.removeEventListener('click', onClick); welcomeAudio.play(); welcomeOverlay.style.transition = 'opacity 0.7s ease'; welcomeOverlay.style.opacity = 0; setTimeout(()=>{ welcomeOverlay.style.display = 'none'; welcomeOverlay.style.opacity = 1; resolve(); },700); } welcomeOverlay.addEventListener('click', onClick); });
+  }
+
+  document.getElementById("login-form").style.display = "none";
+  document.getElementById("report-form").style.display = "block";
+  reporterInput.value = username;
+  daysSpan.textContent = updatedDays;
+  creditsSpan.textContent = data.credits || 0;
+  pointsSpan.textContent = data.points || 0;
+  sigDaysLeftSpan.textContent = displayDaysLeft;
+
+  await loadUsersDropdowns();
+}
+
+function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); }
+
+// === SHOP / POINTS RENDER (same ids used inside island menu) ===
+function renderShopItems(){ const shopContainer = document.getElementById('shopItems'); shopContainer.innerHTML = ''; shopItems.forEach(item=>{ shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} LAZUZU → Remove ${item.days} days</button><br>`; }); }
+renderShopItems();
+function renderPointsExchangeItems(){ const exchangeContainer = document.getElementById('pointsExchangeItems'); exchangeContainer.innerHTML = ''; pointsExchangeItems.forEach(item=>{ exchangeContainer.innerHTML += `<button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} LAZUZU</button><br>`; }); }
+renderPointsExchangeItems();
+
+// === ISLAND MENU BEHAVIOR (position & seamless open) ===
+const islandEl = document.getElementById('dynamic-island');
+const islandMenu = document.getElementById('islandMenu');
+
+// set initial position/size of islandMenu to match island; on open we animate width
+function positionIslandMenu(){
+  const rect = islandEl.getBoundingClientRect();
+
+  // compute an open width that's comfortable for phones and desktops
+  let maxAllowed = Math.min(window.innerWidth - 20, 520);
+  if(window.innerWidth <= 420) maxAllowed = Math.min(window.innerWidth - 20, 380);
+  const menuWidth = Math.max(Math.min(maxAllowed, 520), 320);
+
+  // center under island
+  const left = Math.round((window.innerWidth - menuWidth) / 2);
+  const top = Math.round(rect.bottom + 8);
+
+  islandMenu.style.left = `${left}px`;
+  islandMenu.style.top = `${top}px`;
+  islandMenu.style.width = `${menuWidth}px`;
+
+  // set corners to blend nicely
+  islandMenu.style.borderTopLeftRadius = `20px`;
+  islandMenu.style.borderTopRightRadius = `20px`;
+  islandMenu.style.borderBottomLeftRadius = `22px`;
+  islandMenu.style.borderBottomRightRadius = `22px`;
+
+  return menuWidth;
+}
+
+// open / close control
+let islandOpen = false;
+function openIslandMenu(){
+  // remember closed width so we can animate back
+  const rect = islandEl.getBoundingClientRect();
+  const closedWidth = rect.width;
+  islandEl.dataset.closedWidth = closedWidth;
+
+  const menuWidth = positionIslandMenu();
+
+  // expand island to match menu width (animated via CSS transition)
+  islandEl.style.width = `${menuWidth}px`;
+  // slightly reduce island top radius for seamless connection
+  islandEl.style.borderBottomLeftRadius = `14px`;
+  islandEl.style.borderBottomRightRadius = `14px`;
+
+  // apply same background to menu & island (CSS var handles gradients/solid)
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--island-bg');
+  islandEl.style.background = bg;
+  islandMenu.style.background = bg;
+
+  islandMenu.classList.add('open');
+  islandMenu.setAttribute('aria-hidden', 'false');
+  islandOpen = true;
+  // show default panel
+  showMenuPanel('panelShop', 'menuShopBtn');
+}
+
+function closeIslandMenu(){
+  islandMenu.classList.remove('open');
+  islandMenu.setAttribute('aria-hidden', 'true');
+  islandOpen = false;
+
+  // animate island back to closed width
+  const closedWidth = islandEl.dataset.closedWidth || '';
+  if(closedWidth){
+    islandEl.style.width = `${closedWidth}px`;
+    islandEl.style.borderBottomLeftRadius = '';
+    islandEl.style.borderBottomRightRadius = '';
+    // after transition end, remove inline width so it can be responsive again
+    const reset = () => { islandEl.style.width = ''; islandEl.removeEventListener('transitionend', reset); };
+    islandEl.addEventListener('transitionend', reset);
+    // fallback
+    setTimeout(()=>{ if(islandEl.style.width !== ''){ islandEl.style.width = ''; } }, 400);
+  }
+
+  // clear active buttons
+  document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
+}
+
+// toggle by clicking anywhere on island
+islandEl.addEventListener('click', (e)=>{
+  // do nothing if click came from islandMenu (when open)
+  if(islandOpen && islandMenu.contains(e.target)) return;
+  if(!islandOpen) openIslandMenu(); else closeIslandMenu();
+});
+
+// reposition on resize or scroll
+window.addEventListener('resize', ()=>{ if(islandOpen) positionIslandMenu(); });
+window.addEventListener('scroll', ()=>{ if(islandOpen) positionIslandMenu(); });
+
+// close when clicking outside
+document.addEventListener('click', (e)=>{
+  if(!islandEl.contains(e.target) && !islandMenu.contains(e.target)) closeIslandMenu();
+});
+
+// menu action buttons wiring
+function showMenuPanel(panelId, buttonId){
+  document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('show'));
+  const panel = document.getElementById(panelId);
+  if(panel) panel.classList.add('show');
+  document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
+  if(buttonId) document.getElementById(buttonId).classList.add('active');
+  // reposition after content change
+  positionIslandMenu();
+}
+
+document.getElementById('menuShopBtn').addEventListener('click', ()=> showMenuPanel('panelShop','menuShopBtn'));
+document.getElementById('menuSendCreditsBtn').addEventListener('click', ()=> showMenuPanel('panelSendCredits','menuSendCreditsBtn'));
+document.getElementById('menuExchangeBtn').addEventListener('click', ()=> showMenuPanel('panelExchange','menuExchangeBtn'));
+document.getElementById('menuSendPointsBtn').addEventListener('click', ()=> showMenuPanel('panelSendPoints','menuSendPointsBtn'));
+document.getElementById('menuCustomizeBtn').addEventListener('click', ()=> showMenuPanel('panelCustomize','menuCustomizeBtn'));
+
+// --- color palette inside island menu ---
+const colorPalette = document.getElementById('colorPalette');
+colorPalette.querySelectorAll('.sw').forEach(sw=>{
+  sw.addEventListener('click', ()=>{
+    const c = sw.dataset.color;
+    applyIslandColor(c);
+    localStorage.setItem('islandColor', c);
+  });
+});
+
+// applyIslandColor uses same var as before (works for gradients or solid)
+function applyIslandColor(name){
+  let css = '';
+  switch(name){
+    case 'black': css = '#000'; break;
+    case 'red': css = 'linear-gradient(90deg,#ff4b4b,#c0392b)'; break;
+    case 'orange': css = 'linear-gradient(90deg,#ff8a00,#ff5e00)'; break;
+    case 'yellow': css = 'linear-gradient(90deg,#ffd54a,#ffb300)'; break;
+    case 'purple': css = 'linear-gradient(90deg,#9b59b6,#6a2a89)'; break;
+    case 'pink': css = 'linear-gradient(90deg,#ff7eb6,#ff4d94)'; break;
+    case 'green': css = 'linear-gradient(90deg,#2ecc71,#27ae60)'; break;
+    default: css = '#000';
+  }
+  document.documentElement.style.setProperty('--island-bg', css);
+  islandEl.style.background = css;
+  islandMenu.style.background = css;
+}
+const savedColor = localStorage.getItem('islandColor'); if(savedColor) applyIslandColor(savedColor);
+
+// === PANEL TOGGLING (used by island menu) ===
+function hideAllPanels(){ document.querySelectorAll('.menu-panel').forEach(el => el.classList.remove('show')); }
+window.togglePanel = (id) => { const el = document.getElementById(id); if(!el) return; el.classList.toggle('show'); }
+
+// === BUY / EXCHANGE / SEND FUNCTIONS ===
+async function buyItem(cost, daysToRemove){ if(!currentUser) return alert('Please login first.'); if((currentUserData.credits||0) < cost) return alert('Not enough credits.'); if((currentUserData.days||0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
+  try{ const applePayAudio = document.getElementById('applePayAudio'); try{ await applePayAudio.play(); }catch(e){}
+    const bankAmount = Math.floor(cost * 0.90); const zezoAmount = cost - bankAmount;
+    const userRef = ref(db, `users/${currentUser}`); const bankRef = ref(db, `users/bank`); const zezoRef = ref(db, `users/zezo`);
+    const [bankSnap,zezoSnap] = await Promise.all([ get(bankRef), get(zezoRef) ]);
+    const bankData = bankSnap.exists()?bankSnap.val():{credits:0}; const zezoData = zezoSnap.exists()?zezoSnap.val():{credits:0};
+    const updates = {};
+    updates[`users/${currentUser}/credits`] = (currentUserData.credits||0) - cost;
+    updates[`users/${currentUser}/days`] = (currentUserData.days||0) - daysToRemove;
+    updates[`users/bank/credits`] = (bankData.credits||0) + bankAmount;
+    updates[`users/zezo/credits`] = (zezoData.credits||0) + zezoAmount;
+    await update(ref(db), updates);
+    currentUserData.credits -= cost; currentUserData.days -= daysToRemove; creditsSpan.textContent = currentUserData.credits; daysSpan.textContent = currentUserData.days;
+    alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days. 90% went to Bank and remainder to Zezo.`);
+  }catch(err){ console.error(err); alert('Failed to complete purchase: '+err.message); }
+}
+window.buyItem = buyItem;
+
+async function exchangePoints(pointsToExchange, creditsToReceive){ if(!currentUser) return alert('Please login first.'); if((currentUserData.points||0) < pointsToExchange) return alert('Not enough points to make this exchange.');
+  const newPoints = (currentUserData.points||0) - pointsToExchange; const newCredits = (currentUserData.credits||0) + creditsToReceive;
+  try{ const userRef = ref(db, `users/${currentUser}`); await update(userRef, { points: newPoints, credits: newCredits }); currentUserData.points = newPoints; currentUserData.credits = newCredits; pointsSpan.textContent = currentUserData.points; creditsSpan.textContent = currentUserData.credits; alert(`Exchanged ${pointsToExchange} points for ${creditsToReceive} credits!`); }catch(err){ console.error(err); alert('Failed to complete exchange.'); }
+}
+window.exchangePoints = exchangePoints;
+
+async function sendCredits(){ if(!currentUser) return alert('Please login first.'); const toUser = sendToUserSelect.value; const amount = parseInt(document.getElementById('sendAmount').value); if(!toUser) return alert('Select a user to send credits to.'); if(!amount || amount<=0) return alert('Enter a valid amount.'); if((currentUserData.credits||0) < amount) return alert('Not enough credits.');
+  const senderRef = ref(db, `users/${currentUser}`); const receiverRef = ref(db, `users/${toUser}`);
+  try{ const receiverSnap = await get(receiverRef); if(!receiverSnap.exists()) return alert('Receiver user not found.'); const receiverCredits = receiverSnap.val().credits||0; const updates = {};
+    updates[`users/${currentUser}/credits`] = (currentUserData.credits||0) - amount;
+    updates[`users/${toUser}/credits`] = receiverCredits + amount;
+    await update(ref(db), updates);
+    currentUserData.credits -= amount; creditsSpan.textContent = currentUserData.credits; alert(`Sent ${amount} credits to ${toUser}.`);
+  }catch(err){ console.error(err); alert('Failed to send credits.'); }
+}
+window.sendCredits = sendCredits;
+
+// === SEND POINTS FUNCTIONALITY ===
+async function sendPoints(){ if(!currentUser) return alert('Please login first.'); const toUser = sendPointsToUserSelect.value; const amount = parseInt(document.getElementById('sendPointsAmount').value); if(!toUser) return alert('Select a user to send points to.'); if(!amount || amount<=0) return alert('Enter a valid amount.'); if((currentUserData.points||0) < amount) return alert('Not enough points.');
+  const senderRef = ref(db, `users/${currentUser}`); const receiverRef = ref(db, `users/${toUser}`);
+  try{
+    const receiverSnap = await get(receiverRef); if(!receiverSnap.exists()) return alert('Receiver user not found.');
+    const receiverPoints = receiverSnap.val().points||0;
+    const updates = {};
+    updates[`users/${currentUser}/points`] = (currentUserData.points||0) - amount;
+    updates[`users/${toUser}/points`] = receiverPoints + amount;
+    await update(ref(db), updates);
+    currentUserData.points -= amount; pointsSpan.textContent = currentUserData.points; alert(`Sent ${amount} points to ${toUser}.`);
+  }catch(err){ console.error(err); alert('Failed to send points.'); }
+}
+window.sendPoints = sendPoints;
+
+// === EVENTS SECTION ===
+function formatCountdown(msLeft){ if(msLeft <= 0) return 'Expired'; const totalSeconds = Math.floor(msLeft/1000); const days = Math.floor(totalSeconds/(24*3600)); const hours = Math.floor((totalSeconds%(24*3600))/3600); const minutes = Math.floor((totalSeconds%3600)/60); const seconds = totalSeconds%60; let parts = []; if(days>0) parts.push(`${days}d`); if(hours>0||days>0) parts.push(`${hours}h`); if(minutes>0||hours>0||days>0) parts.push(`${minutes}m`); parts.push(`${seconds}s`); return parts.join(' '); }
+const eventsRef = ref(db, 'events');
+function renderEvents(events){ const eventsListEl = document.getElementById('eventsList'); eventsListEl.innerHTML = ''; const now = Date.now(); let hasEvents = false; Object.entries(events||{}).forEach(([eventId,ev])=>{
+  if(!ev.endTime || now > ev.endTime){ remove(ref(db, `events/${eventId}`)); return; }
+  hasEvents = true;
+  const div = document.createElement('div'); div.className = 'event-item';
+  const titleEl = document.createElement('h4'); titleEl.textContent = ev.title; div.appendChild(titleEl);
+  const detailsEl = document.createElement('p'); detailsEl.textContent = ev.description; div.appendChild(detailsEl);
+  const countdownEl = document.createElement('p'); countdownEl.className = 'countdown'; div.appendChild(countdownEl);
+  function updateCountdown(){ const msLeft = ev.endTime - Date.now(); if(msLeft <= 0){ countdownEl.textContent = 'Time left: Expired'; remove(ref(db, `events/${eventId}`)); return; } countdownEl.textContent = `Time left: ${formatCountdown(msLeft)}`; }
+  updateCountdown(); setInterval(updateCountdown,1000);
+  eventsListEl.appendChild(div);
+});
+if(!hasEvents) eventsListEl.textContent = 'No active events at this time.'; }
+onValue(eventsRef, (snapshot)=>{ renderEvents(snapshot.val()); });
+
+// === REPORT SUBMIT (merged with Discord webhook) ===
+document.getElementById('reportForm').onsubmit = async e => {
+  e.preventDefault(); if(!currentUser) return alert('Please login first.'); const reportedUser = reportedUserSelect.value; if(!reportedUser) return alert('Please select the user you want to report.');
+  const selectedRules = []; let totalDays = 0; let totalPoints = 0;
+  document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; if(qty>0){ const daysPer = parseInt(item.dataset.days); const pointsPer = parseInt(item.dataset.points); selectedRules.push({ id: item.dataset.id, title: item.querySelector('strong').textContent, qty, daysPerOffense: daysPer, pointsPerOffense: pointsPer }); totalDays += daysPer * qty; totalPoints += pointsPer * qty; } });
+  if(selectedRules.length === 0) return alert('Please select at least one rule broken.');
+  const report = { reporter: currentUser, reportedUser, rules: selectedRules, totalDays, totalPoints, timestamp: Date.now() };
+
+  try{
+    const autoAcceptSnap = await get(ref(db, 'settings/autoAcceptReports'));
+    const autoAccept = autoAcceptSnap.exists() && autoAcceptSnap.val() === true;
+
+    if(autoAccept){
+      const reportedUserRef = ref(db, `users/${reportedUser}`);
+      const reporterUserRef = ref(db, `users/${currentUser}`);
+      const [reportedUserSnap, reporterUserSnap] = await Promise.all([ get(reportedUserRef), get(reporterUserRef) ]);
+      const reportedUserData = reportedUserSnap.val(); const reporterUserData = reporterUserSnap.val();
+      const newReportedDays = (Number(reportedUserData.days||0) + Number(totalDays));
+      const newReporterPoints = (Number(reporterUserData.points||0) + Number(totalPoints));
+      const updates = {};
+      updates[`users/${reportedUser}/days`] = newReportedDays;
+      updates[`users/${currentUser}/points`] = newReporterPoints;
+      await update(ref(db), updates);
+      currentUserData.points = newReporterPoints; pointsSpan.textContent = currentUserData.points;
+      alert(`Report auto accepted: ${totalDays} days added to ${reportedUser}, and you received ${totalPoints} points.`);
+    } else {
+      const newReportRef = push(ref(db, 'reports'));
+      await update(newReportRef, report);
+      alert('Report submitted for manual approval. You will receive points upon approval.');
+    }
+
+    // send summary to Discord webhook (optional)
+    try{
+      const webhookURL = 'https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL';
+      const brokenRules = selectedRules.map(r=>`- ${r.title} (x${r.qty}) = ${r.qty * r.daysPerOffense} days`).join('\n') || 'No rules specified.';
+      const message = `📢 **New Report Submitted**\n**Reporter:** ${currentUser}\n**Reported User:** ${reportedUser}\n**Broken Rules:**\n${brokenRules}\n**Total Days:** ${totalDays}`;
+      await fetch(webhookURL, { method:'POST', headers:{ 'Content-Type':'application/json'}, body: JSON.stringify({ content: message }) });
+    }catch(err){ console.error('Discord webhook failed', err); }
+
+    document.getElementById('reportForm').reset(); renderRules(); updateTotalDays();
+  }catch(error){ console.error('Error submitting report:', error); alert('Failed to submit report: ' + error.message); }
+}
+
+// --- DYNAMIC ISLAND ROTATION (still rotates metrics every 5s) ---
+const metrics = ['days','credits','points','sig'];
+let metricIndex = 0;
+const islandDisplay = document.getElementById('islandDisplay');
+function showMetric(index){ 
+  const items = islandDisplay.querySelectorAll('.island-metric');
+  items.forEach(it=> it.style.display = 'none');
+  const m = items[index % items.length]; if(m) m.style.display = 'flex';
+}
+showMetric(metricIndex);
+setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 5000);
+
+// === AUTO LOGIN ON PAGE LOAD & button wiring ===
+window.addEventListener('load', ()=>{
+  let saved = localStorage.getItem('loginData') || sessionStorage.getItem('loginData');
+  if(saved){ try{ const { username, password } = JSON.parse(saved); login(username, password, true, true); }catch(e){ console.error('Failed to parse saved login:', e); } }
+});
+
+// wire login button
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const keep = document.getElementById('keepSignedIn').checked;
+  if(!u||!p) return alert('Enter username and password');
+  if(keep) localStorage.setItem('loginData', JSON.stringify({ username: u, password: p })); else sessionStorage.setItem('loginData', JSON.stringify({ username: u, password: p }));
+  await login(u,p,keep,false);
+});
+
+// wire send credits/points buttons
+document.getElementById('sendBtn').addEventListener('click', ()=> sendCredits());
+document.getElementById('sendPointsBtn').addEventListener('click', ()=> sendPoints());
+
+// expose logout to window (in case needed elsewhere)
+window.logout = logout;
+
+</script>
+
+</body>
+</html>
