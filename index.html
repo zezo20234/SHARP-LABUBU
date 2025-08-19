@@ -380,11 +380,10 @@ const rules = [
   { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
 ];
 
-const shopItems = [ { cost:200, days:1 },{ cost:550, days:5 },{ cost:1550, days:15 },{ cost:2550, days:25 },{ cost:3550, days:35 },{ cost:4550, days:45 },{ cost:5550, days:55 },{ cost:6550, days:65 },{ cost:7550, days:75 },{ cost:9050, days:85, points:60},{ cost:10550, days:100, points:75} ];
+const shopItems = [{cost:100,days:1},{cost:450,days:5},{cost:1450,days:15},{cost:2450,days:25},{cost:3450,days:35},{cost:4450,days:45},{cost:5450,days:55},{cost:6450,days:65},{cost:7450,days:75},{cost:8950,days:85,points:60},{cost:10450,days:100,points:75}];
 
-const pointsExchangeItems = [ { points:100, credits:500 },{ points:500, credits:5500 },{ points:1000, credits:12000 },{ points:2000, credits:24000 },{ points:3000, credits:37000 },{ points:4000, credits:50000 } ];
+const pointsExchangeItems = [{points:100,credits:500},{points:300,credits:2000},{points:500,credits:5500},{points:1000,credits:12000},{points:2000,credits:24000},{points:3000,credits:37000},{points:4000,credits:50000}];
 
-// === RENDER RULES ===
 function renderRules() {
   const container = document.getElementById('rulesList');
   container.innerHTML = '';
