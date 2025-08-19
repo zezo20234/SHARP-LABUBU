@@ -33,6 +33,17 @@ button, input, select { width: 100%; max-width: 100%; padding: 12px; margin-top:
 button { background: #2b4c7e; color: white; cursor: pointer; user-select: none; }
 button:hover { background: #1f3557; }
 
+/* --- ICON / COIN SIZING (SLIGHTLY BIGGER) --- */
+/* Targets img elements that end with egpcoin.png and coin classes */
+img[src$="egpcoin.png"], .coin-icon, .island-icon {
+  width: 25px !important;
+  height: 25px !important;
+  vertical-align: middle;
+}
+
+/* coin-icon fallback (used inline) */
+.coin-icon { display: inline-block; }
+
 /* --- Dynamic Island (top middle) --- */
 #dynamic-island {
   position: fixed;
@@ -52,7 +63,7 @@ button:hover { background: #1f3557; }
   max-width: 92vw;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  cursor: pointer; /* clickable anywhere */
+  cursor: pointer;
   user-select: none;
   transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease;
 }
@@ -62,7 +73,7 @@ button:hover { background: #1f3557; }
 .island-metric { display:flex; align-items:center; gap:8px; white-space:nowrap; }
 .island-metric .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); }
 .island-metric .value { font-weight:700; font-size:1rem; color: var(--island-text); }
-.island-icon { width:1.3em; height:1.3em; display:inline-block; vertical-align:middle; }
+.island-icon { display:inline-block; vertical-align:middle; }
 
 /* small menu button at right (visual only — whole island is clickable) */
 #islandMenuBtn { background: rgba(255,255,255,0.06); color: inherit; border: none; border-radius: 10px; padding: 6px 8px; cursor:pointer; }
@@ -127,8 +138,6 @@ button:hover { background: #1f3557; }
 /* small note: ensure panels scroll if tall */
 #islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
 
-/* remove old user-info box styles by not using it anymore (kept for compatibility) */
-
 /* forms and containers (kept for page content outside island menu) */
 #login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 label { font-weight: bold; margin-top: 15px; display: block; }
@@ -156,9 +165,9 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 </head>
 <body>
 
-<div id="welcomeOverlay">
-  <div id="welcomeText"></div>
-  <small>Click to continue</small>
+<div id="welcomeOverlay" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100000;">
+  <div id="welcomeText" style="color:white; font-weight:700; font-size:1.2rem;"></div>
+  <small style="color:white; display:block; margin-top:8px;">Click to continue</small>
 </div>
 <audio id="welcomeAudio" src="header-39344.mp3"></audio>
 
@@ -170,8 +179,8 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <span class="value" id="days-count">0</span>
     </div>
     <div class="island-metric" data-type="credits">
-      <span class="label">LAZUZU</span>
-      <img src="LAZUZU.jpg" alt="L" class="island-icon">
+      <!-- replaced text "LAZUZU" with coin image -->
+      <span class="label"><img src="egpcoin.png" alt="coin" class="island-icon coin-icon"></span>
       <span class="value" id="credits-count">0</span>
     </div>
     <div class="island-metric" data-type="points">
@@ -191,7 +200,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
   <div class="menu-inner">
     <div class="menu-actions" role="tablist" aria-label="Island actions">
       <button id="menuShopBtn">Shop</button>
-      <button id="menuSendCreditsBtn">Send LAZUZU</button>
+      <button id="menuSendCreditsBtn">Send <img src="egpcoin.png" alt="coin" class="coin-icon"></button>
       <button id="menuExchangeBtn">Exchange</button>
       <button id="menuSendPointsBtn">Send Points</button>
       <button id="menuCustomizeBtn">Customize</button>
@@ -200,7 +209,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
     <!-- panels inside the island menu -->
     <div id="panelShop" class="menu-panel">
       <div class="panel-inner">
-        <h4 style="margin:0 0 8px 0;">Days Shop (Spend LAZUZU to remove days)</h4>
+        <h4 style="margin:0 0 8px 0;">Days Shop (Spend <img src="egpcoin.png" alt="coin" class="coin-icon"> to remove days)</h4>
         <div id="shopItems"></div>
       </div>
     </div>
@@ -211,7 +220,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
         <select id="sendToUser"></select>
         <label>Amount:</label>
         <input type="number" id="sendAmount" min="1" />
-        <button id="sendBtn">Send LAZUZU</button>
+        <button id="sendBtn">Send <img src="egpcoin.png" alt="coin" class="coin-icon"></button>
       </div>
     </div>
 
@@ -434,9 +443,22 @@ async function login(username, password, keep, isAutoLogin = false){
 function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); }
 
 // === SHOP / POINTS RENDER (same ids used inside island menu) ===
-function renderShopItems(){ const shopContainer = document.getElementById('shopItems'); shopContainer.innerHTML = ''; shopItems.forEach(item=>{ shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} LAZUZU → Remove ${item.days} days</button><br>`; }); }
+function renderShopItems(){
+  const shopContainer = document.getElementById('shopItems');
+  shopContainer.innerHTML = '';
+  shopItems.forEach(item=>{
+    shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} <img src="egpcoin.png" class="coin-icon" alt="coin"> → Remove ${item.days} days</button><br>`;
+  });
+}
 renderShopItems();
-function renderPointsExchangeItems(){ const exchangeContainer = document.getElementById('pointsExchangeItems'); exchangeContainer.innerHTML = ''; pointsExchangeItems.forEach(item=>{ exchangeContainer.innerHTML += `<button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} LAZUZU</button><br>`; }); }
+
+function renderPointsExchangeItems(){
+  const exchangeContainer = document.getElementById('pointsExchangeItems');
+  exchangeContainer.innerHTML = '';
+  pointsExchangeItems.forEach(item=>{
+    exchangeContainer.innerHTML += `<button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} <img src="egpcoin.png" class="coin-icon" alt="coin"></button><br>`;
+  });
+}
 renderPointsExchangeItems();
 
 // === ISLAND MENU BEHAVIOR (position & seamless open) ===
