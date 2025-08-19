@@ -6,6 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
 <style>
+  /* local time + welcome styling */
+.island-time .label,
+.island-welcome .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); margin-right:6px; }
+.island-time .value,
+.island-welcome .value { font-weight:700; font-size:1rem; color: var(--island-text); min-width:70px; text-align:right; }
+
+/* subtle show/hide transition for the welcome */
+#islandWelcome { transition: opacity 220ms ease, transform 220ms cubic-bezier(.2,.9,.3,1); }
+#islandWelcome.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+
 /* --- Page base --- */
 :root{
   --island-bg: #000;    /* Black by default */
@@ -181,6 +191,11 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
 <div id="dynamic-island" role="region" aria-label="User status island" title="Tap to open">
   <div class="island-display" id="islandDisplay">
+  
+    <div id="islandTime" class="island-metric island-time" aria-hidden="false">
+  <span class="label">Local time</span>
+  <span class="value" id="islandLocalTime">--:--:--</span>
+</div>
     <div class="island-metric" data-type="days">
       <span class="label">Days</span>
       <span class="value" id="days-count">0</span>
@@ -353,6 +368,48 @@ const welcomeOverlay = document.getElementById("welcomeOverlay");
 const welcomeText = document.getElementById("welcomeText");
 const welcomeAudio = document.getElementById("welcomeAudio");
 const notifyDot = document.getElementById('notifyDot');
+
+// ------------------- island clock + one-time welcome -------------------
+const islandLocalTimeEl = document.getElementById('islandLocalTime');
+const islandWelcomeEl = document.getElementById('islandWelcome');
+const islandUserNameEl = document.getElementById('islandUserName');
+
+let _islandClockInterval = null;
+
+function startIslandClock() {
+  function render() {
+    const now = new Date();
+    // shows user-local time and format (12h/24h per browser/locale)
+    islandLocalTimeEl.textContent = now.toLocaleTimeString();
+  }
+  render();
+  if (_islandClockInterval) clearInterval(_islandClockInterval);
+  _islandClockInterval = setInterval(render, 1000);
+}
+function stopIslandClock() { if (_islandClockInterval) { clearInterval(_islandClockInterval); _islandClockInterval = null; } }
+
+/**
+ * Show a single welcome message only when called (e.g., right after a successful login).
+ * Does NOT run automatically on page load — CALL THIS from your login success handler.
+ * name: string (username)
+ * durationMs: how long to show welcome (default 6s)
+ */
+function showWelcomeOnce(name, durationMs = 6000) {
+  if (!name) return;
+  islandUserNameEl.textContent = name;
+  islandWelcomeEl.hidden = false;
+  islandWelcomeEl.classList.remove('hidden');
+
+  // hide after duration
+  setTimeout(() => {
+    islandWelcomeEl.classList.add('hidden');
+    // after transition completes keep it hidden for a11y
+    setTimeout(() => islandWelcomeEl.hidden = true, 240);
+  }, durationMs);
+}
+
+// start the clock right away
+startIslandClock();
 
 // === DATA ARRAYS ===
 const rules = [
