@@ -885,7 +885,7 @@ function showMetric(index){
   const m = items[index % items.length]; if(m) m.style.display = 'flex';
 }
 showMetric(metricIndex);
-setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 5000);
+setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 1000);
 
 // === AUTO LOGIN ON PAGE LOAD & button wiring ===
 window.addEventListener('load', ()=>{
