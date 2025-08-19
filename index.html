@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Login, Report, Shop & Credits Sender with Dynamic Island</title>
+<title>Login, Report, Shop & Credits Sender with Dynamic Island + Notifications</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
 <style>
@@ -34,7 +34,6 @@ button { background: #2b4c7e; color: white; cursor: pointer; user-select: none; 
 button:hover { background: #1f3557; }
 
 /* --- ICON / COIN SIZING (SLIGHTLY BIGGER) --- */
-/* Targets img elements that end with egpcoin.png and coin classes */
 img[src$="egpcoin.png"], .coin-icon, .island-icon {
   width: 25px !important;
   height: 25px !important;
@@ -67,6 +66,11 @@ img[src$="egpcoin.png"], .coin-icon, .island-icon {
   user-select: none;
   transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease;
 }
+
+/* small red blinking dot on the right when unread notifications */
+#notifyDot { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius:50%; background: transparent; box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; }
+#notifyDot.active { background: red; box-shadow: 0 0 10px rgba(255,0,0,0.9); animation: notify-blink 1.6s infinite; }
+@keyframes notify-blink { 0% { opacity: 1; } 50% { opacity: 0.35; } 100% { opacity: 1; } }
 
 /* island content */
 .island-display { display:flex; align-items:center; gap:8px; min-width:160px; }
@@ -135,6 +139,13 @@ img[src$="egpcoin.png"], .coin-icon, .island-icon {
 .menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
 .menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
 
+/* notification list */
+.notification-item { padding: 8px; border-radius:8px; margin-bottom:8px; background: rgba(255,255,255,0.03); border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
+.notification-item.unread { border-left: 4px solid #ff4b4b; }
+.notification-meta { font-size:0.85rem; opacity:0.85; margin-top:6px; }
+.notification-actions { display:flex; gap:8px; margin-top:8px; }
+.notification-actions button { flex:0 0 auto; padding:8px 10px; }
+
 /* small note: ensure panels scroll if tall */
 #islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
 
@@ -151,9 +162,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 /* event section */
 #eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 .event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
-
-/* palette black sw border */
-.palette .sw[data-color="black"] { border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 1px 2px rgba(0,0,0,0.5) inset; }
 
 /* small responsive tweaks */
 @media (max-width: 420px) {
@@ -193,6 +201,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
     </div>
   </div>
   <button id="islandMenuBtn" aria-hidden="true">≡</button>
+  <span id="notifyDot" aria-hidden="true"></span>
 </div>
 
 <!-- SEAMLESS ISLAND MENU (position/size set by JS to match island) -->
@@ -204,6 +213,8 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <button id="menuExchangeBtn">Exchange</button>
       <button id="menuSendPointsBtn">Send Points</button>
       <button id="menuCustomizeBtn">Customize</button>
+      <button id="menuNotificationsBtn">Notifications</button>
+      <button id="menuSendNotificationBtn">Send Notification</button>
     </div>
 
     <!-- panels inside the island menu -->
@@ -238,6 +249,28 @@ label { font-weight: bold; margin-top: 15px; display: block; }
         <label>Points amount:</label>
         <input type="number" id="sendPointsAmount" min="1" />
         <button id="sendPointsBtn">Send Points</button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS PANEL -->
+    <div id="panelNotifications" class="menu-panel">
+      <div class="panel-inner">
+        <h4 style="margin:0 0 8px 0;">Your Notifications</h4>
+        <div id="notificationsList">No notifications.</div>
+      </div>
+    </div>
+
+    <!-- SEND NOTIFICATION PANEL -->
+    <div id="panelSendNotification" class="menu-panel">
+      <div class="panel-inner">
+        <h4 style="margin:0 0 8px 0;">Send Notification</h4>
+        <label>To:</label>
+        <select id="notifyToUser"><option disabled selected>Select user</option></select>
+        <label>Title</label>
+        <input id="notifyTitle" placeholder="Short title" />
+        <label>Description</label>
+        <input id="notifyDescription" placeholder="Longer description" />
+        <button id="sendNotificationBtn">Send Notification</button>
       </div>
     </div>
 
@@ -321,10 +354,12 @@ const sigDaysLeftSpan = document.getElementById("sig-days-left");
 const reportedUserSelect = document.getElementById("reportedUser");
 const sendToUserSelect = document.getElementById("sendToUser");
 const sendPointsToUserSelect = document.getElementById("sendPointsToUser");
+const notifyToUserSelect = document.getElementById("notifyToUser");
 const reporterInput = document.getElementById("reporter");
 const welcomeOverlay = document.getElementById("welcomeOverlay");
 const welcomeText = document.getElementById("welcomeText");
 const welcomeAudio = document.getElementById("welcomeAudio");
+const notifyDot = document.getElementById('notifyDot');
 
 // === DATA ARRAYS ===
 const rules = [
@@ -384,11 +419,13 @@ async function loadUsersDropdowns(){
     reportedUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
     sendToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
     sendPointsToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
+    notifyToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
     Object.keys(snap.val()).forEach(user=>{
       reportedUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
       if(user !== currentUser) {
         sendToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
         sendPointsToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+        notifyToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
       }
     });
   }
@@ -438,9 +475,12 @@ async function login(username, password, keep, isAutoLogin = false){
   sigDaysLeftSpan.textContent = displayDaysLeft;
 
   await loadUsersDropdowns();
+
+  // start listening to notifications for this user
+  listenToNotifications();
 }
 
-function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); }
+function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); updateNotifyDot(0); }
 
 // === SHOP / POINTS RENDER (same ids used inside island menu) ===
 function renderShopItems(){
@@ -573,6 +613,8 @@ document.getElementById('menuSendCreditsBtn').addEventListener('click', ()=> sho
 document.getElementById('menuExchangeBtn').addEventListener('click', ()=> showMenuPanel('panelExchange','menuExchangeBtn'));
 document.getElementById('menuSendPointsBtn').addEventListener('click', ()=> showMenuPanel('panelSendPoints','menuSendPointsBtn'));
 document.getElementById('menuCustomizeBtn').addEventListener('click', ()=> showMenuPanel('panelCustomize','menuCustomizeBtn'));
+document.getElementById('menuNotificationsBtn').addEventListener('click', ()=> showMenuPanel('panelNotifications','menuNotificationsBtn'));
+document.getElementById('menuSendNotificationBtn').addEventListener('click', ()=> showMenuPanel('panelSendNotification','menuSendNotificationBtn'));
 
 // --- color palette inside island menu ---
 const colorPalette = document.getElementById('colorPalette');
@@ -657,6 +699,80 @@ async function sendPoints(){ if(!currentUser) return alert('Please login first.'
   }catch(err){ console.error(err); alert('Failed to send points.'); }
 }
 window.sendPoints = sendPoints;
+
+// === NOTIFICATIONS ===
+// notifications stored under 'notifications' with structure:
+// { from, to, title, description, timestamp, read }
+
+async function sendNotification(){
+  if(!currentUser) return alert('Please login first.');
+  const to = notifyToUserSelect.value; const title = document.getElementById('notifyTitle').value.trim(); const description = document.getElementById('notifyDescription').value.trim();
+  if(!to) return alert('Select a recipient'); if(!title) return alert('Enter a title');
+  const nref = push(ref(db, 'notifications'));
+  const notif = { from: currentUser, to, title, description, timestamp: Date.now(), read: false };
+  try{ await update(nref, notif); document.getElementById('notifyTitle').value=''; document.getElementById('notifyDescription').value=''; alert('Notification sent'); }catch(err){ console.error(err); alert('Failed to send notification'); }
+}
+
+document.getElementById('sendNotificationBtn').addEventListener('click', sendNotification);
+
+let notificationsCache = {}; // local cache keyed by id
+
+function listenToNotifications(){
+  const notificationsRef = ref(db, 'notifications');
+  onValue(notificationsRef, (snap)=>{
+    const all = snap.exists() ? snap.val() : {};
+    // filter notifications for current user
+    const myNotifs = [];
+    Object.entries(all).forEach(([id, n])=>{
+      if(n && n.to === currentUser){ myNotifs.push({ id, ...n }); }
+    });
+
+    // sort by timestamp descending
+    myNotifs.sort((a,b)=> b.timestamp - a.timestamp);
+
+    // update cache
+    notificationsCache = {};
+    myNotifs.forEach(n => notificationsCache[n.id] = n);
+
+    renderNotificationsList(myNotifs);
+
+    // unread count
+    const unread = myNotifs.filter(n=>!n.read).length;
+    updateNotifyDot(unread);
+  });
+}
+
+function updateNotifyDot(count){ if(count && count > 0){ notifyDot.classList.add('active'); } else { notifyDot.classList.remove('active'); } }
+
+function formatWhen(ts){ const d = new Date(ts); return d.toLocaleString(); }
+
+function renderNotificationsList(list){
+  const container = document.getElementById('notificationsList');
+  if(!list || list.length === 0){ container.innerHTML = 'No notifications.'; return; }
+  container.innerHTML = '';
+  list.forEach(n=>{
+    const div = document.createElement('div');
+    div.className = 'notification-item' + (n.read? '' : ' unread');
+    div.dataset.id = n.id;
+    div.innerHTML = `<strong>${escapeHtml(n.title)}</strong><div class="notification-meta">From: ${escapeHtml(n.from)} • ${formatWhen(n.timestamp)}</div>`;
+    div.addEventListener('click', ()=> showNotificationDetails(n.id));
+    container.appendChild(div);
+  });
+}
+
+async function showNotificationDetails(id){
+  const n = notificationsCache[id]; if(!n) return alert('Notification not found');
+  // simple modal using prompt/confirm for simplicity
+  const details = `From: ${n.from}\nTitle: ${n.title}\nWhen: ${formatWhen(n.timestamp)}\n\n${n.description || ''}`;
+  alert(details);
+  // mark as read if not
+  if(!n.read){ try{ const nr = ref(db, `notifications/${id}`); await update(nr, { read: true }); }catch(err){ console.error(err); } }
+}
+
+async function deleteNotification(id){ if(!confirm('Delete this notification?')) return; try{ await remove(ref(db, `notifications/${id}`)); alert('Deleted'); }catch(err){ console.error(err); alert('Failed to delete'); } }
+
+// small helper to avoid injection in inserted text
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
 
 // === EVENTS SECTION ===
 function formatCountdown(msLeft){ if(msLeft <= 0) return 'Expired'; const totalSeconds = Math.floor(msLeft/1000); const days = Math.floor(totalSeconds/(24*3600)); const hours = Math.floor((totalSeconds%(24*3600))/3600); const minutes = Math.floor((totalSeconds%3600)/60); const seconds = totalSeconds%60; let parts = []; if(days>0) parts.push(`${days}d`); if(hours>0||days>0) parts.push(`${hours}h`); if(minutes>0||hours>0||days>0) parts.push(`${minutes}m`); parts.push(`${seconds}s`); return parts.join(' '); }
