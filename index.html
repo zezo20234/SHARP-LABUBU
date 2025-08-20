@@ -6,6 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 
 <style>
+  img[src$="POINTS.PNG"], img[src$="POINTS.png"] {
+  width: 60px !important;
+  height: 60px !important;
+  vertical-align: middle;
+}
   /* local time + welcome styling */
 .island-time .label,
 .island-welcome .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); margin-right:6px; }
@@ -45,8 +50,8 @@ button:hover { background: #1f3557; }
 
 /* --- ICON / COIN SIZING (SLIGHTLY BIGGER) --- */
 img[src$="EGP.png"], .coin-icon, .island-icon {
-  width: 30px !important;
-  height: 30px !important;
+  width: 40px !important;
+  height: 40px !important;
   vertical-align: middle;
 }
 
@@ -89,7 +94,6 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 .island-metric .value { font-weight:700; font-size:1rem; color: var(--island-text); }
 .island-icon { display:inline-block; vertical-align:middle; }
 
-/* small menu button at right (visual only — whole island is clickable) */
 #islandMenuBtn { background: rgba(255,255,255,0.06); color: inherit; border: none; border-radius: 10px; padding: 6px 8px; cursor:pointer; }
 #islandMenuBtn:active { transform: scale(0.98); }
 
@@ -133,11 +137,9 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 }
 .menu-actions button.active { outline: 2px solid rgba(255,255,255,0.15); }
 
-/* content panels inside menu (shop, send, exchange, send points) */
 .menu-panel { display:none; background: transparent; color: var(--island-text); }
 .menu-panel.show { display:block; }
 
-/* panels inner controls (make them look like part of island) */
 .menu-panel .panel-inner {
   margin-top: 8px;
   background: rgba(255,255,255,0.02);
@@ -149,17 +151,14 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 .menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
 .menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
 
-/* notification list */
 .notification-item { padding: 8px; border-radius:8px; margin-bottom:8px; background: rgba(255,255,255,0.03); border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
 .notification-item.unread { border-left: 4px solid #ff4b4b; }
 .notification-meta { font-size:0.85rem; opacity:0.85; margin-top:6px; }
 .notification-actions { display:flex; gap:8px; margin-top:8px; }
 .notification-actions button { flex:0 0 auto; padding:8px 10px; }
 
-/* small note: ensure panels scroll if tall */
 #islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
 
-/* forms and containers (kept for page content outside island menu) */
 #login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 label { font-weight: bold; margin-top: 15px; display: block; }
 .rules-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #fafafa; }
@@ -169,11 +168,9 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 .rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
 .rule-qty { width: 50px; margin-left: 10px; font-size: 1rem; }
 
-/* event section */
 #eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 .event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
 
-/* small responsive tweaks */
 @media (max-width: 420px) {
   .menu-actions { flex-wrap: wrap; }
   .menu-actions button { font-size: 0.9rem; padding: 8px; }
@@ -205,7 +202,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <span class="value" id="credits-count">0</span>
     </div>
     <div class="island-metric" data-type="points">
-      <span class="label">Points</span>
+      <span class="label"><img src="POINTS.PNG" alt="points" class="island-icon coin-icon"></span>
       <span class="value" id="points-count">0</span>
     </div>
     <div class="island-metric" data-type="sig">
@@ -224,7 +221,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <button id="menuShopBtn">Shop</button>
       <button id="menuSendCreditsBtn">Send <img src="EGP.png" alt="coin" class="coin-icon"></button>
       <button id="menuExchangeBtn">Exchange</button>
-      <button id="menuSendPointsBtn">Send Points</button>
+      <button id="menuSendPointsBtn">Send <img src="POINTS.PNG" alt="points" class="coin-icon"></button>
       <button id="menuCustomizeBtn">Customize</button>
       <button id="menuNotificationsBtn">Notifications</button>
       <button id="menuSendNotificationBtn">Send Notification</button>
@@ -249,18 +246,18 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
     <div id="panelExchange" class="menu-panel">
       <div class="panel-inner">
-        <h4 style="margin:0 0 8px 0;">Points Exchange</h4>
+        <h4 style="margin:0 0 8px 0;"><img src="POINTS.PNG" alt="points" class="coin-icon"> Exchange</h4>
         <div id="pointsExchangeItems"></div>
       </div>
     </div>
 
     <div id="panelSendPoints" class="menu-panel">
       <div class="panel-inner">
-        <label>Send points to:</label>
+        <label>Send <img src="POINTS.PNG" alt="points" class="coin-icon"> to:</label>
         <select id="sendPointsToUser"></select>
-        <label>Points amount:</label>
+        <label><img src="POINTS.PNG" alt="points" class="coin-icon"> amount:</label>
         <input type="number" id="sendPointsAmount" min="1" />
-        <button id="sendPointsBtn">Send Points</button>
+        <button id="sendPointsBtn">Send <img src="POINTS.PNG" alt="points" class="coin-icon"></button>
       </div>
     </div>
 
@@ -332,6 +329,9 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
 <audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
 <audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
+</body>
+</html>
+
 
 <script type="module">
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -430,6 +430,9 @@ const rules = [
   { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
   { id: 'no_lie', title: 'No lie', days: 25, points: 15, details: 'Do not lie, always tell the truth. +25 days.' },
   { id: 'no_pause', title: 'No pause', days: 10, points: 12.5, details: 'No pauses. +10 days.' },
+   { id: 'no_funny', title: 'No funny', days: -1, points: 1, details: 'No funny' },
+  { id: 'no_shetema', title: 'No shetema', days: 10, points: 12.5, details: 'No shetema. +10 days.' },
+  { id: 'no_pullhair', title: 'No pull hair', days: 10, points: 12.5, details: 'No pull hair. +10 days.' },
   { id: 'no_pinch', title: 'No pinch', days: 15, points: 12.5, details: 'No pinch. +15 days.' },
   { id: 'no_push', title: 'No push', days: 10, points: 12.5, details: 'No push. +10 days.' },
   { id: 'no_scare', title: 'No scare', days: 10, points: 12.5, details: 'No scare. +10 days.' },
@@ -972,51 +975,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
-<script>
-(function replacePointsWithImg(root=document.body) {
-  const IMG_HTML = () => {
-    const img = document.createElement("img");
-    img.src = "POINTS.PNG";
-    img.alt = "points";
-    img.style.height = "4.25em";           // size roughly like text
-    img.style.verticalAlign = "-0.2em"; // baseline tweak
-    return img;
-  };
 
-  const walker = document.createTreeWalker(
-    root,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode(node) {
-        if (!node.nodeValue || !/\bpoints\b/i.test(node.nodeValue)) return NodeFilter.FILTER_SKIP;
-        // Skip text inside hidden elements or script/style tags
-        const p = node.parentElement;
-        if (!p) return NodeFilter.FILTER_SKIP;
-        const tag = p.tagName;
-        if (/(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|CODE|PRE)/.test(tag)) return NodeFilter.FILTER_SKIP;
-        if (p.closest('script,style,textarea,code,pre,[contenteditable="true"]')) return NodeFilter.FILTER_SKIP;
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    }
-  );
-
-  const matches = [];
-  while (walker.nextNode()) matches.push(walker.currentNode);
-
-  for (const textNode of matches) {
-    const frag = document.createDocumentFragment();
-    const parts = textNode.nodeValue.split(/(\bpoints\b)/gi);
-    for (const part of parts) {
-      if (/\bpoints\b/i.test(part)) {
-        frag.appendChild(IMG_HTML());
-      } else if (part) {
-        frag.appendChild(document.createTextNode(part));
-      }
-    }
-    textNode.parentNode.replaceChild(frag, textNode);
-  }
-})();
-</script>
 
 </body>
 </html>
