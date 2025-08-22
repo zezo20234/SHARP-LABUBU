@@ -234,10 +234,6 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <button id="menuSendCreditsBtn">Send <img src="EGP.png" alt="coin" class="coin-icon"></button>
       <button id="menuExchangeBtn">Exchange</button>
       <button id="menuSendPointsBtn">Send <img src="POINTS.png" alt="POINTS" class="pointcoin">
-        <div class="menu-actions" role="tablist" aria-label="Island actions">
-  <button id="menuSignatureBtn">My Signature</button>
-</div>
-
 </button>
       <button id="menuCustomizeBtn">Customize</button>
       <button id="menuNotificationsBtn">Notifications</button>
@@ -903,7 +899,7 @@ function showMetric(index){
   const m = items[index % items.length]; if(m) m.style.display = 'flex';
 }
 showMetric(metricIndex);
-setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 5000);
+setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 1500);
 
 // === AUTO LOGIN ON PAGE LOAD & button wiring ===
 window.addEventListener('load', ()=>{
@@ -989,19 +985,6 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
 document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
-
-document.getElementById('menuSignatureBtn').addEventListener('click', () => {
-    // Check if the user is logged in
-    if (!currentUser) {
-        alert("Please log in first.");
-        return;
-    }
-
-    // Get the signature days from the span element
-    const sigDays = document.getElementById('sig-days-left').textContent;
-    alert(`You have ${sigDays} days left on your signature.`);
-});
-
 </script>
 
 </body>
