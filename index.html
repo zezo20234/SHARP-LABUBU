@@ -986,18 +986,47 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
-<!-- Firebase popup container (paste before </body> on the receiver page) -->
-<div id="firebase-popup" style="display:none; position:fixed; inset:0; z-index:999999;">
-  <div id="firebase-popup-backdrop" style="position:absolute; inset:0;"></div>
-  <div id="firebase-popup-card"
-       style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-              background:#fff; color:#111827; padding:18px 20px; border-radius:14px;
-              box-shadow:0 18px 40px rgba(0,0,0,.25); max-width:90vw; width:560px; line-height:1.45; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;">
-    <div id="firebase-popup-text" style="font-size:18px; word-wrap:break-word; white-space:pre-wrap;"></div>
+<!-- RECEIVER: paste this BEFORE </body> -->
+<style>
+  /* disco styles */
+  .firebase-disco {
+    animation: firebase-disco-hue 6s linear infinite;
+    /* optional glow */
+    box-shadow: 0 0 40px rgba(255,255,255,0.06), inset 0 0 40px rgba(255,255,255,0.02);
+  }
+  @keyframes firebase-disco-hue { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+
+  /* popup styling */
+  #firebase-popup { display:none; position:fixed; inset:0; z-index:999999; }
+  #firebase-popup-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.35); }
+  #firebase-popup-card {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#fff; color:#111827; padding:18px 20px; border-radius:14px;
+    box-shadow:0 18px 40px rgba(0,0,0,.25); max-width:90vw; width:560px; line-height:1.45;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; text-align:center;
+  }
+  #firebase-popup-text { font-size:18px; word-wrap:break-word; white-space:pre-wrap; margin-bottom:12px; }
+  #firebase-popup-playhint { display:none; margin-top:10px; }
+  #firebase-popup-playhint.visible { display:block; }
+  #firebase-popup-playhint button{ padding:10px 14px; border-radius:10px; background:#111827; color:#fff; border:0; cursor:pointer; }
+</style>
+
+<div id="firebase-popup">
+  <div id="firebase-popup-backdrop"></div>
+  <div id="firebase-popup-card">
+    <div id="firebase-popup-text"></div>
+    <!-- hidden audio element to play incoming mp3 -->
+    <audio id="incoming-audio" playsinline preload="auto" style="width:100%; margin-bottom:8px;"></audio>
+
+    <!-- shown if autoplay is blocked: user must tap -->
+    <div id="firebase-popup-playhint">
+      <div class="small" style="margin-bottom:8px;">Tap below to start audio & disco</div>
+      <button id="firebase-play-btn">Tap to Play & Disco</button>
+    </div>
   </div>
 </div>
 
-<!-- Firebase (compat) -->
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
@@ -1016,10 +1045,19 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
   const db  = firebase.database();
 
-  const popup = document.getElementById("firebase-popup");
-  const popupText = document.getElementById("firebase-popup-text");
+  const popup = document.getElementById('firebase-popup');
+  const popupCard = document.getElementById('firebase-popup-card');
+  const popupText = document.getElementById('firebase-popup-text');
+  const incomingAudio = document.getElementById('incoming-audio');
+  const playHintWrap = document.getElementById('firebase-popup-playhint');
+  const playHintBtn = document.getElementById('firebase-play-btn');
 
-  function showMessage(name, message, verified){
+  // State for current incoming mp3
+  let currentMp3 = null; // string URL or null
+  let soundIsPlaying = false;
+
+  function safeShowMessage(name, message, verified){
+    // clear
     popupText.textContent = '';
     const strong = document.createElement('strong');
     strong.textContent = (name || 'anonymous') + (verified ? ' ✅' : '') + ': ';
@@ -1028,18 +1066,119 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     popup.style.display = 'block';
   }
 
-  // Listen for messages (latest)
-  db.ref('messages').limitToLast(1).on('child_added', snap => {
+  function startDiscoVisual(){
+    popupCard.classList.add('firebase-disco');
+  }
+  function stopDiscoVisual(){
+    popupCard.classList.remove('firebase-disco');
+  }
+
+  function hidePopup(){
+    popup.style.display = 'none';
+    // stop audio if playing
+    try {
+      if(!incomingAudio.paused) incomingAudio.pause();
+      incomingAudio.currentTime = 0;
+    } catch(e){ /* ignore */ }
+    stopDiscoVisual();
+    playHintWrap.classList.remove('visible');
+    soundIsPlaying = false;
+    currentMp3 = null;
+  }
+
+  // click anywhere hides popup (as you asked before)
+  document.addEventListener('click', (ev)=>{
+    // allow click on play hint button to be handled first
+    if(ev.target === playHintBtn) return;
+    hidePopup();
+  });
+
+  // Try to play given URL. Returns a promise that resolves true if play started, false if blocked.
+  async function tryPlayUrl(url){
+    if(!url) return false;
+    try {
+      incomingAudio.src = url;
+      // Attempt to play
+      await incomingAudio.play();
+      soundIsPlaying = true;
+      startDiscoVisual();
+      playHintWrap.classList.remove('visible');
+      return true;
+    } catch(err){
+      // autoplay blocked – show tap button
+      console.warn('autoplay failed / blocked', err);
+      playHintWrap.classList.add('visible');
+      return false;
+    }
+  }
+
+  // Play hint button handler (user gesture) — will start audio and disco
+  playHintBtn.addEventListener('click', async (ev) => {
+    ev.stopPropagation();
+    if(currentMp3){
+      try {
+        await incomingAudio.play();
+        startDiscoVisual();
+        soundIsPlaying = true;
+        playHintWrap.classList.remove('visible');
+      } catch(err){ console.error('play after tap failed', err); }
+    }
+  });
+
+  // When audio ends, stop disco
+  incomingAudio.addEventListener('ended', ()=>{
+    stopDiscoVisual();
+    soundIsPlaying = false;
+    // optionally hide popup on end:
+    // hidePopup();
+  });
+
+  incomingAudio.addEventListener('pause', ()=>{
+    // if paused manually, also stop disco
+    if(!incomingAudio.ended){
+      stopDiscoVisual();
+      soundIsPlaying = false;
+    }
+  });
+
+  // Listen for latest message
+  db.ref('messages').limitToLast(1).on('child_added', async (snap) => {
     const data = snap.val();
     if(!data) return;
-    showMessage(String(data.name || ''), String(data.message || ''), !!data.verified);
-  }, err => console.error('Firebase listen error', err));
+    const name = String(data.name || '');
+    const message = String(data.message || '');
+    const verified = !!data.verified;
+    currentMp3 = data.mp3Src || null; // may be undefined
 
-  // Hide when clicking anywhere
-  function hidePopup(){ popup.style.display = 'none'; }
-  document.addEventListener('click', hidePopup);
-  document.addEventListener('keydown', e => { if(e.key === 'Escape') hidePopup(); });
+    // show text
+    safeShowMessage(name, message, verified);
+
+    // if we have an mp3Src that is http(s), attempt to autoplay it & disco
+    if(currentMp3 && /^https?:\/\//i.test(currentMp3)){
+      // try to autoplay; if blocked, UI will show the `Tap to Play & Disco` button
+      const started = await tryPlayUrl(currentMp3);
+      if(!started){
+        // autoplay blocked; playHint visible (user needs to tap)
+        // nothing else to do here
+      }
+    } else {
+      // no mp3 attached (or not a public URL): ensure disco is off
+      stopDiscoVisual();
+      playHintWrap.classList.remove('visible');
+      currentMp3 = null;
+    }
+  }, (err) => {
+    console.error('Firebase listen error:', err);
+  });
+
+  // ESC to close (optional)
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') hidePopup(); });
+
+  // SECURITY / UX note: local blob: URLs (blob:...) from sender cannot be used by receivers — only public https URLs.
+  // If you want remote receivers to play a local file, upload it to a publicly accessible URL (CDN / Firebase Storage public URL)
+  // and then load that URL in the sender MP3 slot before pressing Play.
 </script>
+
 
 
 
