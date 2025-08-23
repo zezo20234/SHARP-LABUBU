@@ -1004,20 +1004,31 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 "></div>
 
 <script>
-  // Function to show a message in the bar
+  const webhookURL = "https://discord.com/api/webhooks/1408848046095208610/kxoR-Q5sLX2NlZ2end9xGO4mfQ0ZyYIpKEUhagIemC4hJCjlr4CAbJdAhkJVUDBO2gxe";
+
   function showMessage(text) {
     const bar = document.getElementById("messageBar");
     bar.innerText = text;
     bar.style.display = "block";
-
-    // Click to close
-    bar.onclick = () => {
-      bar.style.display = "none";
-    };
+    bar.onclick = () => bar.style.display = "none";
   }
 
-  // Example manual trigger (disabled by default)
-  // showMessage("Zezo [✔ Verified]: Hello from the bottom!");
+  // Fetch latest message from webhook
+  async function fetchLatestMessage() {
+    try {
+      const res = await fetch(webhookURL);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.content) {
+        showMessage(data.content);
+      }
+    } catch (err) {
+      console.error("Failed to fetch message:", err);
+    }
+  }
+
+  // Check for new messages every 5 seconds
+  setInterval(fetchLatestMessage, 5000);
 </script>
 </body>
 </html>
