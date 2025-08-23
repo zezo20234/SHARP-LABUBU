@@ -7,12 +7,12 @@
   "theme_color": "#2b4c7e",
   "icons": [
     {
-      "src": "LABUBU3.jpg",
+      "src": "LAEVENT.jpg",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "LABUBU3.jpg",
+      "src": "LAEVENT.jpg",
       "sizes": "512x512",
       "type": "image/png"
     }
