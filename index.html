@@ -986,6 +986,41 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
+<div id="messageBar" style="
+  display:none;
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#5865F2;
+  color:#fff;
+  padding:12px 20px;
+  border-radius:8px;
+  font-family:Arial, sans-serif;
+  font-size:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  cursor:pointer;
+  z-index:9999;
+"></div>
 
+<script>
+  // Function to show a message
+  function showMessage(text) {
+    const bar = document.getElementById("messageBar");
+    bar.innerText = text;
+    bar.style.display = "block";
+
+    // Click to close
+    bar.onclick = () => {
+      bar.style.display = "none";
+    };
+  }
+
+  // Example: show a message on page load
+  // Replace this with whatever text you want
+  window.onload = () => {
+    showMessage("Zezo [✔ Verified]: Hello everyone!");
+  };
+</script>
 </body>
 </html>
