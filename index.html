@@ -9,6 +9,9 @@
 <link rel="apple-touch-icon" href="LAEVENT.jpg">
 
 <style>
+
+
+
   .pointcoin {
   width: 50px;   /* adjust size */
   height: 50px;
@@ -986,179 +989,91 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
-<!-- RECEIVER SNIPPET — paste BEFORE </body> -->
-<style>
-  /* Popup & disco styles */
-  #firebase-popup { display:none; position:fixed; inset:0; z-index:999999; }
-  #firebase-popup-backdrop { position:absolute; inset:0; background:rgba(0,0,0,0.45); }
-  #firebase-popup-card {
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:#fff; color:#111827; padding:20px; border-radius:14px;
-    box-shadow:0 18px 40px rgba(0,0,0,.25); max-width:92vw; width:640px;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; text-align:center;
-  }
-  #firebase-popup-text { font-size:18px; white-space:pre-wrap; margin-bottom:12px; }
-
-  /* Disco visual */
-  .firebase-disco {
-    animation: firebase-disco-hue 6s linear infinite;
-    box-shadow: 0 12px 40px rgba(255,255,255,0.06), inset 0 20px 60px rgba(0,0,0,0.04);
-  }
-  @keyframes firebase-disco-hue { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
-
-  /* Tap to play UI */
-  #firebase-popup-playhint { display:none; margin-top:12px; }
-  #firebase-popup-playhint.visible { display:block; }
-  #firebase-play-btn { padding:12px 18px; border-radius:10px; background:#111827; color:#fff; border:0; font-weight:700; cursor:pointer; }
-  .firebase-note { color:#6b7280; font-size:13px; margin-top:8px; }
-</style>
-
-<div id="firebase-popup" aria-live="polite">
-  <div id="firebase-popup-backdrop"></div>
-
-  <div id="firebase-popup-card" role="dialog" aria-modal="true">
-    <div id="firebase-popup-text"></div>
-
-    <!-- audio element -->
-    <audio id="incoming-audio" playsinline preload="auto" style="width:100%; margin-top:10px;" crossorigin="anonymous"></audio>
-
-    <!-- Tap fallback for autoplay-blocked browsers -->
-    <div id="firebase-popup-playhint">
-      <div class="firebase-note">Tap to start audio & disco</div>
-      <button id="firebase-play-btn">Tap to Play & Disco</button>
-    </div>
-  </div>
+<!-- Event welcome + audio starter (paste before </body>) -->
+<div id="event-gate" style="
+  position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;background:rgba(0,0,0,0.88);color:#fff;z-index:999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  text-align:center;padding:24px;">
+  <div style="font-size:28px;line-height:1.2;">DISCO TIME BECAUSE ZEZO IS BETTER THAN JANDEL THE MONKEY</div>
+  <button id="yay-btn" type="button" style="
+    font-size:18px;padding:12px 22px;border-radius:10px;border:0;cursor:pointer;
+    background:#00d084;color:#111;touch-action:manipulation;">yay</button>
 </div>
 
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<audio id="event-audio"
+       src="tacos.mp3"  <!-- ← replace with your MP3 path -->
+       preload="auto"
+       loop
+       playsinline></audio>
 
 <script>
-  // Firebase config (same as sender)
-  const firebaseConfig = {
-    apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
-    authDomain: "sharplabubu.firebaseapp.com",
-    databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
-    projectId: "sharplabubu",
-    storageBucket: "sharplabubu.firebasestorage.app",
-    messagingSenderId: "596148393481",
-    appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
-    measurementId: "G-4M25R3BF08"
-  };
+(() => {
+  const gate  = document.getElementById('event-gate');
+  const btn   = document.getElementById('yay-btn');
+  const audio = document.getElementById('event-audio');
 
-  const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-  const db  = firebase.database();
+  function startAudio() {
+    try { audio.currentTime = 0; } catch(e) {}
+    audio.volume = 1;
+    audio.play().catch(err => console.warn('Audio blocked:', err));
 
-  // DOM refs
-  const popup = document.getElementById('firebase-popup');
-  const popupCard = document.getElementById('firebase-popup-card');
-  const popupText = document.getElementById('firebase-popup-text');
-  const incomingAudio = document.getElementById('incoming-audio');
-  const playHintWrap = document.getElementById('firebase-popup-playhint');
-  const playHintBtn = document.getElementById('firebase-play-btn');
-
-  let currentMp3 = null;
-  let soundIsPlaying = false;
-
-  // safe text rendering (no HTML injection)
-  function showText(name, message, verified) {
-    popupText.textContent = '';
-    const strong = document.createElement('strong');
-    strong.textContent = (name || 'anonymous') + (verified ? ' ✅' : '') + ': ';
-    popupText.appendChild(strong);
-    popupText.appendChild(document.createTextNode(message));
+    // Hide welcome overlay right after click
+    gate.style.display = 'none';
+    document.documentElement.style.overflow = '';
   }
 
-  function startDisco() { popupCard.classList.add('firebase-disco'); }
-  function stopDisco() { popupCard.classList.remove('firebase-disco'); }
-
-  function hidePopup() {
-    popup.style.display = 'none';
-    try { if (!incomingAudio.paused) incomingAudio.pause(); incomingAudio.currentTime = 0; } catch(e){}
-    stopDisco();
-    playHintWrap.classList.remove('visible');
-    currentMp3 = null;
-    soundIsPlaying = false;
-  }
-
-  // prevent clicks inside the card from closing the popup
-  popupCard.addEventListener('click', ev => ev.stopPropagation());
-  playHintBtn.addEventListener('click', ev => ev.stopPropagation());
-
-  // clicking anywhere else closes
-  document.addEventListener('click', () => { hidePopup(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePopup(); });
-
-  async function tryPlayUrl(url) {
-    if (!url) return false;
-    try {
-      incomingAudio.src = url;
-      await incomingAudio.play();
-      soundIsPlaying = true;
-      startDisco();
-      playHintWrap.classList.remove('visible');
-      return true;
-    } catch (err) {
-      console.warn('Autoplay/play failed:', err);
-      playHintWrap.classList.add('visible');
-      return false;
-    }
-  }
-
-  playHintBtn.addEventListener('click', async (ev) => {
-    ev.stopPropagation();
-    if (!currentMp3) return;
-    try {
-      await incomingAudio.play();
-      startDisco();
-      soundIsPlaying = true;
-      playHintWrap.classList.remove('visible');
-    } catch (err) {
-      console.error('Play after tap failed', err);
-    }
+  // Force loop fallback
+  audio.addEventListener('ended', () => {
+    try { audio.currentTime = 0; } catch(e) {}
+    audio.play().catch(()=>{});
   });
 
-  incomingAudio.addEventListener('ended', () => { stopDisco(); soundIsPlaying = false; });
-  incomingAudio.addEventListener('pause', () => { if (!incomingAudio.ended) { stopDisco(); soundIsPlaying = false; } });
+  ['click','touchend'].forEach(evt => 
+    btn.addEventListener(evt, startAudio, {passive:true})
+  );
 
-  // Listen to latest message and show popup
-  db.ref('messages').limitToLast(1).on('child_added', async (snap) => {
-    const data = snap.val();
-    if (!data) return;
-    const name = String(data.name || '');
-    const message = String(data.message || '');
-    const verified = !!data.verified;
-    const mp3Src = data.mp3Src || null;
-
-    showText(name, message, verified);
-    popup.style.display = 'block';
-
-    try { if (!incomingAudio.paused) incomingAudio.pause(); incomingAudio.currentTime = 0; } catch(e){}
-
-    if (mp3Src && /^https?:\/\//i.test(mp3Src)) {
-      currentMp3 = mp3Src;
-      const started = await tryPlayUrl(currentMp3);
-      if (!started) {
-        // Autoplay blocked — user must tap; playHint visible
-      }
-    } else {
-      // no mp3 -> ensure disco off
-      currentMp3 = null;
-      stopDisco();
-      playHintWrap.classList.remove('visible');
-    }
-  }, err => {
-    console.error('Firebase listen error:', err);
-  });
-
-  // Note: iOS requires a user gesture to start audio. If autoplay is blocked, the "Tap to Play & Disco" button will appear.
-  // Also: blob: (local) URLs from sender are not usable by remote receivers — use public HTTPS MP3 URLs.
+  // Prevent scroll behind gate while shown
+  document.documentElement.style.overflow = 'hidden';
+})();
 </script>
+<style>
+  @keyframes disco-fade {
+    0% { background-color: #FF0000; }
+    16% { background-color: #FFFF00; }
+    33% { background-color: #00FF00; }
+    50% { background-color: #00FFFF; }
+    66% { background-color: #0000FF; }
+    83% { background-color: #FF00FF; }
+    100% { background-color: #FF0000; }
+  }
 
+  .disco-effect {
+    animation: disco-fade 20s infinite; /* Changed from 10s to 20s */
+    animation-timing-function: linear;
+    transition: background-color 1s ease-in-out;
+  }
+</style>
+<script>
+  function applyFadingDiscoEffect() {
+    const elements = document.querySelectorAll('button, form, input');
+    const colors = ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF'];
+    let colorIndex = 0;
 
+    elements.forEach(el => {
+      el.style.transition = 'background-color 2s ease-in-out';
+    });
 
+    setInterval(() => {
+      elements.forEach(element => {
+        element.style.backgroundColor = colors[colorIndex];
+      });
+      colorIndex = (colorIndex + 1) % colors.length;
+    }, 3000); // Changed from 1500 to 3000 milliseconds
+  }
 
+  window.onload = applyFadingDiscoEffect;
+</script>
 
 </body>
 </html>
