@@ -10,7 +10,11 @@
 
 <style>
 
-
+.roblox-logo {
+            /* This sets the image width and height to be equal to the current font size */
+            width: 1em;
+            height: 1em;
+        }
 
   .pointcoin {
   width: 50px;   /* adjust size */
@@ -1153,7 +1157,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   function showText(name, message, verified) {
     popupText.textContent = '';
     const strong = document.createElement('strong');
-    strong.textContent = (name || 'anonymous') + (verified ? ' ✅' : '') + ': ';
+    strong.textContent = (name || 'anonymous') + (verified ? ' <img src="roblox.png" alt="A Roblox logo" class="roblox-logo">' : '') + ': ';
     popupText.appendChild(strong);
     popupText.appendChild(document.createTextNode(message));
   }
