@@ -989,7 +989,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 <div id="messageBar" style="
   display:none;
   position:fixed;
-  top:20px;
+  bottom:20px;
   left:50%;
   transform:translateX(-50%);
   background:#5865F2;
@@ -1004,7 +1004,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 "></div>
 
 <script>
-  // Function to show a message
+  // Function to show a message in the bar
   function showMessage(text) {
     const bar = document.getElementById("messageBar");
     bar.innerText = text;
@@ -1016,11 +1016,8 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     };
   }
 
-  // Example: show a message on page load
-  // Replace this with whatever text you want
-  window.onload = () => {
-    showMessage("Zezo [✔ Verified]: Hello everyone!");
-  };
+  // Example manual trigger (disabled by default)
+  // showMessage("Zezo [✔ Verified]: Hello from the bottom!");
 </script>
 </body>
 </html>
