@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2b4c7e">
-<link rel="apple-touch-icon" href="LABUBU3.jpg">
+<link rel="apple-touch-icon" href="LAEVENT.jpg">
 
 <style>
   .pointcoin {
@@ -985,6 +985,54 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
 document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
+</script>
+<!-- Event welcome + audio starter (paste before </body>) -->
+<div id="event-gate" style="
+  position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;background:rgba(0,0,0,0.88);color:#fff;z-index:999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  text-align:center;padding:24px;">
+  <div style="font-size:28px;line-height:1.2;">welcome to event</div>
+  <button id="yay-btn" type="button" style="
+    font-size:18px;padding:12px 22px;border-radius:10px;border:0;cursor:pointer;
+    background:#00d084;color:#111;touch-action:manipulation;">yay</button>
+</div>
+
+<audio id="event-audio"
+       src="tacos.mp3"  <!-- ← replace with your MP3 path -->
+       preload="auto"
+       loop
+       playsinline></audio>
+
+<script>
+(() => {
+  const gate  = document.getElementById('event-gate');
+  const btn   = document.getElementById('yay-btn');
+  const audio = document.getElementById('event-audio');
+
+  function startAudio() {
+    try { audio.currentTime = 0; } catch(e) {}
+    audio.volume = 1;
+    audio.play().catch(err => console.warn('Audio blocked:', err));
+
+    // Hide welcome overlay right after click
+    gate.style.display = 'none';
+    document.documentElement.style.overflow = '';
+  }
+
+  // Force loop fallback
+  audio.addEventListener('ended', () => {
+    try { audio.currentTime = 0; } catch(e) {}
+    audio.play().catch(()=>{});
+  });
+
+  ['click','touchend'].forEach(evt => 
+    btn.addEventListener(evt, startAudio, {passive:true})
+  );
+
+  // Prevent scroll behind gate while shown
+  document.documentElement.style.overflow = 'hidden';
+})();
 </script>
 
 </body>
