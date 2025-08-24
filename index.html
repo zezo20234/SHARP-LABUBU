@@ -986,38 +986,16 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
-<!-- Firebase Viewer -->
-<div class="messages" id="messages"></div>
+<div id="messageContainer" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;display:flex;flex-direction:column;gap:10px;align-items:center;"></div>
+<div id="musicOk" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10000;">
+  <button onclick="initMusic()" style="padding:12px 20px;font-size:18px;border:none;border-radius:8px;background:#28a745;color:white;cursor:pointer;">OK to Play Music</button>
+</div>
 
-<style>
-  .messages {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    width: 300px;
-    display: flex;
-    flex-direction: column-reverse; /* newest on top */
-    gap: 10px;
-    z-index: 1000;
-  }
-  .message {
-    background: #333;
-    color: #fff;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    opacity: 1;
-    transition: opacity 1s ease-out;
-  }
-  .fade-out {
-    opacity: 0;
-  }
-</style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
     authDomain: "sharplabubu.firebaseapp.com",
@@ -1029,34 +1007,82 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     measurementId: "G-4M25R3BF08"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  const messagesDiv = document.getElementById("messages");
+  const container = document.getElementById("messageContainer");
+  const seen = new Set(JSON.parse(localStorage.getItem("seenMessages") || "[]"));
 
-  onChildAdded(ref(db, "messages"), (snapshot) => {
-    const data = snapshot.val();
+  function showMessage(msg) {
+    if (seen.has(msg.id)) return;
+    seen.add(msg.id);
+    localStorage.setItem("seenMessages", JSON.stringify(Array.from(seen)));
 
-    let displayText = `<strong>${data.sender}</strong>: ${data.message}`;
-    if (data.roblox) {
-      displayText = '✅ ' + displayText;
+    const div = document.createElement("div");
+    div.style.padding = "14px 20px";
+    div.style.background = "rgba(0,0,0,0.5)";
+    div.style.border = "2px solid rgba(255,255,255,0.4)";
+    div.style.borderRadius = "12px";
+    div.style.fontFamily = "Arial, sans-serif";
+    div.style.fontSize = "20px";
+    div.style.maxWidth = "400px";
+    div.style.wordWrap = "break-word";
+    div.style.whiteSpace = "pre-wrap";
+    div.style.textAlign = "left";
+    div.style.color = "white";
+
+    if (msg.name.includes("{roblox.png}")) {
+      let cleanName = msg.name.replace("{roblox.png}", "");
+      div.innerHTML = `<strong>${cleanName} <img src="roblox.png" alt="roblox" style="width:20px;height:20px;vertical-align:middle;"></strong>: ${msg.text}`;
+    } else {
+      div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
     }
 
-    const messageEl = document.createElement("div");
-    messageEl.className = "message";
-    messageEl.innerHTML = displayText;
+    container.appendChild(div);
+    setTimeout(() => div.remove(), msg.duration);
+  }
 
-    messagesDiv.appendChild(messageEl);
+  db.ref("messages").on("child_added", (snapshot) => {
+    const msg = snapshot.val();
+    showMessage(msg);
+  });
 
-    // Fade after 19s
-    setTimeout(() => {
-      messageEl.classList.add("fade-out");
-    }, 19000);
+  // 🎵 Music
+  let audio = null;
+  let audioReady = false;
 
-    // Remove after 20s
-    setTimeout(() => {
-      messageEl.remove();
-    }, 20000);
+  function initMusic() {
+    audioReady = true;
+    document.getElementById("musicOk").style.display = "none";
+  }
+
+  function handleMusic(data) {
+    if (!data || !data.action || !data.url) return;
+
+    if (!audioReady) {
+      document.getElementById("musicOk").style.display = "block";
+      return;
+    }
+
+    if (!audio) audio = new Audio();
+
+    if (data.action === "play") {
+      audio.src = data.url;
+      audio.loop = false;
+      audio.play();
+    } else if (data.action === "stop") {
+      audio.pause();
+      audio.currentTime = 0;
+    } else if (data.action === "loop") {
+      audio.src = data.url;
+      audio.loop = true;
+      audio.play();
+    }
+  }
+
+  db.ref("music").on("value", (snapshot) => {
+    const data = snapshot.val();
+    handleMusic(data);
   });
 </script>
 
