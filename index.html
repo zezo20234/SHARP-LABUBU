@@ -1033,7 +1033,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 
     if (msg.name.includes("{roblox.png}")) {
       let cleanName = msg.name.replace("{roblox.png}", "");
-      div.innerHTML = `<strong>${cleanName} <img src="roblox.png" alt="roblox" style="width:20px;height:20px;vertical-align:middle;"></strong>: ${msg.text}`;
+      div.innerHTML = `<strong>${cleanName} <img src="roblox.png" alt="roblox" style="width:25px;height:25px;vertical-align:middle;"></strong>: ${msg.text}`;
     } else {
       div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
     }
