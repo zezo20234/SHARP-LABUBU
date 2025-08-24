@@ -987,9 +987,6 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 });
 </script>
 <div id="messageContainer" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;display:flex;flex-direction:column;gap:10px;align-items:center;"></div>
-<div id="musicOk" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10000;">
-  <button onclick="initMusic()" style="padding:12px 20px;font-size:18px;border:none;border-radius:8px;background:#28a745;color:white;cursor:pointer;">OK to Play Music</button>
-</div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -1020,20 +1017,21 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 
     const div = document.createElement("div");
     div.style.padding = "14px 20px";
-    div.style.background = "rgba(0,0,0,0.5)";
+    div.style.background = "rgba(255,255,255,0.2)";
     div.style.border = "2px solid rgba(255,255,255,0.4)";
     div.style.borderRadius = "12px";
+    div.style.backdropFilter = "blur(6px)";
     div.style.fontFamily = "Arial, sans-serif";
-    div.style.fontSize = "20px";
+    div.style.fontSize = "20px"; // bigger font
     div.style.maxWidth = "400px";
     div.style.wordWrap = "break-word";
     div.style.whiteSpace = "pre-wrap";
     div.style.textAlign = "left";
-    div.style.color = "white";
+    div.style.color = "white"; // keep text white
 
     if (msg.name.includes("{roblox.png}")) {
       let cleanName = msg.name.replace("{roblox.png}", "");
-      div.innerHTML = `<strong>${cleanName} <img src="roblox.png" alt="roblox" style="width:25px;height:25px;vertical-align:middle;"></strong>: ${msg.text}`;
+      div.innerHTML = `<strong>${cleanName} <img src="roblox.png" alt="roblox" style="width:20px;height:20px;vertical-align:middle;"></strong>: ${msg.text}`;
     } else {
       div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
     }
@@ -1042,49 +1040,67 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     setTimeout(() => div.remove(), msg.duration);
   }
 
+  // Listen for new messages
   db.ref("messages").on("child_added", (snapshot) => {
     const msg = snapshot.val();
     showMessage(msg);
   });
 
-  // 🎵 Music
-  let audio = null;
-  let audioReady = false;
+  // Theme system
+  let discoInterval = null;
 
-  function initMusic() {
-    audioReady = true;
-    document.getElementById("musicOk").style.display = "none";
-  }
+  function applyTheme(mode) {
+    stopDisco();
+    document.body.style.transition = "background 1s, color 1s";
 
-  function handleMusic(data) {
-    if (!data || !data.action || !data.url) return;
-
-    if (!audioReady) {
-      document.getElementById("musicOk").style.display = "block";
-      return;
-    }
-
-    if (!audio) audio = new Audio();
-
-    if (data.action === "play") {
-      audio.src = data.url;
-      audio.loop = false;
-      audio.play();
-    } else if (data.action === "stop") {
-      audio.pause();
-      audio.currentTime = 0;
-    } else if (data.action === "loop") {
-      audio.src = data.url;
-      audio.loop = true;
-      audio.play();
+    if (mode === "pink") {
+      document.body.style.background = "#ffb6c1"; // light pink
+      document.body.style.color = "white";
+    } else if (mode === "yellow") {
+      document.body.style.background = "#fffacd"; // light yellow
+      document.body.style.color = "white";
+    } else if (mode === "red") {
+      document.body.style.background = "#ff7f7f"; // light red
+      document.body.style.color = "white";
+    } else if (mode === "blue") {
+      document.body.style.background = "#87cefa"; // light blue
+      document.body.style.color = "white";
+    } else if (mode === "disco") {
+      startDisco();
+    } else {
+      document.body.style.background = "white";
+      document.body.style.color = "black";
     }
   }
 
-  db.ref("music").on("value", (snapshot) => {
-    const data = snapshot.val();
-    handleMusic(data);
+  function startDisco() {
+    stopDisco();
+    discoInterval = setInterval(() => {
+      const r = Math.floor(Math.random() * 200 + 55); // brighter colors
+      const g = Math.floor(Math.random() * 200 + 55);
+      const b = Math.floor(Math.random() * 200 + 55);
+      const color = `rgb(${r},${g},${b})`;
+      document.body.style.background = color;
+      document.body.style.color = "white";
+    }, 1500);
+  }
+
+  function stopDisco() {
+    if (discoInterval) {
+      clearInterval(discoInterval);
+      discoInterval = null;
+    }
+  }
+
+  // Listen for theme changes
+  db.ref("theme").on("value", (snapshot) => {
+    const theme = snapshot.val();
+    if (theme && theme.mode) {
+      applyTheme(theme.mode);
+    }
   });
 </script>
+
 
 </body>
 </html>
