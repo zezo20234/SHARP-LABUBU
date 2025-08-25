@@ -986,8 +986,90 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   logout();
 });
 </script>
+<style>
+  @keyframes disco {
+    0% {color: red;}
+    16% {color: orange;}
+    33% {color: yellow;}
+    50% {color: green;}
+    66% {color: blue;}
+    83% {color: purple;}
+    100% {color: red;}
+  }
+  .disco {
+    animation: disco 2s infinite;
+  }
+  .gold {
+    background: linear-gradient(90deg, #ffd700, #ffae00, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+  }
+</style>
 
+<div id="messageContainer" 
+     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            display:flex;flex-direction:column;align-items:center;gap:10px;
+            z-index:9999;max-width:80%;"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+    authDomain: "sharplabubu.firebaseapp.com",
+    databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+    projectId: "sharplabubu",
+    storageBucket: "sharplabubu.firebasestorage.app",
+    messagingSenderId: "596148393481",
+    appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+    measurementId: "G-4M25R3BF08"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // load seen messages from localStorage
+  const seen = new Set(JSON.parse(localStorage.getItem("seenMsgs") || "[]"));
+  const container = document.getElementById("messageContainer");
+
+  db.ref("messages").on("child_added", snap => {
+    const data = snap.val();
+    const msgId = snap.key;
+
+    // Skip if already seen
+    if(seen.has(msgId)) return;
+    seen.add(msgId);
+    localStorage.setItem("seenMsgs", JSON.stringify(Array.from(seen)));
+
+    const box = document.createElement("div");
+    box.style.background = "black";
+    box.style.padding = "12px";
+    box.style.borderRadius = "10px";
+    box.style.wordWrap = "break-word";
+    box.style.textAlign = "center";
+    box.style.maxWidth = "100%";
+
+    let content = `<strong>${data.name}</strong>`;
+    if(data.withImage) content += ` <img src="roblox.png" alt="icon" style="height:20px;vertical-align:middle;">`;
+    content += `: ${data.message}`;
+    box.innerHTML = content;
+
+    // Apply colors
+    if (data.color === "disco") {
+      box.classList.add("disco");
+    } else if (data.color === "gold") {
+      box.classList.add("gold");
+    } else {
+      box.style.color = data.color || "white";
+    }
+
+    container.appendChild(box);
+
+    setTimeout(()=> {
+      box.remove();
+    }, (data.duration || 5) * 1000);
+  });
+</script>
 
 </body>
 </html>
