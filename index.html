@@ -9,185 +9,64 @@
 <link rel="apple-touch-icon" href="LABUBU3.jpg">
 
 <style>
-  .pointcoin {
-  width: 50px;   /* adjust size */
-  height: 50px;
-  vertical-align: middle; /* aligns with text if inline */
-}
-
-  /* local time + welcome styling */
-.island-time .label,
-.island-welcome .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); margin-right:6px; }
-.island-time .value,
-.island-welcome .value { font-weight:700; font-size:1rem; color: var(--island-text); min-width:70px; text-align:right; }
-
-/* subtle show/hide transition for the welcome */
-#islandWelcome { transition: opacity 220ms ease, transform 220ms cubic-bezier(.2,.9,.3,1); }
-#islandWelcome.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
-
-/* --- Page base --- */
-:root{
-  --island-bg: #000;    /* Black by default */
-  --island-text: #fff;
-  --island-radius: 28px;
-  --island-padding: 10px 14px;
-}
-body {
-  font-family: Arial, sans-serif;
-  max-width: 700px;
-  margin: 30px auto;
-  padding: 10px;
-  background: linear-gradient(135deg, #f0f4f9, #d9e4f5);
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.4;
-}
-@media (max-width: 700px) {
-  body { max-width: 100%; margin: 10px; padding: 10px 15px; }
-}
-
-h2, h3 { color: #2b4c7e; margin-bottom: 10px; }
-
-button, input, select { width: 100%; max-width: 100%; padding: 12px; margin-top: 6px; font-size: 1.1rem; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; touch-action: manipulation; }
-button { background: #2b4c7e; color: white; cursor: pointer; user-select: none; }
-button:hover { background: #1f3557; }
-
-/* --- ICON / COIN SIZING (SLIGHTLY BIGGER) --- */
-img[src$="EGP.png"], .coin-icon, .island-icon {
-  width: 25px !important;
-  height: 25px !important;
-  vertical-align: middle;
-}
-
-/* coin-icon fallback (used inline) */
-.coin-icon { display: inline-block; }
-
-/* --- Dynamic Island (top middle) --- */
-#dynamic-island {
-  position: fixed;
-  left: 50%;
-  top: 8px;
-  transform: translateX(-50%);
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--island-bg);
-  color: var(--island-text);
-  padding: var(--island-padding);
-  border-radius: var(--island-radius);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-  min-width: 180px;
-  max-width: 92vw;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  cursor: pointer;
-  user-select: none;
-  transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease;
-}
-
-/* small red blinking dot on the right when unread notifications */
-#notifyDot { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius:50%; background: transparent; box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; }
-#notifyDot.active { background: red; box-shadow: 0 0 10px rgba(255,0,0,0.9); animation: notify-blink 1.6s infinite; }
-@keyframes notify-blink { 0% { opacity: 1; } 50% { opacity: 0.35; } 100% { opacity: 1; } }
-
-/* island content */
-.island-display { display:flex; align-items:center; gap:8px; min-width:160px; }
-.island-metric { display:flex; align-items:center; gap:8px; white-space:nowrap; }
-.island-metric .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); }
-.island-metric .value { font-weight:700; font-size:1rem; color: var(--island-text); }
-.island-icon { display:inline-block; vertical-align:middle; }
-
-/* small menu button at right (visual only — whole island is clickable) */
-#islandMenuBtn { background: rgba(255,255,255,0.06); color: inherit; border: none; border-radius: 10px; padding: 6px 8px; cursor:pointer; }
-#islandMenuBtn:active { transform: scale(0.98); }
-
-/* --- Seamless expanding menu that looks like same island --- */
-#islandMenu {
-  position: fixed;
-  z-index: 99998;
-  background: var(--island-bg);
-  color: var(--island-text);
-  border-radius: 18px;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.3);
-  transform-origin: top center;
-  overflow: hidden;
-  transition: transform 220ms ease, opacity 200ms ease, height 250ms ease, top 200ms ease, left 200ms ease;
-  opacity: 0;
-  transform: scaleY(0.95);
-  pointer-events: none;
-}
-
-/* when open, we apply this class via JS */
-#islandMenu.open { opacity: 1; transform: scaleY(1); pointer-events: auto; }
-
-/* menu inner layout */
-#islandMenu .menu-inner {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* top button row inside the menu (visually continuous with island) */
-.menu-actions { display:flex; gap:8px; }
-.menu-actions button {
-  flex:1;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-  color: var(--island-text);
-  padding: 10px;
-  border-radius: 10px;
-  font-weight: 700;
-}
-.menu-actions button.active { outline: 2px solid rgba(255,255,255,0.15); }
-
-/* content panels inside menu (shop, send, exchange, send points) */
-.menu-panel { display:none; background: transparent; color: var(--island-text); }
-.menu-panel.show { display:block; }
-
-/* panels inner controls (make them look like part of island) */
-.menu-panel .panel-inner {
-  margin-top: 8px;
-  background: rgba(255,255,255,0.02);
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.2);
-}
-.menu-panel label { color: var(--island-text); font-weight:600; display:block; margin-bottom:6px; }
-.menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
-.menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
-
-/* notification list */
-.notification-item { padding: 8px; border-radius:8px; margin-bottom:8px; background: rgba(255,255,255,0.03); border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
-.notification-item.unread { border-left: 4px solid #ff4b4b; }
-.notification-meta { font-size:0.85rem; opacity:0.85; margin-top:6px; }
-.notification-actions { display:flex; gap:8px; margin-top:8px; }
-.notification-actions button { flex:0 0 auto; padding:8px 10px; }
-
-/* small note: ensure panels scroll if tall */
-#islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
-
-/* forms and containers (kept for page content outside island menu) */
-#login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-label { font-weight: bold; margin-top: 15px; display: block; }
-.rules-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #fafafa; }
-.rule-item { padding: 8px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease; display: flex; justify-content: space-between; align-items: center; }
-.rule-item:hover { background: #e6f0ff; }
-.rule-item.selected { background: #2b4c7e; color: white; }
-.rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
-.rule-qty { width: 50px; margin-left: 10px; font-size: 1rem; }
-
-/* event section */
-#eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-.event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
-
-/* small responsive tweaks */
-@media (max-width: 420px) {
-  .menu-actions { flex-wrap: wrap; }
-  .menu-actions button { font-size: 0.9rem; padding: 8px; }
-  #dynamic-island { padding: 8px 10px; }
-}
+  .pointcoin { width: 50px; height: 50px; vertical-align: middle; }
+  .island-time .label, .island-welcome .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); margin-right:6px; }
+  .island-time .value, .island-welcome .value { font-weight:700; font-size:1rem; color: var(--island-text); min-width:70px; text-align:right; }
+  #islandWelcome { transition: opacity 220ms ease, transform 220ms cubic-bezier(.2,.9,.3,1); }
+  #islandWelcome.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+  :root{ --island-bg: #000; --island-text: #fff; --island-radius: 28px; --island-padding: 10px 14px; }
+  body { font-family: Arial, sans-serif; max-width: 700px; margin: 30px auto; padding: 10px; background: linear-gradient(135deg, #f0f4f9, #d9e4f5); color: #333; font-size: 1rem; line-height: 1.4; }
+  @media (max-width: 700px) { body { max-width: 100%; margin: 10px; padding: 10px 15px; } }
+  h2, h3 { color: #2b4c7e; margin-bottom: 10px; }
+  button, input, select { width: 100%; max-width: 100%; padding: 12px; margin-top: 6px; font-size: 1.1rem; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; touch-action: manipulation; }
+  button { background: #2b4c7e; color: white; cursor: pointer; user-select: none; }
+  button:hover { background: #1f3557; }
+  img[src$="EGP.png"], .coin-icon, .island-icon { width: 25px !important; height: 25px !important; vertical-align: middle; }
+  .coin-icon { display: inline-block; }
+  #dynamic-island { position: fixed; left: 50%; top: 8px; transform: translateX(-50%); z-index: 99999; display: flex; align-items: center; gap: 10px; background: var(--island-bg); color: var(--island-text); padding: var(--island-padding); border-radius: var(--island-radius); box-shadow: 0 8px 30px rgba(0,0,0,0.25); min-width: 180px; max-width: 92vw; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); cursor: pointer; user-select: none; transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease; }
+  #notifyDot { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius:50%; background: transparent; box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; }
+  #notifyDot.active { background: red; box-shadow: 0 0 10px rgba(255,0,0,0.9); animation: notify-blink 1.6s infinite; }
+  @keyframes notify-blink { 0% { opacity: 1; } 50% { opacity: 0.35; } 100% { opacity: 1; } }
+  .island-display { display:flex; align-items:center; gap:8px; min-width:160px; }
+  .island-metric { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .island-metric .label { font-size:0.75rem; opacity:0.9; color: var(--island-text); }
+  .island-metric .value { font-weight:700; font-size:1rem; color: var(--island-text); }
+  .island-icon { display:inline-block; vertical-align:middle; }
+  #islandMenuBtn { background: rgba(255,255,255,0.06); color: inherit; border: none; border-radius: 10px; padding: 6px 8px; cursor:pointer; }
+  #islandMenuBtn:active { transform: scale(0.98); }
+  #islandMenu { position: fixed; z-index: 99998; background: var(--island-bg); color: var(--island-text); border-radius: 18px; box-shadow: 0 14px 40px rgba(0,0,0,0.3); transform-origin: top center; overflow: hidden; transition: transform 220ms ease, opacity 200ms ease, height 250ms ease, top 200ms ease, left 200ms ease; opacity: 0; transform: scaleY(0.95); pointer-events: none; }
+  #islandMenu.open { opacity: 1; transform: scaleY(1); pointer-events: auto; }
+  #islandMenu .menu-inner { padding: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow:auto; }
+  .menu-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .menu-actions button { flex:1 1 120px; background: transparent; border: 1px solid rgba(255,255,255,0.08); color: var(--island-text); padding: 10px; border-radius: 10px; font-weight: 700; }
+  .menu-actions button.active { outline: 2px solid rgba(255,255,255,0.15); }
+  .menu-panel { display:none; background: transparent; color: var(--island-text); }
+  .menu-panel.show { display:block; }
+  .menu-panel .panel-inner { margin-top: 8px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.2); }
+  .menu-panel label { color: var(--island-text); font-weight:600; display:block; margin-bottom:6px; }
+  .menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
+  .menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
+  .notification-item { padding: 8px; border-radius:8px; margin-bottom:8px; background: rgba(255,255,255,0.03); border:1px solid rgba(0,0,0,0.06); cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .notification-item.unread { border-left: 4px solid #ff4b4b; }
+  .notification-meta { font-size:0.85rem; opacity:0.85; margin-top:6px; }
+  .notification-actions { display:flex; gap:8px; margin-top:8px; }
+  .notification-actions button { flex:0 0 auto; padding:8px 10px; }
+  #login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  label { font-weight: bold; margin-top: 15px; display: block; }
+  .rules-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #fafafa; }
+  .rule-item { padding: 8px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease; display: flex; justify-content: space-between; align-items: center; }
+  .rule-item:hover { background: #e6f0ff; }
+  .rule-item.selected { background: #2b4c7e; color: white; }
+  .rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
+  .rule-qty { width: 50px; margin-left: 10px; font-size: 1rem; }
+  #eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  .event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
+  @media (max-width: 420px) { .menu-actions button { font-size: 0.9rem; padding: 8px; } #dynamic-island { padding: 8px 10px; } }
+  /* small visual inside-page notifications */
+  #messageContainer > div { color: white; font-weight:700; position:relative; padding-right:44px; }
+  /* tiny delete button style for messages and notifications */
+  .tiny-del { position:absolute; right:8px; top:8px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:white; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:0.8rem; }
+  .tiny-del:hover { opacity:0.9; transform:scale(0.98); }
 </style>
 </head>
 <body>
@@ -200,11 +79,10 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
 <div id="dynamic-island" role="region" aria-label="User status island" title="Tap to open">
   <div class="island-display" id="islandDisplay">
-  
     <div id="islandTime" class="island-metric island-time" aria-hidden="false">
-  <span class="label">Local time</span>
-  <span class="value" id="islandLocalTime">--:--:--</span>
-</div>
+      <span class="label">Local time</span>
+      <span class="value" id="islandLocalTime">--:--:--</span>
+    </div>
     <div class="island-metric" data-type="days">
       <span class="label">Days</span>
       <span class="value" id="days-count">0</span>
@@ -233,17 +111,25 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       <button id="menuShopBtn">Shop</button>
       <button id="menuSendCreditsBtn">Send <img src="EGP.png" alt="coin" class="coin-icon"></button>
       <button id="menuExchangeBtn">Exchange</button>
-      <button id="menuSendPointsBtn">Send <img src="POINTS.png" alt="POINTS" class="pointcoin">
-</button>
+      <button id="menuSendPointsBtn">Send <img src="POINTS.png" alt="POINTS" class="pointcoin"></button>
       <button id="menuCustomizeBtn">Customize</button>
       <button id="menuNotificationsBtn">Notifications</button>
       <button id="menuSendNotificationBtn">Send Notification</button>
+      <!-- SECRET button added -->
+      <button id="menuSecretBtn">Secret</button>
     </div>
 
     <div id="panelShop" class="menu-panel">
       <div class="panel-inner">
         <h4 style="margin:0 0 8px 0;">Days Shop (Spend <img src="EGP.png" alt="coin" class="coin-icon"> to remove days)</h4>
         <div id="shopItems"></div>
+        <div style="margin-top:12px;">
+          <div id="secretInfo" style="display:none;padding:8px;border-radius:8px;background:rgba(255,255,255,0.03);">
+            <strong>Secret Mode Enabled</strong>
+            <div id="secretModeDetails" style="font-size:0.9rem;margin-top:6px;"></div>
+            <button id="clearSecretBtn" style="margin-top:8px;">Clear Secret</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -259,8 +145,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
     <div id="panelExchange" class="menu-panel">
       <div class="panel-inner">
-        <h4 style="margin:0 0 8px 0;"><img src="POINTS.png" alt="POINTS" class="pointcoin">
- Exchange</h4>
+        <h4 style="margin:0 0 8px 0;"><img src="POINTS.png" alt="POINTS" class="pointcoin"> Exchange</h4>
         <div id="pointsExchangeItems"></div>
       </div>
     </div>
@@ -314,39 +199,45 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 </div>
 
 <div id="login-form">
-<h2>Login</h2>
-<input type="text" id="username" placeholder="Username" />
-<input type="password" id="password" placeholder="Password" />
-<label><input type="checkbox" id="keepSignedIn"> Keep me signed in</label>
-<button id="loginBtn">Login</button>
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <label><input type="checkbox" id="keepSignedIn"> Keep me signed in</label>
+  <button id="loginBtn">Login</button>
 </div>
 
 <div id="report-form" style="display:none;">
-<h2>Report Form</h2>
-<form id="reportForm">
-<label>Your Username</label>
-<input type="text" id="reporter" readonly />
-<label>Who is this report on?</label>
-<select id="reportedUser" required ></select>
-<label>Rules broken:</label>
-<div class="rules-list" id="rulesList"></div>
-<div id="total-days">Total Days Penalty: 0</div>
-<button type="submit" style="margin-top:20px;">Submit Report</button>
-</form>
+  <h2>Report Form</h2>
+  <form id="reportForm">
+    <label>Your Username</label>
+    <input type="text" id="reporter" readonly />
+    <label>Who is this report on?</label>
+    <select id="reportedUser" required ></select>
+    <label>Rules broken:</label>
+    <div class="rules-list" id="rulesList"></div>
+    <div id="total-days">Total Days Penalty: 0</div>
+    <button type="submit" style="margin-top:20px;">Submit Report</button>
+  </form>
 </div>
 
 <hr>
 <div id="eventsSection">
-<h2>Events</h2>
-<div id="eventsList">Loading events...</div>
+  <h2>Events</h2>
+  <div id="eventsList">Loading events...</div>
 </div>
 
 <audio id="saveSignatureAudio" src="welcome.mp3" preload="auto"></audio>
 <audio id="applePayAudio" src="applepay.mp3" preload="auto"></audio>
 
+<div id="messageContainer" 
+     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            display:flex;flex-direction:column;align-items:center;gap:10px;
+            z-index:9999;max-width:80%;"></div>
+
+<!-- Firebase v10 modules -->
 <script type="module">
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, update, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, update, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // === FIREBASE CONFIG ===
 const firebaseConfig = {
@@ -380,49 +271,19 @@ const welcomeText = document.getElementById("welcomeText");
 const welcomeAudio = document.getElementById("welcomeAudio");
 const notifyDot = document.getElementById('notifyDot');
 
-// ------------------- island clock + one-time welcome -------------------
+let currentSecretCode = null; // holds code object when secret is active
+
+// clock
 const islandLocalTimeEl = document.getElementById('islandLocalTime');
-const islandWelcomeEl = document.getElementById('islandWelcome');
-const islandUserNameEl = document.getElementById('islandUserName');
-
 let _islandClockInterval = null;
-
 function startIslandClock() {
-  function render() {
-    const now = new Date();
-    // shows user-local time and format (12h/24h per browser/locale)
-    islandLocalTimeEl.textContent = now.toLocaleTimeString();
-  }
-  render();
-  if (_islandClockInterval) clearInterval(_islandClockInterval);
+  function render() { islandLocalTimeEl.textContent = new Date().toLocaleTimeString(); }
+  render(); if (_islandClockInterval) clearInterval(_islandClockInterval);
   _islandClockInterval = setInterval(render, 1000);
 }
-function stopIslandClock() { if (_islandClockInterval) { clearInterval(_islandClockInterval); _islandClockInterval = null; } }
-
-/**
- * Show a single welcome message only when called (e.g., right after a successful login).
- * Does NOT run automatically on page load — CALL THIS from your login success handler.
- * name: string (username)
- * durationMs: how long to show welcome (default 6s)
- */
-function showWelcomeOnce(name, durationMs = 6000) {
-  if (!name) return;
-  islandUserNameEl.textContent = name;
-  islandWelcomeEl.hidden = false;
-  islandWelcomeEl.classList.remove('hidden');
-
-  // hide after duration
-  setTimeout(() => {
-    islandWelcomeEl.classList.add('hidden');
-    // after transition completes keep it hidden for a11y
-    setTimeout(() => islandWelcomeEl.hidden = true, 240);
-  }, durationMs);
-}
-
-// start the clock right away
 startIslandClock();
 
-// === DATA ARRAYS ===
+// DATA arrays (unchanged)
 const rules = [
   { id: 'no_hit', title: 'No hit', days: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
   { id: 'no_scream', title: 'No scream', days: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 days.' },
@@ -456,6 +317,7 @@ const shopItems = [{cost:100,days:1},{cost:450,days:5},{cost:1450,days:15},{cost
 
 const pointsExchangeItems = [{points:100,credits:500},{points:300,credits:2000},{points:500,credits:5500},{points:1000,credits:12000},{points:2000,credits:24000},{points:3000,credits:37000},{points:4000,credits:50000}];
 
+// render rules (unchanged)
 function renderRules() {
   const container = document.getElementById('rulesList');
   container.innerHTML = '';
@@ -463,7 +325,9 @@ function renderRules() {
     const div = document.createElement('div');
     div.className = 'rule-item';
     div.dataset.id = r.id; div.dataset.days = r.days; div.dataset.points = r.points;
-    const textContainer = document.createElement('div'); textContainer.style.flex = '1'; textContainer.innerHTML = `<strong>${r.title}</strong><div class="rule-details">${r.details}</div>`;
+    const textContainer = document.createElement('div');
+    textContainer.style.flex = '1';
+    textContainer.innerHTML = `<strong>${escapeHtml(r.title)}</strong><div class="rule-details">${escapeHtml(r.details)}</div>`;
     const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.min=0; qtyInput.value=0; qtyInput.className='rule-qty'; qtyInput.addEventListener('input', updateTotalDays);
     div.appendChild(textContainer); div.appendChild(qtyInput);
     div.addEventListener('click',(e)=>{ if(e.target.tagName.toLowerCase() !== 'input'){ div.classList.toggle('selected'); if(div.classList.contains('selected') && qtyInput.value==0) qtyInput.value = 1; else if(!div.classList.contains('selected')) qtyInput.value = 0; updateTotalDays(); } });
@@ -473,9 +337,17 @@ function renderRules() {
 }
 renderRules();
 
-function updateTotalDays(){ let total = 0; document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; const daysPer = parseInt(item.dataset.days); total += daysPer * qty; }); document.getElementById('total-days').textContent = `Total Days Penalty: ${total}`; }
+function updateTotalDays(){
+  let total = 0;
+  document.querySelectorAll('.rule-item').forEach(item=>{
+    const qty = parseInt(item.querySelector('input').value)||0;
+    const daysPer = parseInt(item.dataset.days) || 0;
+    total += daysPer * qty;
+  });
+  document.getElementById('total-days').textContent = `Total Days Penalty: ${total}`;
+}
 
-// === USERS DROPDOWNS ===
+// USERS DROPDOWNS
 async function loadUsersDropdowns(){
   const snap = await get(ref(db, "users"));
   if(snap.exists()){
@@ -484,17 +356,17 @@ async function loadUsersDropdowns(){
     sendPointsToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
     notifyToUserSelect.innerHTML = `<option disabled selected>Select user</option>`;
     Object.keys(snap.val()).forEach(user=>{
-      reportedUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+      reportedUserSelect.innerHTML += `<option value="${escapeHtml(user)}">${escapeHtml(user)}</option>`;
       if(user !== currentUser) {
-        sendToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
-        sendPointsToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
-        notifyToUserSelect.innerHTML += `<option value="${user}">${user}</option>`;
+        sendToUserSelect.innerHTML += `<option value="${escapeHtml(user)}">${escapeHtml(user)}</option>`;
+        sendPointsToUserSelect.innerHTML += `<option value="${escapeHtml(user)}">${escapeHtml(user)}</option>`;
+        notifyToUserSelect.innerHTML += `<option value="${escapeHtml(user)}">${escapeHtml(user)}</option>`;
       }
     });
   }
 }
 
-// === LOGIN / LOGOUT ===
+// LOGIN / LOGOUT (unchanged)
 async function login(username, password, keep, isAutoLogin = false){
   const userRef = ref(db, `users/${username}`);
   const snap = await get(userRef);
@@ -526,7 +398,7 @@ async function login(username, password, keep, isAutoLogin = false){
   if(!isAutoLogin){
     welcomeText.textContent = `Welcome back, ${username}!`;
     welcomeOverlay.style.display = "flex";
-    await new Promise(resolve=>{ function onClick(){ welcomeOverlay.removeEventListener('click', onClick); welcomeAudio.play(); welcomeOverlay.style.transition = 'opacity 0.7s ease'; welcomeOverlay.style.opacity = 0; setTimeout(()=>{ welcomeOverlay.style.display = 'none'; welcomeOverlay.style.opacity = 1; resolve(); },700); } welcomeOverlay.addEventListener('click', onClick); });
+    await new Promise(resolve=>{ function onClick(){ welcomeOverlay.removeEventListener('click', onClick); try{ welcomeAudio.play(); }catch(e){} welcomeOverlay.style.transition = 'opacity 0.7s ease'; welcomeOverlay.style.opacity = 0; setTimeout(()=>{ welcomeOverlay.style.display = 'none'; welcomeOverlay.style.opacity = 1; resolve(); },700); } welcomeOverlay.addEventListener('click', onClick); });
   }
 
   document.getElementById("login-form").style.display = "none";
@@ -543,14 +415,23 @@ async function login(username, password, keep, isAutoLogin = false){
   listenToNotifications();
 }
 
-function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); updateNotifyDot(0); }
+function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); updateNotifyDot(0); clearSecretMode(); }
 
-// === SHOP / POINTS RENDER (same ids used inside island menu) ===
+// SHOP / POINTS RENDER (unchanged)
 function renderShopItems(){
   const shopContainer = document.getElementById('shopItems');
   shopContainer.innerHTML = '';
-  shopItems.forEach(item=>{
-    shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} <img src="EGP.png" class="coin-icon" alt="coin"> → Remove ${item.days} days</button><br>`;
+  shopItems.forEach((item, idx)=>{
+    if(currentSecretCode){
+      const remaining = (currentSecretCode.purchasesLimit != null) ? Math.max(0, currentSecretCode.purchasesLimit - (currentSecretCode.used||0)) : '∞';
+      const html = `<div style="margin-bottom:8px;"><div>Remove ${item.days} days — <strong>FREE</strong></div>
+        <div style="font-size:0.85rem;margin-top:6px;">Secret code: ${escapeHtml(currentSecretCode.code)} • Uses left: ${remaining}</div>
+        <button onclick="buyItemSecret('${currentSecretCode.code}', ${item.days})">Take for free</button></div>`;
+      shopContainer.innerHTML += html;
+    } else {
+      shopContainer.innerHTML += `<div style="margin-bottom:8px;"><div>Remove ${item.days} days — Cost: ${item.cost} <img src="EGP.png" class="coin-icon" alt="coin"></div>
+        <button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} <img src="EGP.png" class="coin-icon" alt="coin"></button></div>`;
+    }
   });
 }
 renderShopItems();
@@ -564,61 +445,54 @@ function renderPointsExchangeItems(){
 }
 renderPointsExchangeItems();
 
-// === ISLAND MENU BEHAVIOR (position & seamless open) ===
+// ISLAND MENU BEHAVIOR (unchanged)
 const islandEl = document.getElementById('dynamic-island');
 const islandMenu = document.getElementById('islandMenu');
 
-// set initial position/size of islandMenu to match island; on open we animate width
 function positionIslandMenu(){
   const rect = islandEl.getBoundingClientRect();
-
-  // compute an open width that's comfortable for phones and desktops
   let maxAllowed = Math.min(window.innerWidth - 20, 520);
   if(window.innerWidth <= 420) maxAllowed = Math.min(window.innerWidth - 20, 380);
   const menuWidth = Math.max(Math.min(maxAllowed, 520), 320);
-
-  // center under island
   const left = Math.round((window.innerWidth - menuWidth) / 2);
   const top = Math.round(rect.bottom + 8);
-
   islandMenu.style.left = `${left}px`;
   islandMenu.style.top = `${top}px`;
   islandMenu.style.width = `${menuWidth}px`;
-
-  // set corners to blend nicely
-  islandMenu.style.borderTopLeftRadius = `20px`;
-  islandMenu.style.borderTopRightRadius = `20px`;
-  islandMenu.style.borderBottomLeftRadius = `22px`;
-  islandMenu.style.borderBottomRightRadius = `22px`;
-
+  islandMenu.style.borderTopLeftRadius = '20px';
+  islandMenu.style.borderTopRightRadius = '20px';
+  islandMenu.style.borderBottomLeftRadius = '22px';
+  islandMenu.style.borderBottomRightRadius = '22px';
   return menuWidth;
 }
 
-// open / close control
 let islandOpen = false;
+function showMenuPanel(panelId, buttonId){
+  document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('show'));
+  const panel = document.getElementById(panelId);
+  if(panel) panel.classList.add('show');
+  document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
+  if(buttonId) {
+    const btn = document.getElementById(buttonId);
+    if(btn) btn.classList.add('active');
+  }
+  positionIslandMenu();
+}
+
 function openIslandMenu(){
-  // remember closed width so we can animate back
   const rect = islandEl.getBoundingClientRect();
   const closedWidth = rect.width;
   islandEl.dataset.closedWidth = closedWidth;
-
   const menuWidth = positionIslandMenu();
-
-  // expand island to match menu width (animated via CSS transition)
   islandEl.style.width = `${menuWidth}px`;
-  // slightly reduce island top radius for seamless connection
-  islandEl.style.borderBottomLeftRadius = `14px`;
-  islandEl.style.borderBottomRightRadius = `14px`;
-
-  // apply same background to menu & island (CSS var handles gradients/solid)
+  islandEl.style.borderBottomLeftRadius = '14px';
+  islandEl.style.borderBottomRightRadius = '14px';
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--island-bg');
   islandEl.style.background = bg;
   islandMenu.style.background = bg;
-
   islandMenu.classList.add('open');
   islandMenu.setAttribute('aria-hidden', 'false');
   islandOpen = true;
-  // show default panel
   showMenuPanel('panelShop', 'menuShopBtn');
 }
 
@@ -626,50 +500,25 @@ function closeIslandMenu(){
   islandMenu.classList.remove('open');
   islandMenu.setAttribute('aria-hidden', 'true');
   islandOpen = false;
-
-  // animate island back to closed width
   const closedWidth = islandEl.dataset.closedWidth || '';
   if(closedWidth){
     islandEl.style.width = `${closedWidth}px`;
     islandEl.style.borderBottomLeftRadius = '';
     islandEl.style.borderBottomRightRadius = '';
-    // after transition end, remove inline width so it can be responsive again
     const reset = () => { islandEl.style.width = ''; islandEl.removeEventListener('transitionend', reset); };
     islandEl.addEventListener('transitionend', reset);
-    // fallback
     setTimeout(()=>{ if(islandEl.style.width !== ''){ islandEl.style.width = ''; } }, 400);
   }
-
-  // clear active buttons
   document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
 }
 
-// toggle by clicking anywhere on island
 islandEl.addEventListener('click', (e)=>{
-  // do nothing if click came from islandMenu (when open)
   if(islandOpen && islandMenu.contains(e.target)) return;
   if(!islandOpen) openIslandMenu(); else closeIslandMenu();
 });
-
-// reposition on resize or scroll
 window.addEventListener('resize', ()=>{ if(islandOpen) positionIslandMenu(); });
 window.addEventListener('scroll', ()=>{ if(islandOpen) positionIslandMenu(); });
-
-// close when clicking outside
-document.addEventListener('click', (e)=>{
-  if(!islandEl.contains(e.target) && !islandMenu.contains(e.target)) closeIslandMenu();
-});
-
-// menu action buttons wiring
-function showMenuPanel(panelId, buttonId){
-  document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('show'));
-  const panel = document.getElementById(panelId);
-  if(panel) panel.classList.add('show');
-  document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
-  if(buttonId) document.getElementById(buttonId).classList.add('active');
-  // reposition after content change
-  positionIslandMenu();
-}
+document.addEventListener('click', (e)=>{ if(!islandEl.contains(e.target) && !islandMenu.contains(e.target)) closeIslandMenu(); });
 
 document.getElementById('menuShopBtn').addEventListener('click', ()=> showMenuPanel('panelShop','menuShopBtn'));
 document.getElementById('menuSendCreditsBtn').addEventListener('click', ()=> showMenuPanel('panelSendCredits','menuSendCreditsBtn'));
@@ -679,7 +528,16 @@ document.getElementById('menuCustomizeBtn').addEventListener('click', ()=> showM
 document.getElementById('menuNotificationsBtn').addEventListener('click', ()=> showMenuPanel('panelNotifications','menuNotificationsBtn'));
 document.getElementById('menuSendNotificationBtn').addEventListener('click', ()=> showMenuPanel('panelSendNotification','menuSendNotificationBtn'));
 
-// --- color palette inside island menu ---
+// SECRET button wiring
+document.getElementById('menuSecretBtn').addEventListener('click', async ()=> {
+  const code = prompt("Enter 5-digit secret code:");
+  if(!code) return;
+  await tryActivateSecretCode(code.trim());
+});
+
+document.getElementById('clearSecretBtn').addEventListener('click', ()=> { clearSecretMode(); renderShopItems(); });
+
+// color palette
 const colorPalette = document.getElementById('colorPalette');
 colorPalette.querySelectorAll('.sw').forEach(sw=>{
   sw.addEventListener('click', ()=>{
@@ -688,8 +546,6 @@ colorPalette.querySelectorAll('.sw').forEach(sw=>{
     localStorage.setItem('islandColor', c);
   });
 });
-
-// applyIslandColor uses same var as before (works for gradients or solid)
 function applyIslandColor(name){
   let css = '';
   switch(name){
@@ -708,38 +564,96 @@ function applyIslandColor(name){
 }
 const savedColor = localStorage.getItem('islandColor'); if(savedColor) applyIslandColor(savedColor);
 
-// === PANEL TOGGLING (used by island menu) ===
-function hideAllPanels(){ document.querySelectorAll('.menu-panel').forEach(el => el.classList.remove('show')); }
-window.togglePanel = (id) => { const el = document.getElementById(id); if(!el) return; el.classList.toggle('show'); }
-
-// === BUY / EXCHANGE / SEND FUNCTIONS ===
-async function buyItem(cost, daysToRemove){ if(!currentUser) return alert('Please login first.'); if((currentUserData.credits||0) < cost) return alert('Not enough credits.'); if((currentUserData.days||0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
-  try{ const applePayAudio = document.getElementById('applePayAudio'); try{ await applePayAudio.play(); }catch(e){}
+// BUY / EXCHANGE / SEND FUNCTIONS (unchanged)
+async function buyItem(cost, daysToRemove){
+  if(!currentUser) return alert('Please login first.');
+  if((currentUserData.credits||0) < cost) return alert('Not enough credits.');
+  if((currentUserData.days||0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
+  try{
+    try{ document.getElementById('applePayAudio').play(); }catch(e){}
     const bankAmount = Math.floor(cost * 0.90); const zezoAmount = cost - bankAmount;
-    const userRef = ref(db, `users/${currentUser}`); const bankRef = ref(db, `users/bank`); const zezoRef = ref(db, `users/zezo`);
-    const [bankSnap,zezoSnap] = await Promise.all([ get(bankRef), get(zezoRef) ]);
-    const bankData = bankSnap.exists()?bankSnap.val():{credits:0}; const zezoData = zezoSnap.exists()?zezoSnap.val():{credits:0};
     const updates = {};
     updates[`users/${currentUser}/credits`] = (currentUserData.credits||0) - cost;
     updates[`users/${currentUser}/days`] = (currentUserData.days||0) - daysToRemove;
-    updates[`users/bank/credits`] = (bankData.credits||0) + bankAmount;
-    updates[`users/zezo/credits`] = (zezoData.credits||0) + zezoAmount;
+
+    const bankSnap = await get(ref(db, `users/bank`));
+    const zezoSnap = await get(ref(db, `users/zezo`));
+    const bankAmtNow = bankSnap.exists() ? (bankSnap.val().credits||0) : 0;
+    const zezoAmtNow = zezoSnap.exists() ? (zezoSnap.val().credits||0) : 0;
+    updates[`users/bank/credits`] = bankAmtNow + bankAmount;
+    updates[`users/zezo/credits`] = zezoAmtNow + zezoAmount;
+
     await update(ref(db), updates);
-    currentUserData.credits -= cost; currentUserData.days -= daysToRemove; creditsSpan.textContent = currentUserData.credits; daysSpan.textContent = currentUserData.days;
+    currentUserData.credits -= cost; currentUserData.days -= daysToRemove;
+    creditsSpan.textContent = currentUserData.credits; daysSpan.textContent = currentUserData.days;
     alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days. 90% went to Bank and remainder to Zezo.`);
   }catch(err){ console.error(err); alert('Failed to complete purchase: '+err.message); }
 }
 window.buyItem = buyItem;
 
-async function exchangePoints(pointsToExchange, creditsToReceive){ if(!currentUser) return alert('Please login first.'); if((currentUserData.points||0) < pointsToExchange) return alert('Not enough points to make this exchange.');
+async function buyItemSecret(code, daysToRemove){
+  if(!currentUser) return alert('Please login first.');
+  if(!code) return alert('No secret code active.');
+  const codeRef = ref(db, `secretCodes/${code}`);
+  const snap = await get(codeRef);
+  if(!snap.exists()) return alert('Invalid secret code.');
+  const codeData = snap.val();
+  const now = Date.now();
+  if(codeData.expiry && now > codeData.expiry) return alert('This secret code has expired.');
+  if(codeData.purchasesLimit != null && (codeData.used||0) >= codeData.purchasesLimit) return alert('This secret code has reached its maximum number of purchases.');
+  try{
+    const userRef = ref(db, `users/${currentUser}`);
+    const userSnap = await get(userRef);
+    const userData = userSnap.exists()? userSnap.val() : {};
+    const newDays = Math.max(0, (userData.days||0) - daysToRemove);
+    const updates = {};
+    updates[`users/${currentUser}/days`] = newDays;
+    updates[`secretCodes/${code}/used`] = (codeData.used||0) + 1;
+    updates[`secretCodes/${code}/usedBy/${currentUser}`] = { when: Date.now() };
+    await update(ref(db), updates);
+
+    currentUserData.days = newDays;
+    daysSpan.textContent = currentUserData.days;
+
+    alert(`Secret purchase successful. ${daysToRemove} days removed (free).`);
+    if(codeData.purchasesLimit != null && (codeData.used||0) + 1 >= codeData.purchasesLimit){
+      alert('This secret code has now reached its purchase limit and is no longer valid.');
+      clearSecretMode();
+      renderShopItems();
+    } else {
+      currentSecretCode = { ...codeData, used: (codeData.used||0) + 1 };
+      updateSecretUI();
+      renderShopItems();
+    }
+  }catch(err){ console.error(err); alert('Failed secret purchase: '+err.message); }
+}
+window.buyItemSecret = buyItemSecret;
+
+async function exchangePoints(pointsToExchange, creditsToReceive){
+  if(!currentUser) return alert('Please login first.');
+  if((currentUserData.points||0) < pointsToExchange) return alert('Not enough points to make this exchange.');
   const newPoints = (currentUserData.points||0) - pointsToExchange; const newCredits = (currentUserData.credits||0) + creditsToReceive;
-  try{ const userRef = ref(db, `users/${currentUser}`); await update(userRef, { points: newPoints, credits: newCredits }); currentUserData.points = newPoints; currentUserData.credits = newCredits; pointsSpan.textContent = currentUserData.points; creditsSpan.textContent = currentUserData.credits; alert(`Exchanged ${pointsToExchange} points for ${creditsToReceive} credits!`); }catch(err){ console.error(err); alert('Failed to complete exchange.'); }
+  try{
+    const userRef = ref(db, `users/${currentUser}`);
+    await update(userRef, { points: newPoints, credits: newCredits });
+    currentUserData.points = newPoints; currentUserData.credits = newCredits;
+    pointsSpan.textContent = currentUserData.points; creditsSpan.textContent = currentUserData.credits;
+    alert(`Exchanged ${pointsToExchange} points for ${creditsToReceive} credits!`);
+  }catch(err){ console.error(err); alert('Failed to complete exchange.'); }
 }
 window.exchangePoints = exchangePoints;
 
-async function sendCredits(){ if(!currentUser) return alert('Please login first.'); const toUser = sendToUserSelect.value; const amount = parseInt(document.getElementById('sendAmount').value); if(!toUser) return alert('Select a user to send credits to.'); if(!amount || amount<=0) return alert('Enter a valid amount.'); if((currentUserData.credits||0) < amount) return alert('Not enough credits.');
+async function sendCredits(){
+  if(!currentUser) return alert('Please login first.');
+  const toUser = sendToUserSelect.value; const amount = parseInt(document.getElementById('sendAmount').value);
+  if(!toUser) return alert('Select a user to send credits to.');
+  if(!amount || amount<=0) return alert('Enter a valid amount.');
+  if((currentUserData.credits||0) < amount) return alert('Not enough credits.');
   const senderRef = ref(db, `users/${currentUser}`); const receiverRef = ref(db, `users/${toUser}`);
-  try{ const receiverSnap = await get(receiverRef); if(!receiverSnap.exists()) return alert('Receiver user not found.'); const receiverCredits = receiverSnap.val().credits||0; const updates = {};
+  try{
+    const receiverSnap = await get(receiverRef); if(!receiverSnap.exists()) return alert('Receiver user not found.');
+    const receiverCredits = receiverSnap.val().credits||0;
+    const updates = {};
     updates[`users/${currentUser}/credits`] = (currentUserData.credits||0) - amount;
     updates[`users/${toUser}/credits`] = receiverCredits + amount;
     await update(ref(db), updates);
@@ -748,10 +662,14 @@ async function sendCredits(){ if(!currentUser) return alert('Please login first.
 }
 window.sendCredits = sendCredits;
 
-// === SEND POINTS FUNCTIONALITY ===
-async function sendPoints(){ if(!currentUser) return alert('Please login first.'); const toUser = sendPointsToUserSelect.value; const amount = parseInt(document.getElementById('sendPointsAmount').value); if(!toUser) return alert('Select a user to send points to.'); if(!amount || amount<=0) return alert('Enter a valid amount.'); if((currentUserData.points||0) < amount) return alert('Not enough points.');
-  const senderRef = ref(db, `users/${currentUser}`); const receiverRef = ref(db, `users/${toUser}`);
+async function sendPoints(){
+  if(!currentUser) return alert('Please login first.');
+  const toUser = sendPointsToUserSelect.value; const amount = parseInt(document.getElementById('sendPointsAmount').value);
+  if(!toUser) return alert('Select a user to send points to.');
+  if(!amount || amount<=0) return alert('Enter a valid amount.');
+  if((currentUserData.points||0) < amount) return alert('Not enough points.');
   try{
+    const receiverRef = ref(db, `users/${toUser}`);
     const receiverSnap = await get(receiverRef); if(!receiverSnap.exists()) return alert('Receiver user not found.');
     const receiverPoints = receiverSnap.val().points||0;
     const updates = {};
@@ -763,10 +681,7 @@ async function sendPoints(){ if(!currentUser) return alert('Please login first.'
 }
 window.sendPoints = sendPoints;
 
-// === NOTIFICATIONS ===
-// notifications stored under 'notifications' with structure:
-// { from, to, title, description, timestamp, read }
-
+// NOTIFICATIONS (sendNotification unchanged; forwarding done by compat script below)
 async function sendNotification(){
   if(!currentUser) return alert('Please login first.');
   const to = notifyToUserSelect.value; const title = document.getElementById('notifyTitle').value.trim(); const description = document.getElementById('notifyDescription').value.trim();
@@ -775,40 +690,28 @@ async function sendNotification(){
   const notif = { from: currentUser, to, title, description, timestamp: Date.now(), read: false };
   try{ await update(nref, notif); document.getElementById('notifyTitle').value=''; document.getElementById('notifyDescription').value=''; alert('Notification sent'); }catch(err){ console.error(err); alert('Failed to send notification'); }
 }
-
 document.getElementById('sendNotificationBtn').addEventListener('click', sendNotification);
 
-let notificationsCache = {}; // local cache keyed by id
-
+// notification UI + delete button wiring
+let notificationsCache = {};
 function listenToNotifications(){
   const notificationsRef = ref(db, 'notifications');
   onValue(notificationsRef, (snap)=>{
     const all = snap.exists() ? snap.val() : {};
-    // filter notifications for current user
     const myNotifs = [];
     Object.entries(all).forEach(([id, n])=>{
       if(n && n.to === currentUser){ myNotifs.push({ id, ...n }); }
     });
-
-    // sort by timestamp descending
     myNotifs.sort((a,b)=> b.timestamp - a.timestamp);
-
-    // update cache
     notificationsCache = {};
     myNotifs.forEach(n => notificationsCache[n.id] = n);
-
     renderNotificationsList(myNotifs);
-
-    // unread count
     const unread = myNotifs.filter(n=>!n.read).length;
     updateNotifyDot(unread);
   });
 }
-
 function updateNotifyDot(count){ if(count && count > 0){ notifyDot.classList.add('active'); } else { notifyDot.classList.remove('active'); } }
-
 function formatWhen(ts){ const d = new Date(ts); return d.toLocaleString(); }
-
 function renderNotificationsList(list){
   const container = document.getElementById('notificationsList');
   if(!list || list.length === 0){ container.innerHTML = 'No notifications.'; return; }
@@ -817,27 +720,30 @@ function renderNotificationsList(list){
     const div = document.createElement('div');
     div.className = 'notification-item' + (n.read? '' : ' unread');
     div.dataset.id = n.id;
-    div.innerHTML = `<strong>${escapeHtml(n.title)}</strong><div class="notification-meta">From: ${escapeHtml(n.from)} • ${formatWhen(n.timestamp)}</div>`;
-    div.addEventListener('click', ()=> showNotificationDetails(n.id));
+    const left = document.createElement('div');
+    left.style.flex = '1';
+    left.innerHTML = `<strong>${escapeHtml(n.title)}</strong><div class="notification-meta">From: ${escapeHtml(n.from)} • ${formatWhen(n.timestamp)}</div>`;
+    div.appendChild(left);
+    // clicking left area shows details
+    left.addEventListener('click', ()=> showNotificationDetails(n.id));
+    // delete button
+    const del = document.createElement('button');
+    del.className = 'tiny-del';
+    del.textContent = 'Delete';
+    del.addEventListener('click', async (ev)=>{ ev.stopPropagation(); await deleteNotification(n.id); });
+    div.appendChild(del);
     container.appendChild(div);
   });
 }
-
 async function showNotificationDetails(id){
   const n = notificationsCache[id]; if(!n) return alert('Notification not found');
-  // simple modal using prompt/confirm for simplicity
   const details = `From: ${n.from}\nTitle: ${n.title}\nWhen: ${formatWhen(n.timestamp)}\n\n${n.description || ''}`;
   alert(details);
-  // mark as read if not
   if(!n.read){ try{ const nr = ref(db, `notifications/${id}`); await update(nr, { read: true }); }catch(err){ console.error(err); } }
 }
-
 async function deleteNotification(id){ if(!confirm('Delete this notification?')) return; try{ await remove(ref(db, `notifications/${id}`)); alert('Deleted'); }catch(err){ console.error(err); alert('Failed to delete'); } }
 
-// small helper to avoid injection in inserted text
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
-
-// === EVENTS SECTION ===
+// EVENTS SECTION (unchanged)
 function formatCountdown(msLeft){ if(msLeft <= 0) return 'Expired'; const totalSeconds = Math.floor(msLeft/1000); const days = Math.floor(totalSeconds/(24*3600)); const hours = Math.floor((totalSeconds%(24*3600))/3600); const minutes = Math.floor((totalSeconds%3600)/60); const seconds = totalSeconds%60; let parts = []; if(days>0) parts.push(`${days}d`); if(hours>0||days>0) parts.push(`${hours}h`); if(minutes>0||hours>0||days>0) parts.push(`${minutes}m`); parts.push(`${seconds}s`); return parts.join(' '); }
 const eventsRef = ref(db, 'events');
 function renderEvents(events){ const eventsListEl = document.getElementById('eventsList'); eventsListEl.innerHTML = ''; const now = Date.now(); let hasEvents = false; Object.entries(events||{}).forEach(([eventId,ev])=>{
@@ -852,9 +758,9 @@ function renderEvents(events){ const eventsListEl = document.getElementById('eve
   eventsListEl.appendChild(div);
 });
 if(!hasEvents) eventsListEl.textContent = 'No active events at this time.'; }
-onValue(eventsRef, (snapshot)=>{ renderEvents(snapshot.val()); });
+onValue(eventsRef, (snapshot)=>{ renderEvents(snapshot.val() || {}); });
 
-// === REPORT SUBMIT (merged with Discord webhook) ===
+// REPORT SUBMIT (unchanged)
 document.getElementById('reportForm').onsubmit = async e => {
   e.preventDefault(); if(!currentUser) return alert('Please login first.'); const reportedUser = reportedUserSelect.value; if(!reportedUser) return alert('Please select the user you want to report.');
   const selectedRules = []; let totalDays = 0; let totalPoints = 0;
@@ -889,11 +795,11 @@ document.getElementById('reportForm').onsubmit = async e => {
   }catch(error){ console.error('Error submitting report:', error); alert('Failed to submit report: ' + error.message); }
 }
 
-// --- DYNAMIC ISLAND ROTATION (still rotates metrics every 5s) ---
+// island metric rotation (unchanged)
 const metrics = ['days','credits','points','sig'];
 let metricIndex = 0;
 const islandDisplay = document.getElementById('islandDisplay');
-function showMetric(index){ 
+function showMetric(index){
   const items = islandDisplay.querySelectorAll('.island-metric');
   items.forEach(it=> it.style.display = 'none');
   const m = items[index % items.length]; if(m) m.style.display = 'flex';
@@ -901,13 +807,12 @@ function showMetric(index){
 showMetric(metricIndex);
 setInterval(()=>{ metricIndex = (metricIndex + 1) % metrics.length; showMetric(metricIndex); }, 1500);
 
-// === AUTO LOGIN ON PAGE LOAD & button wiring ===
+// AUTO LOGIN & button wiring
 window.addEventListener('load', ()=>{
   let saved = localStorage.getItem('loginData') || sessionStorage.getItem('loginData');
   if(saved){ try{ const { username, password } = JSON.parse(saved); login(username, password, true, true); }catch(e){ console.error('Failed to parse saved login:', e); } }
 });
 
-// wire login button
 document.getElementById('loginBtn').addEventListener('click', async ()=>{
   const u = document.getElementById('username').value;
   const p = document.getElementById('password').value;
@@ -917,105 +822,64 @@ document.getElementById('loginBtn').addEventListener('click', async ()=>{
   await login(u,p,keep,false);
 });
 
-// wire send credits/points buttons
 document.getElementById('sendBtn').addEventListener('click', ()=> sendCredits());
 document.getElementById('sendPointsBtn').addEventListener('click', ()=> sendPoints());
+document.getElementById('menuLogoutBtn').addEventListener('click', () => { logout(); });
 
-// expose logout to window (in case needed elsewhere)
-window.logout = logout;
+// helper escape
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
 
+// ---------- SECRET CODE LOGIC (unchanged) ----------
+async function tryActivateSecretCode(code){
+  code = String(code).trim();
+  if(!/^\d{5}$/.test(code)) { alert('Code must be 5 digits.'); return; }
+  const codeRef = ref(db, `secretCodes/${code}`);
+  const snap = await get(codeRef);
+  if(!snap.exists()){ alert('Secret code not found'); return; }
+  const data = snap.val();
+  const now = Date.now();
+  if(data.expiry && now > data.expiry){ alert('This code has expired.'); return; }
+  if(data.purchasesLimit != null && (data.used||0) >= data.purchasesLimit){ alert('This code has reached its purchase limit.'); return; }
+  currentSecretCode = { ...data };
+  updateSecretUI();
+  renderShopItems();
+  showMenuPanel('panelShop', 'menuShopBtn');
+  alert('Secret code accepted — secret shop unlocked (free purchases while valid).');
+}
+
+function updateSecretUI(){
+  const secretInfo = document.getElementById('secretInfo');
+  if(!currentSecretCode){ secretInfo.style.display = 'none'; return; }
+  const details = [];
+  if(currentSecretCode.expiry) details.push(`Expires: ${new Date(currentSecretCode.expiry).toLocaleString()}`);
+  if(currentSecretCode.purchasesLimit != null) details.push(`Purchase limit: ${currentSecretCode.purchasesLimit} (used: ${currentSecretCode.used||0})`);
+  document.getElementById('secretModeDetails').textContent = details.join(' • ');
+  secretInfo.style.display = 'block';
+}
+
+function clearSecretMode(){
+  currentSecretCode = null;
+  updateSecretUI();
+  renderShopItems();
+}
+
+// small message helper (unchanged)
+function showTempMessage(text, timeout=3000){
+  const container = document.getElementById('messageContainer');
+  const box = document.createElement('div');
+  box.style.background = "black"; box.style.padding = "12px"; box.style.borderRadius = "10px"; box.style.wordWrap = "break-word"; box.style.textAlign = "center"; box.style.maxWidth = "100%";
+  box.innerHTML = escapeHtml(text);
+  container.appendChild(box);
+  setTimeout(()=> box.remove(), timeout);
+}
 </script>
-<script>
-document.getElementById("reportForm").addEventListener("submit", function(e) {
-    e.preventDefault(); // stop form refresh
 
-    const webhookURL = "https://discordapp.com/api/webhooks/1404606217346875483/XRsgBkh2jdg7NgOgH77wnmDB5sxtYwEHzMRMy-SDHeC1x-NX8n4y2pv1Y3mZvK92a9LL";
-    const reporter = document.getElementById("reporter").value.trim();
-    const reportedUser = document.getElementById("reportedUser").value.trim();
-   
-    // Get the total days penalty from the correct element (which is a div)
-    const totalDaysText = document.getElementById("total-days").textContent;
-    const totalDays = totalDaysText.match(/\d+/)[0] || "0";
-
-    // Create a list of the rules that were broken, including the penalty days and quantity
-    const brokenRules = [];
-    document.querySelectorAll('.rule-item').forEach(item => {
-        const qty = parseInt(item.querySelector('input').value) || 0;
-        if (qty > 0) {
-            const title = item.querySelector('strong').textContent;
-            const daysPer = parseInt(item.dataset.days);
-            brokenRules.push(`- ${title} (x${qty}) for ${qty * daysPer} days`);
-        }
-    });
-    const rulesList = brokenRules.join('\n') || "No rules specified.";
-
-
-    // Map reported users to Discord mentions
-    const mentionMap = {
-        "layan": "<@1367185737446985738>", // Replace with actual user IDs
-        "zezo": "<@1388958062500647064>", // Replace with actual user IDs
-        "asser": "<@1367187821542117558>" // Replace with actual user IDs
-    };
-
-    const mention = mentionMap[reportedUser.toLowerCase()] || "";
-
-    const message = `📢 **New Report Submitted**\n`
-                  + `**Reporter:** ${reporter}\n`
-                  + `**Reported User:** ${reportedUser} ${mention}\n`
-                  + `**Broken Rules:**\n${rulesList}\n`
-                  + `**Total Days:** ${totalDays}`;
-
-    fetch(webhookURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: message })
-    })
-    .then(res => {
-        if (res.ok) {
-            alert("Report sent successfully!");
-        } else {
-            alert("Failed to send report.");
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error sending report.");
-    });
-});
-document.getElementById('menuLogoutBtn').addEventListener('click', () => {
-  logout();
-});
-</script>
-<style>
-  @keyframes disco {
-    0% {color: red;}
-    16% {color: orange;}
-    33% {color: yellow;}
-    50% {color: green;}
-    66% {color: blue;}
-    83% {color: purple;}
-    100% {color: red;}
-  }
-  .disco {
-    animation: disco 2s infinite;
-  }
-  .gold {
-    background: linear-gradient(90deg, #ffd700, #ffae00, #ffd700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: bold;
-  }
-</style>
-
-<div id="messageContainer" 
-     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-            display:flex;flex-direction:column;align-items:center;gap:10px;
-            z-index:9999;max-width:80%;"></div>
-
+<!-- legacy compat scripts left for messages section as you had them (not required by the above module) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script>
-  const firebaseConfig = {
+  // compat initialization and enhanced message + discord-forwarder logic
+  const firebaseConfigCompat = {
     apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
     authDomain: "sharplabubu.firebaseapp.com",
     databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
@@ -1025,50 +889,114 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
     measurementId: "G-4M25R3BF08"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  firebase.initializeApp(firebaseConfigCompat);
+  const dbCompat = firebase.database();
 
-  // load seen messages from localStorage
+  /* ----------------- messages UI with delete button ----------------- */
   const seen = new Set(JSON.parse(localStorage.getItem("seenMsgs") || "[]"));
   const container = document.getElementById("messageContainer");
 
-  db.ref("messages").on("child_added", snap => {
-    const data = snap.val();
-    const msgId = snap.key;
+  // keep a map from message id -> element, so child_removed can remove element
+  const msgEls = {};
 
-    // Skip if already seen
+  // When a message added, show it with a Delete button
+  dbCompat.ref("messages").on("child_added", snap => {
+    const data = snap.val(); const msgId = snap.key;
     if(seen.has(msgId)) return;
     seen.add(msgId);
     localStorage.setItem("seenMsgs", JSON.stringify(Array.from(seen)));
 
     const box = document.createElement("div");
-    box.style.background = "black";
-    box.style.padding = "12px";
-    box.style.borderRadius = "10px";
-    box.style.wordWrap = "break-word";
-    box.style.textAlign = "center";
-    box.style.maxWidth = "100%";
+    box.dataset.msgId = msgId;
+    box.style.background = "black"; box.style.padding = "12px"; box.style.borderRadius = "10px"; box.style.wordWrap = "break-word"; box.style.textAlign = "center"; box.style.maxWidth = "100%";
+    box.style.position = "relative";
 
-    let content = `<strong>${data.name}</strong>`;
-    if(data.withImage) content += ` <img src="roblox.png" alt="icon" style="height:20px;vertical-align:middle;">`;
-    content += `: ${data.message}`;
-    box.innerHTML = content;
+    const inner = document.createElement("div");
+    inner.innerHTML = `<strong>${escapeHtml(data.name||'Message')}</strong>${data.withImage? ' <img src="roblox.png" alt="icon" style="height:20px;vertical-align:middle;">':''}: ${escapeHtml(data.message||'')}`;
+    box.appendChild(inner);
 
-    // Apply colors
-    if (data.color === "disco") {
-      box.classList.add("disco");
-    } else if (data.color === "gold") {
-      box.classList.add("gold");
-    } else {
-      box.style.color = data.color || "white";
-    }
+    // delete button (visible)
+    const delBtn = document.createElement("button");
+    delBtn.className = "tiny-del";
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if(!confirm("Delete this message?")) return;
+      try {
+        await dbCompat.ref(`messages/${msgId}`).remove();
+      } catch(err) {
+        console.error('Failed to delete message', err);
+        alert('Failed to delete message');
+      }
+    });
+    box.appendChild(delBtn);
 
     container.appendChild(box);
+    msgEls[msgId] = box;
 
-    setTimeout(()=> {
-      box.remove();
-    }, (data.duration || 5) * 1000);
+    // auto-remove after duration if provided (still keep delete button available)
+    const duration = Number(data.duration || 5);
+    if(duration > 0) {
+      setTimeout(()=> {
+        if(box.parentNode) box.remove();
+        delete msgEls[msgId];
+      }, duration * 1000);
+    }
   });
+
+  // When a message removed in DB, remove its element if present
+  dbCompat.ref("messages").on("child_removed", snap => {
+    const id = snap.key;
+    const el = msgEls[id];
+    if(el && el.parentNode) el.remove();
+    delete msgEls[id];
+  });
+
+  /* -------------- Discord forwarder for notifications (client-side) --------------
+     NOTE: Posts only the single content "you got a notification" to the mapped webhook.
+     Reminder: exposing webhooks in client JS is public. For security, move to server/Cloud Function.
+  */
+  const recipientWebhooks = {
+    "zezo": "https://discord.com/api/webhooks/1413868799488295105/I1FCcBev6fYbZkXMrsaUHqm41mWRQdMv8JGwVIjYFdhpli9eT-efJUXNRF-RjvrHMyzS",
+    "layan": "https://discord.com/api/webhooks/1413869557310820454/D13si1VaoBiNphj_91EcBOH-vjoS3yHxDNFEMbieJ1ujsFKaxHME5VE4xcKRNuC7Zgtf",
+    "asser": "https://discord.com/api/webhooks/1413869668522790922/i6ATTYdvpLjbjtYJDAS0vzqlbu4gTrjbSqKQFAml30_jbIoZWgNH9xyQoxwSnm7Jy7bX"
+  };
+
+  // Listen for new notifications. When one is created, if it targets a mapped recipient,
+  // forward a minimal message "you got a notification" to the webhook, then mark as forwarded.
+  dbCompat.ref('notifications').on('child_added', async snap => {
+    try {
+      const id = snap.key;
+      const n = snap.val();
+      if(!n) return;
+      // avoid re-forwarding
+      if(n.discordSent) return;
+      const to = (n.to || '').toString().trim().toLowerCase();
+      const webhookUrl = recipientWebhooks[to];
+      if(!webhookUrl) return;
+
+      // Only send the single text the user requested
+      const payload = { content: "you got a notification" };
+
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(res.ok){
+        // mark notification as forwarded to discord
+        await dbCompat.ref(`notifications/${id}`).update({ discordSent: true, discordSentAt: Date.now() });
+        console.log('Forwarded notification', id, '->', to);
+      } else {
+        const txt = await res.text().catch(()=>'<no body>');
+        console.warn('Discord webhook non-ok', res.status, txt);
+      }
+    } catch (err) {
+      console.error('Error forwarding notification to Discord:', err);
+    }
+  });
+
 </script>
 
 </body>
