@@ -998,6 +998,342 @@ function showTempMessage(text, timeout=3000){
   });
 
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+<style>
+  /* keep the same small styles used before */
+  .bottom-dock { position: fixed; right: 14px; bottom: 18px; left: 14px; z-index: 100001; display:flex; justify-content:space-between; gap:8px; max-width:700px; margin: 0 auto; pointer-events: auto; }
+  .dock-btn { flex:1 1 0; padding: 12px; border-radius: 12px; background:#ffffff; color:#2b4c7e; border:1px solid #cfd8e3; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); cursor:pointer; }
+  .dock-btn.primary { background: #2b4c7e; color: white; }
+  .create-modal, .watch-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 100002; background: rgba(0,0,0,0.6); padding: 20px; }
+  .create-modal.show, .watch-modal.show { display:flex; }
+  .modal-card { width: 100%; max-width: 760px; max-height: 90vh; overflow:auto; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
+  .watch-scroll { display:flex; flex-direction:column; gap:12px; padding: 12px 0; }
+  .short-item { background:#111; color: #fff; border-radius:10px; overflow:hidden; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height: 300px; }
+  .short-media { width:100%; max-height:720px; object-fit:cover; display:block; background:black; }
+  .short-meta { padding: 10px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; box-sizing:border-box; }
+  .short-controls { display:flex; gap:8px; align-items:center; }
+  .short-controls button { background: rgba(255,255,255,0.08); border: none; color: white; padding: 8px 10px; border-radius: 8px; font-weight:700; cursor:pointer; }
+  .comments-panel { margin-top:8px; background: rgba(0,0,0,0.06); padding:8px; border-radius:8px; max-height:200px; overflow:auto; width:100%; box-sizing:border-box; color:#111; background:#fff; }
+  .comment-item { padding:6px 8px; border-bottom:1px solid rgba(0,0,0,0.06); }
+  .like-count { font-weight:700; margin-left:6px; color:inherit; }
+  @media(max-width:520px){ .short-item { min-height: 520px; } .dock-btn { padding: 14px; } }
+</style>
+
+<div class="bottom-dock" aria-hidden="false">
+  <button id="dockHome" class="dock-btn">🏠 Home</button>
+  <button id="dockCreate" class="dock-btn">➕ Create</button>
+  <button id="dockWatch" class="dock-btn primary">▶ Watch</button>
+</div>
+
+<div id="createModal" class="create-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-label="Create short">
+    <div class="modal-header">
+      <h3 style="margin:0">Create Video / Photo</h3>
+      <button id="closeCreate" class="dock-btn" style="flex:0 0 auto;background:#eee;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Close</button>
+    </div>
+    <div style="margin-top:10px;">
+      <label>Title (required)</label>
+      <input id="shortTitle" placeholder="Short title" />
+      <label>Description (optional)</label>
+      <input id="shortDescription" placeholder="Description (optional)" />
+      <label style="margin-top:8px">Choose media (photo or video) (required)</label>
+      <input id="shortMedia" type="file" accept="image/*,video/*" />
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+        <button id="postShort" class="dock-btn primary" style="flex:1;">Post</button>
+        <div id="uploadProgress" style="min-width:160px;font-size:0.95rem;"></div>
+      </div>
+      <div id="createStatus" style="margin-top:8px; font-size:0.9rem;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="watchModal" class="watch-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-label="Watch shorts">
+    <div class="modal-header">
+      <h3 style="margin:0">Shorts</h3>
+      <div style="display:flex; gap:8px;">
+        <button id="closeWatch" class="dock-btn" style="flex:0 0 auto;background:#eee;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Close</button>
+        <button id="refreshShorts" class="dock-btn" style="flex:0 0 auto;background:#fff;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Refresh</button>
+      </div>
+    </div>
+
+    <div id="shortsContainer" style="margin-top:12px;">
+      <div id="shortsList" class="watch-scroll">Loading shorts...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  Storage-backed Shorts snippet (compat)
+  - Upload media to Firebase Storage at: shorts-media/{shortId}/{filename}
+  - Save metadata to Realtime DB at: shorts/{shortId} containing { user, title, description, mediaURL, mediaType, timestamp }
+  - Comments & likes continue to live under shorts/{shortId}/comments and /likes
+  - Uses existing compat firebase namespace (firebase) and dbCompat (firebase.database())
+*/
+
+// fallback small helpers
+function _escapeHtml(s){ if(window.escapeHtml) return window.escapeHtml(s); if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
+function _getLoggedUserFromStorage(){ try{ const raw = localStorage.getItem('loginData') || sessionStorage.getItem('loginData'); if(!raw) return null; const { username } = JSON.parse(raw); return username || null; }catch(e){ return null; } }
+
+// DOM refs
+const createModal = document.getElementById('createModal');
+const watchModal = document.getElementById('watchModal');
+const dockHome = document.getElementById('dockHome');
+const dockCreate = document.getElementById('dockCreate');
+const dockWatch = document.getElementById('dockWatch');
+const closeCreate = document.getElementById('closeCreate');
+const closeWatch = document.getElementById('closeWatch');
+const postShortBtn = document.getElementById('postShort');
+const shortMediaInput = document.getElementById('shortMedia');
+const shortTitleInput = document.getElementById('shortTitle');
+const shortDescInput = document.getElementById('shortDescription');
+const createStatus = document.getElementById('createStatus');
+const uploadProgress = document.getElementById('uploadProgress');
+const shortsListEl = document.getElementById('shortsList');
+const refreshShortsBtn = document.getElementById('refreshShorts');
+
+dockHome.addEventListener('click', ()=> location.reload());
+dockCreate.addEventListener('click', ()=> openCreateModal());
+dockWatch.addEventListener('click', ()=> openWatchModal());
+closeCreate.addEventListener('click', ()=> closeCreateModal());
+closeWatch.addEventListener('click', ()=> closeWatchModal());
+refreshShortsBtn.addEventListener('click', ()=> loadShorts(true));
+
+function openCreateModal(){ createModal.classList.add('show'); createModal.setAttribute('aria-hidden','false'); }
+function closeCreateModal(){ createModal.classList.remove('show'); createModal.setAttribute('aria-hidden','true'); shortTitleInput.value=''; shortDescInput.value=''; shortMediaInput.value=''; createStatus.innerText=''; uploadProgress.innerText=''; }
+function openWatchModal(){ watchModal.classList.add('show'); watchModal.setAttribute('aria-hidden','false'); loadShorts(); }
+function closeWatchModal(){ watchModal.classList.remove('show'); watchModal.setAttribute('aria-hidden','true'); }
+
+// short helper to show status
+function setCreateStatus(text, isError=false){ createStatus.textContent = text; createStatus.style.color = isError ? 'crimson' : 'green'; }
+
+// POST (upload to storage then save metadata)
+postShortBtn.addEventListener('click', async ()=>{
+  const user = (window.currentUser || _getLoggedUserFromStorage());
+  if(!user){ alert('Please login to post a short.'); return; }
+
+  const title = (shortTitleInput.value || '').trim();
+  const desc = (shortDescInput.value || '').trim();
+  const file = (shortMediaInput.files && shortMediaInput.files[0]) || null;
+  if(!title) return alert('Title is required.');
+  if(!file) return alert('Please choose an image or video file.');
+
+  setCreateStatus('Preparing upload...');
+  uploadProgress.textContent = '';
+
+  try{
+    // simple large file check
+    if(file.size > (500 * 1024 * 1024)){ // 500MB hard cap
+      if(!confirm('File > 500MB. Continue?')){ setCreateStatus('Upload cancelled'); return; }
+    }
+
+    // create DB record first to reserve an id
+    const newRef = dbCompat.ref('shorts').push(); // returns a ref with key
+    const shortId = newRef.key;
+    const filename = `${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+    const storagePath = `shorts-media/${shortId}/${filename}`;
+    const storageRef = firebase.storage().ref(storagePath);
+
+    // start upload
+    const uploadTask = storageRef.put(file);
+
+    uploadTask.on('state_changed', snapshot => {
+      const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+      uploadProgress.textContent = `Uploading: ${pct}%`;
+    }, error => {
+      console.error('Upload error', error);
+      setCreateStatus('Upload failed: ' + (error.message || error), true);
+      uploadProgress.textContent = '';
+      // clean up DB node if needed
+      dbCompat.ref(`shorts/${shortId}`).remove().catch(()=>{});
+    }, async () => {
+      // completed
+      try{
+        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+        const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+        const payload = {
+          user,
+          title,
+          description: desc || '',
+          mediaURL: downloadURL,
+          mediaType,
+          storagePath,
+          timestamp: Date.now()
+        };
+        await newRef.set(payload); // write metadata only
+        setCreateStatus('Posted successfully!');
+        uploadProgress.textContent = 'Upload complete';
+        shortTitleInput.value = ''; shortDescInput.value = ''; shortMediaInput.value = '';
+        // refresh view if open
+        loadShorts(true);
+        setTimeout(()=> { setCreateStatus(''); uploadProgress.textContent = ''; }, 1800);
+      }catch(err){
+        console.error('Failed to finalize post', err);
+        setCreateStatus('Failed to finalize post: ' + (err.message || err), true);
+        uploadProgress.textContent = '';
+      }
+    });
+  }catch(err){
+    console.error(err);
+    setCreateStatus('Error: ' + (err.message || err), true);
+    uploadProgress.textContent = '';
+  }
+});
+
+// LOAD & RENDER (reads mediaURL)
+let shortsCache = {};
+let shortsListener = null;
+function loadShorts(force){
+  if(shortsListener && typeof shortsListener.off === 'function'){
+    try{ shortsListener.off(); }catch(e){}
+  }
+  shortsListener = dbCompat.ref('shorts');
+  shortsListener.on('value', snap => {
+    const raw = snap.exists() ? snap.val() : {};
+    const arr = Object.entries(raw).map(([id,v]) => ({ id, ...(v||{}) }));
+    shortsCache = raw;
+    renderShorts(arr);
+  });
+}
+
+function renderShorts(items){
+  items.sort((a,b)=> (b.timestamp||0) - (a.timestamp||0));
+  if(items.length === 0){ shortsListEl.innerHTML = '<div style="padding:12px;">No shorts yet — post the first!</div>'; return; }
+  shortsListEl.innerHTML = '';
+  items.forEach(item => {
+    const wrap = document.createElement('div');
+    wrap.className = 'short-item';
+
+    if(!item.mediaURL){
+      // skip invalid entries
+      return;
+    }
+
+    let mediaEl;
+    if(item.mediaType === 'video'){
+      mediaEl = document.createElement('video');
+      mediaEl.setAttribute('playsinline','');
+      mediaEl.setAttribute('webkit-playsinline','');
+      mediaEl.muted = true;
+      mediaEl.controls = false;
+      mediaEl.loop = false;
+      mediaEl.className = 'short-media';
+      mediaEl.src = item.mediaURL;
+    } else {
+      mediaEl = document.createElement('img');
+      mediaEl.className = 'short-media';
+      mediaEl.src = item.mediaURL;
+      mediaEl.alt = item.title || '';
+    }
+    wrap.appendChild(mediaEl);
+
+    // meta
+    const meta = document.createElement('div'); meta.className = 'short-meta';
+    const left = document.createElement('div'); left.style.flex='1';
+    left.innerHTML = `<div style="font-weight:700">${_escapeHtml(item.user||'unknown')}</div>
+                     <div style="font-weight:700">${_escapeHtml(item.title||'')}</div>
+                     ${item.description?'<div style="font-size:0.9rem;opacity:0.9;">'+_escapeHtml(item.description)+'</div>':''}`;
+    meta.appendChild(left);
+
+    const right = document.createElement('div'); right.className='short-controls';
+    // like button
+    const likeBtn = document.createElement('button');
+    const likesObj = item.likes || {};
+    const likeCount = Object.keys(likesObj||{}).length;
+    likeBtn.innerHTML = `❤️ <span class="like-count">${likeCount}</span>`;
+    likeBtn.title = 'Like';
+    const logged = (window.currentUser || _getLoggedUserFromStorage());
+    if(logged && likesObj && likesObj[logged]) likeBtn.style.background = 'rgba(255,255,255,0.18)';
+    likeBtn.addEventListener('click', async ()=>{
+      const user = (window.currentUser || _getLoggedUserFromStorage());
+      if(!user){ alert('Login to like.'); return; }
+      const likeRef = dbCompat.ref(`shorts/${item.id}/likes/${user}`);
+      try{
+        const snap = await likeRef.get();
+        if(!snap.exists()) {
+          await likeRef.set(true);
+        } else {
+          await likeRef.remove();
+        }
+      }catch(err){ console.error(err); alert('Failed to toggle like'); }
+    });
+    right.appendChild(likeBtn);
+
+    // comment button
+    const commentBtn = document.createElement('button');
+    commentBtn.textContent = '💬';
+    commentBtn.title = 'Comments';
+    commentBtn.addEventListener('click', ()=> openCommentsPanel(item, wrap));
+    right.appendChild(commentBtn);
+
+    // timestamp
+    const timeSpan = document.createElement('div');
+    timeSpan.style.fontSize='0.8rem';
+    timeSpan.style.opacity='0.85';
+    timeSpan.textContent = new Date(item.timestamp||Date.now()).toLocaleString();
+    right.appendChild(timeSpan);
+
+    meta.appendChild(right);
+    wrap.appendChild(meta);
+
+    // comments wrapper
+    const commentsWrapper = document.createElement('div');
+    commentsWrapper.className = 'comments-panel';
+    commentsWrapper.style.display = 'none';
+    wrap.appendChild(commentsWrapper);
+
+    shortsListEl.appendChild(wrap);
+  });
+
+  // autoplay videos when in view
+  const videos = shortsListEl.querySelectorAll('video');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{
+      const v = en.target;
+      if(en.isIntersecting) { v.muted = true; v.play().catch(()=>{}); }
+      else v.pause();
+    });
+  }, { threshold: 0.6 });
+  videos.forEach(v => io.observe(v));
+}
+
+// comments panel UI + posting
+async function openCommentsPanel(item, shortDiv){
+  const commentsPanel = shortDiv.querySelector('.comments-panel');
+  commentsPanel.innerHTML = ''; commentsPanel.style.display = 'block';
+  const commentsRef = dbCompat.ref(`shorts/${item.id}/comments`);
+  const snap = await commentsRef.get();
+  const comments = snap.exists() ? snap.val() : {};
+  const commentsArr = Object.entries(comments||{}).map(([id, v]) => ({ id, ...(v||{}) })).sort((a,b)=> (a.timestamp||0)-(b.timestamp||0));
+  commentsArr.forEach(c => {
+    const cd = document.createElement('div'); cd.className='comment-item';
+    cd.innerHTML = `<strong>${_escapeHtml(c.user||'unknown')}</strong> <div style="display:inline;margin-left:6px">${_escapeHtml(c.text||'')}</div>
+                     <div style="font-size:0.8rem;opacity:0.7">${new Date(c.timestamp||Date.now()).toLocaleString()}</div>`;
+    commentsPanel.appendChild(cd);
+  });
+  // input
+  const form = document.createElement('div'); form.style.display='flex'; form.style.gap='8px'; form.style.marginTop='8px';
+  const input = document.createElement('input'); input.placeholder = 'Write a comment...'; input.style.flex='1';
+  const send = document.createElement('button'); send.textContent = 'Send'; send.className='dock-btn'; send.style.flex='0 0 100px';
+  send.addEventListener('click', async ()=>{
+    const user = (window.currentUser || _getLoggedUserFromStorage());
+    if(!user){ alert('Login to comment.'); return; }
+    const text = (input.value||'').trim();
+    if(!text) return;
+    const newRef = dbCompat.ref(`shorts/${item.id}/comments`).push();
+    try{
+      await newRef.set({ user, text, timestamp: Date.now() });
+      input.value = '';
+      openCommentsPanel(item, shortDiv);
+    }catch(err){ console.error(err); alert('Failed to post comment'); }
+  });
+  form.appendChild(input); form.appendChild(send);
+  commentsPanel.appendChild(form);
+}
+</script>
 
 </body>
 </html>
