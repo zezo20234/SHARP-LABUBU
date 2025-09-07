@@ -998,10 +998,9 @@ function showTempMessage(text, timeout=3000){
   });
 
 </script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-
+<!-- START: Shorts (Home / Create / Watch) snippet -->
 <style>
-  /* keep the same small styles used before */
+  /* small self-contained styles (keeps things consistent if added near </body>) */
   .bottom-dock { position: fixed; right: 14px; bottom: 18px; left: 14px; z-index: 100001; display:flex; justify-content:space-between; gap:8px; max-width:700px; margin: 0 auto; pointer-events: auto; }
   .dock-btn { flex:1 1 0; padding: 12px; border-radius: 12px; background:#ffffff; color:#2b4c7e; border:1px solid #cfd8e3; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); cursor:pointer; }
   .dock-btn.primary { background: #2b4c7e; color: white; }
@@ -1021,12 +1020,14 @@ function showTempMessage(text, timeout=3000){
   @media(max-width:520px){ .short-item { min-height: 520px; } .dock-btn { padding: 14px; } }
 </style>
 
+<!-- bottom dock -->
 <div class="bottom-dock" aria-hidden="false">
   <button id="dockHome" class="dock-btn">🏠 Home</button>
   <button id="dockCreate" class="dock-btn">➕ Create</button>
   <button id="dockWatch" class="dock-btn primary">▶ Watch</button>
 </div>
 
+<!-- Create modal -->
 <div id="createModal" class="create-modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-label="Create short">
     <div class="modal-header">
@@ -1040,15 +1041,15 @@ function showTempMessage(text, timeout=3000){
       <input id="shortDescription" placeholder="Description (optional)" />
       <label style="margin-top:8px">Choose media (photo or video) (required)</label>
       <input id="shortMedia" type="file" accept="image/*,video/*" />
-      <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+      <div style="margin-top:10px; display:flex; gap:8px;">
         <button id="postShort" class="dock-btn primary" style="flex:1;">Post</button>
-        <div id="uploadProgress" style="min-width:160px;font-size:0.95rem;"></div>
       </div>
       <div id="createStatus" style="margin-top:8px; font-size:0.9rem;"></div>
     </div>
   </div>
 </div>
 
+<!-- Watch modal -->
 <div id="watchModal" class="watch-modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-label="Watch shorts">
     <div class="modal-header">
@@ -1067,16 +1068,23 @@ function showTempMessage(text, timeout=3000){
 
 <script>
 /*
-  Storage-backed Shorts snippet (compat)
-  - Upload media to Firebase Storage at: shorts-media/{shortId}/{filename}
-  - Save metadata to Realtime DB at: shorts/{shortId} containing { user, title, description, mediaURL, mediaType, timestamp }
-  - Comments & likes continue to live under shorts/{shortId}/comments and /likes
-  - Uses existing compat firebase namespace (firebase) and dbCompat (firebase.database())
+  Shorts snippet (uses compat DB: dbCompat)
+  - posts saved under "shorts/{id}"
+  - likes under "shorts/{id}/likes/{username}": true
+  - comments under "shorts/{id}/comments/{cid}"
+  NOTE: This script uses the compat DB object `dbCompat` which your page already creates.
 */
 
-// fallback small helpers
+// tiny helpers and fallbacks
 function _escapeHtml(s){ if(window.escapeHtml) return window.escapeHtml(s); if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
-function _getLoggedUserFromStorage(){ try{ const raw = localStorage.getItem('loginData') || sessionStorage.getItem('loginData'); if(!raw) return null; const { username } = JSON.parse(raw); return username || null; }catch(e){ return null; } }
+function _getLoggedUserFromStorage(){
+  try{
+    const raw = localStorage.getItem('loginData') || sessionStorage.getItem('loginData');
+    if(!raw) return null;
+    const { username } = JSON.parse(raw);
+    return username || null;
+  }catch(e){ return null; }
+}
 
 // DOM refs
 const createModal = document.getElementById('createModal');
@@ -1091,7 +1099,6 @@ const shortMediaInput = document.getElementById('shortMedia');
 const shortTitleInput = document.getElementById('shortTitle');
 const shortDescInput = document.getElementById('shortDescription');
 const createStatus = document.getElementById('createStatus');
-const uploadProgress = document.getElementById('uploadProgress');
 const shortsListEl = document.getElementById('shortsList');
 const refreshShortsBtn = document.getElementById('refreshShorts');
 
@@ -1103,15 +1110,26 @@ closeWatch.addEventListener('click', ()=> closeWatchModal());
 refreshShortsBtn.addEventListener('click', ()=> loadShorts(true));
 
 function openCreateModal(){ createModal.classList.add('show'); createModal.setAttribute('aria-hidden','false'); }
-function closeCreateModal(){ createModal.classList.remove('show'); createModal.setAttribute('aria-hidden','true'); shortTitleInput.value=''; shortDescInput.value=''; shortMediaInput.value=''; createStatus.innerText=''; uploadProgress.innerText=''; }
+function closeCreateModal(){ createModal.classList.remove('show'); createModal.setAttribute('aria-hidden','true'); shortTitleInput.value=''; shortDescInput.value=''; shortMediaInput.value=''; createStatus.innerText=''; }
 function openWatchModal(){ watchModal.classList.add('show'); watchModal.setAttribute('aria-hidden','false'); loadShorts(); }
 function closeWatchModal(){ watchModal.classList.remove('show'); watchModal.setAttribute('aria-hidden','true'); }
 
-// short helper to show status
-function setCreateStatus(text, isError=false){ createStatus.textContent = text; createStatus.style.color = isError ? 'crimson' : 'green'; }
+// file -> dataURL
+function fileToDataURL(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result);
+    r.onerror = e => reject(e);
+    r.readAsDataURL(file);
+  });
+}
 
-// POST (upload to storage then save metadata)
+// status
+function setCreateStatus(text, isError = false){ createStatus.textContent = text; createStatus.style.color = isError ? 'crimson' : 'green'; }
+
+// POST handling (uses dbCompat)
 postShortBtn.addEventListener('click', async ()=>{
+  // determine user (try global currentUser then fallback to storage)
   const user = (window.currentUser || _getLoggedUserFromStorage());
   if(!user){ alert('Please login to post a short.'); return; }
 
@@ -1122,77 +1140,36 @@ postShortBtn.addEventListener('click', async ()=>{
   if(!file) return alert('Please choose an image or video file.');
 
   setCreateStatus('Preparing upload...');
-  uploadProgress.textContent = '';
-
   try{
-    // simple large file check
-    if(file.size > (500 * 1024 * 1024)){ // 500MB hard cap
-      if(!confirm('File > 500MB. Continue?')){ setCreateStatus('Upload cancelled'); return; }
-    }
+    if(file.size > 30 * 1024 * 1024){ if(!confirm('File size >30MB. Continue?')) { setCreateStatus('Upload cancelled'); return; } }
+    const dataUrl = await fileToDataURL(file);
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+    const payload = { user, title, description: desc || '', mediaData: dataUrl, mediaType, timestamp: Date.now() };
 
-    // create DB record first to reserve an id
-    const newRef = dbCompat.ref('shorts').push(); // returns a ref with key
-    const shortId = newRef.key;
-    const filename = `${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
-    const storagePath = `shorts-media/${shortId}/${filename}`;
-    const storageRef = firebase.storage().ref(storagePath);
-
-    // start upload
-    const uploadTask = storageRef.put(file);
-
-    uploadTask.on('state_changed', snapshot => {
-      const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-      uploadProgress.textContent = `Uploading: ${pct}%`;
-    }, error => {
-      console.error('Upload error', error);
-      setCreateStatus('Upload failed: ' + (error.message || error), true);
-      uploadProgress.textContent = '';
-      // clean up DB node if needed
-      dbCompat.ref(`shorts/${shortId}`).remove().catch(()=>{});
-    }, async () => {
-      // completed
-      try{
-        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-        const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
-        const payload = {
-          user,
-          title,
-          description: desc || '',
-          mediaURL: downloadURL,
-          mediaType,
-          storagePath,
-          timestamp: Date.now()
-        };
-        await newRef.set(payload); // write metadata only
-        setCreateStatus('Posted successfully!');
-        uploadProgress.textContent = 'Upload complete';
-        shortTitleInput.value = ''; shortDescInput.value = ''; shortMediaInput.value = '';
-        // refresh view if open
-        loadShorts(true);
-        setTimeout(()=> { setCreateStatus(''); uploadProgress.textContent = ''; }, 1800);
-      }catch(err){
-        console.error('Failed to finalize post', err);
-        setCreateStatus('Failed to finalize post: ' + (err.message || err), true);
-        uploadProgress.textContent = '';
-      }
-    });
-  }catch(err){
-    console.error(err);
-    setCreateStatus('Error: ' + (err.message || err), true);
-    uploadProgress.textContent = '';
-  }
+    // push to compat DB
+    const newRef = dbCompat.ref('shorts').push();
+    await newRef.set(payload);
+    setCreateStatus('Posted!');
+    // clear and refresh
+    shortTitleInput.value = ''; shortDescInput.value = ''; shortMediaInput.value = '';
+    loadShorts(true);
+    setTimeout(()=> setCreateStatus(''), 1800);
+  }catch(err){ console.error(err); setCreateStatus('Failed: ' + (err && err.message ? err.message : err)); }
 });
 
-// LOAD & RENDER (reads mediaURL)
+// LOAD & RENDER
 let shortsCache = {};
 let shortsListener = null;
 function loadShorts(force){
+  // attach a listener (remove previous)
   if(shortsListener && typeof shortsListener.off === 'function'){
-    try{ shortsListener.off(); }catch(e){}
+    try{ shortsListener.off(); }catch(e){} 
   }
+  // Use 'value' so we have full list. For larger apps switch to pagination.
   shortsListener = dbCompat.ref('shorts');
   shortsListener.on('value', snap => {
     const raw = snap.exists() ? snap.val() : {};
+    // convert to array
     const arr = Object.entries(raw).map(([id,v]) => ({ id, ...(v||{}) }));
     shortsCache = raw;
     renderShorts(arr);
@@ -1206,12 +1183,7 @@ function renderShorts(items){
   items.forEach(item => {
     const wrap = document.createElement('div');
     wrap.className = 'short-item';
-
-    if(!item.mediaURL){
-      // skip invalid entries
-      return;
-    }
-
+    // media
     let mediaEl;
     if(item.mediaType === 'video'){
       mediaEl = document.createElement('video');
@@ -1221,11 +1193,11 @@ function renderShorts(items){
       mediaEl.controls = false;
       mediaEl.loop = false;
       mediaEl.className = 'short-media';
-      mediaEl.src = item.mediaURL;
+      mediaEl.src = item.mediaData;
     } else {
       mediaEl = document.createElement('img');
       mediaEl.className = 'short-media';
-      mediaEl.src = item.mediaURL;
+      mediaEl.src = item.mediaData;
       mediaEl.alt = item.title || '';
     }
     wrap.appendChild(mediaEl);
@@ -1234,8 +1206,8 @@ function renderShorts(items){
     const meta = document.createElement('div'); meta.className = 'short-meta';
     const left = document.createElement('div'); left.style.flex='1';
     left.innerHTML = `<div style="font-weight:700">${_escapeHtml(item.user||'unknown')}</div>
-                     <div style="font-weight:700">${_escapeHtml(item.title||'')}</div>
-                     ${item.description?'<div style="font-size:0.9rem;opacity:0.9;">'+_escapeHtml(item.description)+'</div>':''}`;
+                      <div style="font-weight:700">${_escapeHtml(item.title||'')}</div>
+                      ${item.description?'<div style="font-size:0.9rem;opacity:0.9;">'+_escapeHtml(item.description)+'</div>':''}`;
     meta.appendChild(left);
 
     const right = document.createElement('div'); right.className='short-controls';
@@ -1262,7 +1234,7 @@ function renderShorts(items){
     });
     right.appendChild(likeBtn);
 
-    // comment button
+    // comments button
     const commentBtn = document.createElement('button');
     commentBtn.textContent = '💬';
     commentBtn.title = 'Comments';
@@ -1288,7 +1260,7 @@ function renderShorts(items){
     shortsListEl.appendChild(wrap);
   });
 
-  // autoplay videos when in view
+  // autoplay logic for videos
   const videos = shortsListEl.querySelectorAll('video');
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(en=>{
@@ -1311,7 +1283,7 @@ async function openCommentsPanel(item, shortDiv){
   commentsArr.forEach(c => {
     const cd = document.createElement('div'); cd.className='comment-item';
     cd.innerHTML = `<strong>${_escapeHtml(c.user||'unknown')}</strong> <div style="display:inline;margin-left:6px">${_escapeHtml(c.text||'')}</div>
-                     <div style="font-size:0.8rem;opacity:0.7">${new Date(c.timestamp||Date.now()).toLocaleString()}</div>`;
+                    <div style="font-size:0.8rem;opacity:0.7">${new Date(c.timestamp||Date.now()).toLocaleString()}</div>`;
     commentsPanel.appendChild(cd);
   });
   // input
@@ -1334,6 +1306,8 @@ async function openCommentsPanel(item, shortDiv){
   commentsPanel.appendChild(form);
 }
 </script>
+<!-- END: Shorts snippet -->
+
 
 </body>
 </html>
