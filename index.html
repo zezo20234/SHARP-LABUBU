@@ -21,11 +21,9 @@
 .island-time .value,
 .island-welcome .value { font-weight:700; font-size:1rem; color: var(--island-text); min-width:70px; text-align:right; }
 
-/* subtle show/hide transition for the welcome */
 #islandWelcome { transition: opacity 220ms ease, transform 220ms cubic-bezier(.2,.9,.3,1); }
 #islandWelcome.hidden { opacity: 0; transform: translateY(-6px); pointer-events: none; }
 
-/* --- Page base --- */
 :root{
   --island-bg: #000;    /* Black by default */
   --island-text: #fff;
@@ -121,7 +119,6 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 /* when open, we apply this class via JS */
 #islandMenu.open { opacity: 1; transform: scaleY(1); pointer-events: auto; }
 
-/* menu inner layout */
 #islandMenu .menu-inner {
   padding: 12px;
   display: flex;
@@ -129,7 +126,6 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
   gap: 10px;
 }
 
-/* top button row inside the menu (visually continuous with island) */
 .menu-actions { display:flex; gap:8px; }
 .menu-actions button {
   flex:1;
@@ -142,11 +138,9 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 }
 .menu-actions button.active { outline: 2px solid rgba(255,255,255,0.15); }
 
-/* content panels inside menu (shop, send, exchange, send points) */
 .menu-panel { display:none; background: transparent; color: var(--island-text); }
 .menu-panel.show { display:block; }
 
-/* panels inner controls (make them look like part of island) */
 .menu-panel .panel-inner {
   margin-top: 8px;
   background: rgba(255,255,255,0.02);
@@ -158,17 +152,14 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 .menu-panel input, .menu-panel select { background: rgba(255,255,255,0.03); color: var(--island-text); border: 1px solid rgba(255,255,255,0.06); }
 .menu-panel button { background: rgba(255,255,255,0.06); color: var(--island-text); border:1px solid rgba(255,255,255,0.06); }
 
-/* notification list */
 .notification-item { padding: 8px; border-radius:8px; margin-bottom:8px; background: rgba(255,255,255,0.03); border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
 .notification-item.unread { border-left: 4px solid #ff4b4b; }
 .notification-meta { font-size:0.85rem; opacity:0.85; margin-top:6px; }
 .notification-actions { display:flex; gap:8px; margin-top:8px; }
 .notification-actions button { flex:0 0 auto; padding:8px 10px; }
 
-/* small note: ensure panels scroll if tall */
 #islandMenu .menu-inner { max-height: 70vh; overflow:auto; }
 
-/* forms and containers (kept for page content outside island menu) */
 #login-form, #report-form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 label { font-weight: bold; margin-top: 15px; display: block; }
 .rules-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: #fafafa; }
@@ -178,11 +169,9 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 .rule-details { font-size: 0.9rem; color: inherit; margin-top: 4px; flex-basis: 100%; }
 .rule-qty { width: 50px; margin-left: 10px; font-size: 1rem; }
 
-/* event section */
 #eventsSection { margin-top: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 .event-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #f9f9f9; }
 
-/* small responsive tweaks */
 @media (max-width: 420px) {
   .menu-actions { flex-wrap: wrap; }
   .menu-actions button { font-size: 0.9rem; padding: 8px; }
@@ -390,7 +379,6 @@ let _islandClockInterval = null;
 function startIslandClock() {
   function render() {
     const now = new Date();
-    // shows user-local time and format (12h/24h per browser/locale)
     islandLocalTimeEl.textContent = now.toLocaleTimeString();
   }
   render();
@@ -399,27 +387,18 @@ function startIslandClock() {
 }
 function stopIslandClock() { if (_islandClockInterval) { clearInterval(_islandClockInterval); _islandClockInterval = null; } }
 
-/**
- * Show a single welcome message only when called (e.g., right after a successful login).
- * Does NOT run automatically on page load — CALL THIS from your login success handler.
- * name: string (username)
- * durationMs: how long to show welcome (default 6s)
- */
 function showWelcomeOnce(name, durationMs = 6000) {
   if (!name) return;
+  if (!islandUserNameEl) return;
   islandUserNameEl.textContent = name;
   islandWelcomeEl.hidden = false;
   islandWelcomeEl.classList.remove('hidden');
-
-  // hide after duration
   setTimeout(() => {
     islandWelcomeEl.classList.add('hidden');
-    // after transition completes keep it hidden for a11y
     setTimeout(() => islandWelcomeEl.hidden = true, 240);
   }, durationMs);
 }
 
-// start the clock right away
 startIslandClock();
 
 // === DATA ARRAYS ===
@@ -568,57 +547,38 @@ renderPointsExchangeItems();
 const islandEl = document.getElementById('dynamic-island');
 const islandMenu = document.getElementById('islandMenu');
 
-// set initial position/size of islandMenu to match island; on open we animate width
 function positionIslandMenu(){
   const rect = islandEl.getBoundingClientRect();
-
-  // compute an open width that's comfortable for phones and desktops
   let maxAllowed = Math.min(window.innerWidth - 20, 520);
   if(window.innerWidth <= 420) maxAllowed = Math.min(window.innerWidth - 20, 380);
   const menuWidth = Math.max(Math.min(maxAllowed, 520), 320);
-
-  // center under island
   const left = Math.round((window.innerWidth - menuWidth) / 2);
   const top = Math.round(rect.bottom + 8);
-
   islandMenu.style.left = `${left}px`;
   islandMenu.style.top = `${top}px`;
   islandMenu.style.width = `${menuWidth}px`;
-
-  // set corners to blend nicely
   islandMenu.style.borderTopLeftRadius = `20px`;
   islandMenu.style.borderTopRightRadius = `20px`;
   islandMenu.style.borderBottomLeftRadius = `22px`;
   islandMenu.style.borderBottomRightRadius = `22px`;
-
   return menuWidth;
 }
 
-// open / close control
 let islandOpen = false;
 function openIslandMenu(){
-  // remember closed width so we can animate back
   const rect = islandEl.getBoundingClientRect();
   const closedWidth = rect.width;
   islandEl.dataset.closedWidth = closedWidth;
-
   const menuWidth = positionIslandMenu();
-
-  // expand island to match menu width (animated via CSS transition)
   islandEl.style.width = `${menuWidth}px`;
-  // slightly reduce island top radius for seamless connection
   islandEl.style.borderBottomLeftRadius = `14px`;
   islandEl.style.borderBottomRightRadius = `14px`;
-
-  // apply same background to menu & island (CSS var handles gradients/solid)
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--island-bg');
   islandEl.style.background = bg;
   islandMenu.style.background = bg;
-
   islandMenu.classList.add('open');
   islandMenu.setAttribute('aria-hidden', 'false');
   islandOpen = true;
-  // show default panel
   showMenuPanel('panelShop', 'menuShopBtn');
 }
 
@@ -626,48 +586,32 @@ function closeIslandMenu(){
   islandMenu.classList.remove('open');
   islandMenu.setAttribute('aria-hidden', 'true');
   islandOpen = false;
-
-  // animate island back to closed width
   const closedWidth = islandEl.dataset.closedWidth || '';
   if(closedWidth){
     islandEl.style.width = `${closedWidth}px`;
     islandEl.style.borderBottomLeftRadius = '';
     islandEl.style.borderBottomRightRadius = '';
-    // after transition end, remove inline width so it can be responsive again
     const reset = () => { islandEl.style.width = ''; islandEl.removeEventListener('transitionend', reset); };
     islandEl.addEventListener('transitionend', reset);
-    // fallback
     setTimeout(()=>{ if(islandEl.style.width !== ''){ islandEl.style.width = ''; } }, 400);
   }
-
-  // clear active buttons
   document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
 }
 
-// toggle by clicking anywhere on island
 islandEl.addEventListener('click', (e)=>{
-  // do nothing if click came from islandMenu (when open)
   if(islandOpen && islandMenu.contains(e.target)) return;
   if(!islandOpen) openIslandMenu(); else closeIslandMenu();
 });
-
-// reposition on resize or scroll
 window.addEventListener('resize', ()=>{ if(islandOpen) positionIslandMenu(); });
 window.addEventListener('scroll', ()=>{ if(islandOpen) positionIslandMenu(); });
+document.addEventListener('click', (e)=>{ if(!islandEl.contains(e.target) && !islandMenu.contains(e.target)) closeIslandMenu(); });
 
-// close when clicking outside
-document.addEventListener('click', (e)=>{
-  if(!islandEl.contains(e.target) && !islandMenu.contains(e.target)) closeIslandMenu();
-});
-
-// menu action buttons wiring
 function showMenuPanel(panelId, buttonId){
   document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('show'));
   const panel = document.getElementById(panelId);
   if(panel) panel.classList.add('show');
   document.querySelectorAll('.menu-actions button').forEach(b => b.classList.remove('active'));
   if(buttonId) document.getElementById(buttonId).classList.add('active');
-  // reposition after content change
   positionIslandMenu();
 }
 
@@ -689,7 +633,6 @@ colorPalette.querySelectorAll('.sw').forEach(sw=>{
   });
 });
 
-// applyIslandColor uses same var as before (works for gradients or solid)
 function applyIslandColor(name){
   let css = '';
   switch(name){
@@ -748,7 +691,6 @@ async function sendCredits(){ if(!currentUser) return alert('Please login first.
 }
 window.sendCredits = sendCredits;
 
-// === SEND POINTS FUNCTIONALITY ===
 async function sendPoints(){ if(!currentUser) return alert('Please login first.'); const toUser = sendPointsToUserSelect.value; const amount = parseInt(document.getElementById('sendPointsAmount').value); if(!toUser) return alert('Select a user to send points to.'); if(!amount || amount<=0) return alert('Enter a valid amount.'); if((currentUserData.points||0) < amount) return alert('Not enough points.');
   const senderRef = ref(db, `users/${currentUser}`); const receiverRef = ref(db, `users/${toUser}`);
   try{
@@ -764,9 +706,6 @@ async function sendPoints(){ if(!currentUser) return alert('Please login first.'
 window.sendPoints = sendPoints;
 
 // === NOTIFICATIONS ===
-// notifications stored under 'notifications' with structure:
-// { from, to, title, description, timestamp, read }
-
 async function sendNotification(){
   if(!currentUser) return alert('Please login first.');
   const to = notifyToUserSelect.value; const title = document.getElementById('notifyTitle').value.trim(); const description = document.getElementById('notifyDescription').value.trim();
@@ -784,22 +723,14 @@ function listenToNotifications(){
   const notificationsRef = ref(db, 'notifications');
   onValue(notificationsRef, (snap)=>{
     const all = snap.exists() ? snap.val() : {};
-    // filter notifications for current user
     const myNotifs = [];
     Object.entries(all).forEach(([id, n])=>{
       if(n && n.to === currentUser){ myNotifs.push({ id, ...n }); }
     });
-
-    // sort by timestamp descending
     myNotifs.sort((a,b)=> b.timestamp - a.timestamp);
-
-    // update cache
     notificationsCache = {};
     myNotifs.forEach(n => notificationsCache[n.id] = n);
-
     renderNotificationsList(myNotifs);
-
-    // unread count
     const unread = myNotifs.filter(n=>!n.read).length;
     updateNotifyDot(unread);
   });
@@ -825,16 +756,13 @@ function renderNotificationsList(list){
 
 async function showNotificationDetails(id){
   const n = notificationsCache[id]; if(!n) return alert('Notification not found');
-  // simple modal using prompt/confirm for simplicity
   const details = `From: ${n.from}\nTitle: ${n.title}\nWhen: ${formatWhen(n.timestamp)}\n\n${n.description || ''}`;
   alert(details);
-  // mark as read if not
   if(!n.read){ try{ const nr = ref(db, `notifications/${id}`); await update(nr, { read: true }); }catch(err){ console.error(err); } }
 }
 
 async function deleteNotification(id){ if(!confirm('Delete this notification?')) return; try{ await remove(ref(db, `notifications/${id}`)); alert('Deleted'); }catch(err){ console.error(err); alert('Failed to delete'); } }
 
-// small helper to avoid injection in inserted text
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
 
 // === EVENTS SECTION ===
@@ -925,6 +853,278 @@ document.getElementById('sendPointsBtn').addEventListener('click', ()=> sendPoin
 window.logout = logout;
 
 </script>
+
+<!-- === SHORTS: modular Firebase v10 implementation (drop-in) ===
+     Placed BEFORE compat SDK below so this uses the same modular app.
+     It imports getApp() and getDatabase() and stores posts under 'shorts' in Realtime DB.
+     NOTE: This stores media as data URLs in the DB (simple). For production use Cloud Storage.
+-->
+<style>
+  /* Shorts styles - self contained */
+  .bottom-dock { position: fixed; right: 14px; bottom: 18px; left: 14px; z-index: 100001; display:flex; justify-content:space-between; gap:8px; max-width:700px; margin: 0 auto; pointer-events: auto; }
+  .dock-btn { flex:1 1 0; padding: 12px; border-radius: 12px; background:#ffffff; color:#2b4c7e; border:1px solid #cfd8e3; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); cursor:pointer; }
+  .dock-btn.primary { background: #2b4c7e; color: white; }
+  .create-modal, .watch-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 100002; background: rgba(0,0,0,0.6); padding: 20px; }
+  .create-modal.show, .watch-modal.show { display:flex; }
+  .modal-card { width: 100%; max-width: 760px; max-height: 90vh; overflow:auto; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
+  .watch-scroll { display:flex; flex-direction:column; gap:12px; padding: 12px 0; }
+  .short-item { background:#111; color: #fff; border-radius:10px; overflow:hidden; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height: 300px; }
+  .short-media { width:100%; max-height:720px; object-fit:cover; display:block; background:black; }
+  .short-meta { padding: 10px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; box-sizing:border-box; }
+  .short-controls { display:flex; gap:8px; align-items:center; }
+  .short-controls button { background: rgba(255,255,255,0.08); border: none; color: white; padding: 8px 10px; border-radius: 8px; font-weight:700; cursor:pointer; }
+  .comments-panel { margin-top:8px; background: rgba(0,0,0,0.06); padding:8px; border-radius:8px; max-height:200px; overflow:auto; width:100%; box-sizing:border-box; color:#111; background:#fff; }
+  .comment-item { padding:6px 8px; border-bottom:1px solid rgba(0,0,0,0.06); }
+  .like-count { font-weight:700; margin-left:6px; color:inherit; }
+  @media(max-width:520px){ .short-item { min-height: 520px; } .dock-btn { padding: 14px; } }
+</style>
+
+<!-- bottom dock -->
+<div class="bottom-dock" aria-hidden="false">
+  <button id="dockHome" class="dock-btn">🏠 Home</button>
+  <button id="dockCreate" class="dock-btn">➕ Create</button>
+  <button id="dockWatch" class="dock-btn primary">▶ Watch</button>
+</div>
+
+<!-- Create modal -->
+<div id="createModal" class="create-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-label="Create short">
+    <div class="modal-header">
+      <h3 style="margin:0">Create Video / Photo</h3>
+      <button id="closeCreate" class="dock-btn" style="flex:0 0 auto;background:#eee;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Close</button>
+    </div>
+    <div style="margin-top:10px;">
+      <label>Title (required)</label>
+      <input id="shortTitle" placeholder="Short title" style="width:100%;box-sizing:border-box;padding:8px;margin-top:6px;" />
+      <label style="margin-top:6px;display:block;">Description (optional)</label>
+      <input id="shortDescription" placeholder="Description (optional)" style="width:100%;box-sizing:border-box;padding:8px;margin-top:6px;" />
+      <label style="margin-top:8px">Choose media (photo or video) (required)</label>
+      <input id="shortMedia" type="file" accept="image/*,video/*" style="display:block;margin-top:6px;" />
+      <div style="margin-top:10px; display:flex; gap:8px;">
+        <button id="postShort" class="dock-btn primary" style="flex:1;">Post</button>
+      </div>
+      <div id="createStatus" style="margin-top:8px; font-size:0.9rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Watch modal -->
+<div id="watchModal" class="watch-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-label="Watch shorts">
+    <div class="modal-header">
+      <h3 style="margin:0">Shorts</h3>
+      <div style="display:flex; gap:8px;">
+        <button id="closeWatch" class="dock-btn" style="flex:0 0 auto;background:#eee;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Close</button>
+        <button id="refreshShorts" class="dock-btn" style="flex:0 0 auto;background:#fff;color:#2b4c7e;border-radius:8px;padding:8px 10px;">Refresh</button>
+      </div>
+    </div>
+
+    <div id="shortsContainer" style="margin-top:12px;">
+      <div id="shortsList" class="watch-scroll">Loading shorts...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, get, child, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// Use the already-initialized app
+let app;
+try { app = getApp(); } catch(e) { console.error('Firebase app not initialized for shorts:', e); throw e; }
+const dbMod = getDatabase(app);
+
+// helpers
+function _escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
+function _getLoggedUserFromStorage(){ try{ const raw = localStorage.getItem('loginData') || sessionStorage.getItem('loginData'); if(!raw) return null; const { username } = JSON.parse(raw); return username || null; }catch(e){ return null; } }
+
+// DOM refs
+const createModal = document.getElementById('createModal');
+const watchModal = document.getElementById('watchModal');
+const dockHome = document.getElementById('dockHome');
+const dockCreate = document.getElementById('dockCreate');
+const dockWatch = document.getElementById('dockWatch');
+const closeCreate = document.getElementById('closeCreate');
+const closeWatch = document.getElementById('closeWatch');
+const postShortBtn = document.getElementById('postShort');
+const shortMediaInput = document.getElementById('shortMedia');
+const shortTitleInput = document.getElementById('shortTitle');
+const shortDescInput = document.getElementById('shortDescription');
+const createStatus = document.getElementById('createStatus');
+const shortsListEl = document.getElementById('shortsList');
+const refreshShortsBtn = document.getElementById('refreshShorts');
+
+dockHome.addEventListener('click', ()=> location.reload());
+dockCreate.addEventListener('click', ()=> openCreateModal());
+dockWatch.addEventListener('click', ()=> openWatchModal());
+closeCreate.addEventListener('click', ()=> closeCreateModal());
+closeWatch.addEventListener('click', ()=> closeWatchModal());
+refreshShortsBtn.addEventListener('click', ()=> loadShorts(true));
+
+function openCreateModal(){ createModal.classList.add('show'); createModal.setAttribute('aria-hidden','false'); }
+function closeCreateModal(){ createModal.classList.remove('show'); createModal.setAttribute('aria-hidden','true'); shortTitleInput.value=''; shortDescInput.value=''; shortMediaInput.value=''; createStatus.innerText=''; }
+function openWatchModal(){ watchModal.classList.add('show'); watchModal.setAttribute('aria-hidden','false'); loadShorts(); }
+function closeWatchModal(){ watchModal.classList.remove('show'); watchModal.setAttribute('aria-hidden','true'); }
+
+// file -> dataURL
+function fileToDataURL(file){ return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = ()=> resolve(r.result); r.onerror = e => reject(e); r.readAsDataURL(file); }); }
+function setCreateStatus(text, isError = false){ createStatus.textContent = text; createStatus.style.color = isError ? 'crimson' : 'green'; }
+
+// POST handling
+postShortBtn.addEventListener('click', async ()=>{
+  const user = (window.currentUser || _getLoggedUserFromStorage());
+  if(!user){ alert('Please login to post a short.'); return; }
+  const title = (shortTitleInput.value || '').trim();
+  const desc = (shortDescInput.value || '').trim();
+  const file = (shortMediaInput.files && shortMediaInput.files[0]) || null;
+  if(!title) return alert('Title is required.');
+  if(!file) return alert('Please choose an image or video file.');
+
+  setCreateStatus('Preparing upload...');
+  try{
+    if(file.size > 30 * 1024 * 1024){ if(!confirm('File size >30MB. Continue?')) { setCreateStatus('Upload cancelled'); return; } }
+    const dataUrl = await fileToDataURL(file);
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+    const payload = { user, title, description: desc || '', mediaData: dataUrl, mediaType, timestamp: Date.now() };
+
+    const newRef = push(ref(dbMod, 'shorts'));
+    await set(newRef, payload);
+    setCreateStatus('Posted!');
+    shortTitleInput.value = ''; shortDescInput.value = ''; shortMediaInput.value = '';
+    loadShorts(true);
+    setTimeout(()=> setCreateStatus(''), 1800);
+  }catch(err){ console.error(err); setCreateStatus('Failed: ' + (err && err.message ? err.message : err)); }
+});
+
+// LOAD & RENDER
+let shortsListener = null;
+function loadShorts(force){
+  if(shortsListener){
+    try{ /* no-op: onValue returns an unsubscribe function in modular SDK - but we used onValue which returns a function in compat; here we will attach only once */ }catch(e){}
+  }
+  onValue(ref(dbMod, 'shorts'), snap => {
+    const raw = snap.exists() ? snap.val() : {};
+    const arr = Object.entries(raw).map(([id,v]) => ({ id, ...(v||{}) }));
+    renderShorts(arr);
+  });
+}
+
+function renderShorts(items){
+  items.sort((a,b)=> (b.timestamp||0) - (a.timestamp||0));
+  if(items.length === 0){ shortsListEl.innerHTML = '<div style="padding:12px;">No shorts yet — post the first!</div>'; return; }
+  shortsListEl.innerHTML = '';
+  items.forEach(item => {
+    const wrap = document.createElement('div');
+    wrap.className = 'short-item';
+    let mediaEl;
+    if(item.mediaType === 'video'){
+      mediaEl = document.createElement('video');
+      mediaEl.setAttribute('playsinline','');
+      mediaEl.setAttribute('webkit-playsinline','');
+      mediaEl.muted = true;
+      mediaEl.controls = false;
+      mediaEl.loop = false;
+      mediaEl.className = 'short-media';
+      mediaEl.src = item.mediaData;
+    } else {
+      mediaEl = document.createElement('img');
+      mediaEl.className = 'short-media';
+      mediaEl.src = item.mediaData;
+      mediaEl.alt = item.title || '';
+    }
+    wrap.appendChild(mediaEl);
+
+    const meta = document.createElement('div'); meta.className = 'short-meta';
+    const left = document.createElement('div'); left.style.flex='1';
+    left.innerHTML = `<div style="font-weight:700">${_escapeHtml(item.user||'unknown')}</div>
+                      <div style="font-weight:700">${_escapeHtml(item.title||'')}</div>
+                      ${item.description?'<div style="font-size:0.9rem;opacity:0.9;">'+_escapeHtml(item.description)+'</div>':''}`;
+    meta.appendChild(left);
+
+    const right = document.createElement('div'); right.className='short-controls';
+    const likeBtn = document.createElement('button');
+    const likesObj = item.likes || {};
+    const likeCount = Object.keys(likesObj||{}).length;
+    likeBtn.innerHTML = `❤️ <span class="like-count">${likeCount}</span>`;
+    likeBtn.title = 'Like';
+    const logged = (window.currentUser || _getLoggedUserFromStorage());
+    if(logged && likesObj && likesObj[logged]) likeBtn.style.background = 'rgba(255,255,255,0.18)';
+    likeBtn.addEventListener('click', async ()=>{
+      const user = (window.currentUser || _getLoggedUserFromStorage());
+      if(!user){ alert('Login to like.'); return; }
+      const likeRef = ref(dbMod, `shorts/${item.id}/likes/${user}`);
+      try{
+        const s = await get(likeRef);
+        if(!s.exists()) await set(likeRef, true); else await remove(likeRef);
+      }catch(err){ console.error(err); alert('Failed to toggle like'); }
+    });
+    right.appendChild(likeBtn);
+
+    const commentBtn = document.createElement('button');
+    commentBtn.textContent = '💬'; commentBtn.title = 'Comments';
+    commentBtn.addEventListener('click', ()=> openCommentsPanel(item, wrap));
+    right.appendChild(commentBtn);
+
+    const timeSpan = document.createElement('div'); timeSpan.style.fontSize='0.8rem'; timeSpan.style.opacity='0.85';
+    timeSpan.textContent = new Date(item.timestamp||Date.now()).toLocaleString();
+    right.appendChild(timeSpan);
+
+    meta.appendChild(right);
+    wrap.appendChild(meta);
+
+    const commentsWrapper = document.createElement('div'); commentsWrapper.className = 'comments-panel'; commentsWrapper.style.display = 'none';
+    wrap.appendChild(commentsWrapper);
+
+    shortsListEl.appendChild(wrap);
+  });
+
+  // autoplay logic for videos
+  const videos = shortsListEl.querySelectorAll('video');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{
+      const v = en.target;
+      if(en.isIntersecting) { v.muted = true; v.play().catch(()=>{}); }
+      else v.pause();
+    });
+  }, { threshold: 0.6 });
+  videos.forEach(v => io.observe(v));
+}
+
+// comments panel UI + posting
+async function openCommentsPanel(item, shortDiv){
+  const commentsPanel = shortDiv.querySelector('.comments-panel');
+  commentsPanel.innerHTML = ''; commentsPanel.style.display = 'block';
+  const commentsSnap = await get(ref(dbMod, `shorts/${item.id}/comments`));
+  const comments = commentsSnap.exists() ? commentsSnap.val() : {};
+  const commentsArr = Object.entries(comments||{}).map(([id, v]) => ({ id, ...(v||{}) })).sort((a,b)=> (a.timestamp||0)-(b.timestamp||0));
+  commentsArr.forEach(c => {
+    const cd = document.createElement('div'); cd.className='comment-item';
+    cd.innerHTML = `<strong>${_escapeHtml(c.user||'unknown')}</strong> <div style="display:inline;margin-left:6px">${_escapeHtml(c.text||'')}</div>
+                    <div style="font-size:0.8rem;opacity:0.7">${new Date(c.timestamp||Date.now()).toLocaleString()}</div>`;
+    commentsPanel.appendChild(cd);
+  });
+  const form = document.createElement('div'); form.style.display='flex'; form.style.gap='8px'; form.style.marginTop='8px';
+  const input = document.createElement('input'); input.placeholder = 'Write a comment...'; input.style.flex='1';
+  const send = document.createElement('button'); send.textContent = 'Send'; send.className = 'dock-btn'; send.style.flex='0 0 100px';
+  send.addEventListener('click', async ()=>{
+    const user = (window.currentUser || _getLoggedUserFromStorage());
+    if(!user){ alert('Login to comment.'); return; }
+    const text = (input.value||'').trim();
+    if(!text) return;
+    const newRef = push(ref(dbMod, `shorts/${item.id}/comments`));
+    try{ await set(newRef, { user, text, timestamp: Date.now() }); input.value = ''; openCommentsPanel(item, shortDiv); }catch(err){ console.error(err); alert('Failed to post comment'); }
+  });
+  form.appendChild(input); form.appendChild(send);
+  commentsPanel.appendChild(form);
+}
+
+// expose loadShorts to window
+window.loadShorts = loadShorts;
+
+</script>
+<!-- END SHORTS -->
+
 <script>
 document.getElementById("reportForm").addEventListener("submit", function(e) {
     e.preventDefault(); // stop form refresh
@@ -948,7 +1148,6 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
         }
     });
     const rulesList = brokenRules.join('\n') || "No rules specified.";
-
 
     // Map reported users to Discord mentions
     const mentionMap = {
