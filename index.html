@@ -194,9 +194,9 @@ label { font-weight: bold; margin-top: 15px; display: block; }
   <span class="label">Local time</span>
   <span class="value" id="islandLocalTime">--:--:--</span>
 </div>
-    <div class="island-metric" data-type="days">
-      <span class="label">Days</span>
-      <span class="value" id="days-count">0</span>
+    <div class="island-metric" data-type="hours">
+      <span class="label">Hours</span>
+      <span class="value" id="hours-count">0</span>
     </div>
     <div class="island-metric" data-type="credits">
       <span class="label"><img src="EGP.png" alt="coin" class="island-icon coin-icon"></span>
@@ -208,7 +208,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
     </div>
     <div class="island-metric" data-type="sig">
       <span class="label">Signature</span>
-      <span class="value" id="sig-days-left">0</span>
+      <span class="value" id="sig-hours-left">0</span>
     </div>
   </div>
   <button id="islandMenuBtn" aria-hidden="true">≡</button>
@@ -231,7 +231,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 
     <div id="panelShop" class="menu-panel">
       <div class="panel-inner">
-        <h4 style="margin:0 0 8px 0;">Days Shop (Spend <img src="EGP.png" alt="coin" class="coin-icon"> to remove days)</h4>
+        <h4 style="margin:0 0 8px 0;">Hours Shop (Spend <img src="EGP.png" alt="coin" class="coin-icon"> to remove hours)</h4>
         <div id="shopItems"></div>
       </div>
     </div>
@@ -319,7 +319,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 <select id="reportedUser" required ></select>
 <label>Rules broken:</label>
 <div class="rules-list" id="rulesList"></div>
-<div id="total-days">Total Days Penalty: 0</div>
+<div id="total-hours">Total Hours Penalty: 0</div>
 <button type="submit" style="margin-top:20px;">Submit Report</button>
 </form>
 </div>
@@ -355,10 +355,10 @@ const db = getDatabase(app);
 
 // === GLOBALS ===
 let currentUser = null, currentUserData = null;
-const daysSpan = document.getElementById("days-count");
+const hoursSpan = document.getElementById("hours-count");
 const creditsSpan = document.getElementById("credits-count");
 const pointsSpan = document.getElementById("points-count");
-const sigDaysLeftSpan = document.getElementById("sig-days-left");
+const sigHoursLeftSpan = document.getElementById("sig-hours-left");
 const reportedUserSelect = document.getElementById("reportedUser");
 const sendToUserSelect = document.getElementById("sendToUser");
 const sendPointsToUserSelect = document.getElementById("sendPointsToUser");
@@ -368,6 +368,99 @@ const welcomeOverlay = document.getElementById("welcomeOverlay");
 const welcomeText = document.getElementById("welcomeText");
 const welcomeAudio = document.getElementById("welcomeAudio");
 const notifyDot = document.getElementById('notifyDot');
+
+// ---------- HOURS: helpers & countdown ----------
+const msPerHour = 1000 * 60 * 60;
+let hoursCountdownInterval = null;
+
+/**
+ * Normalize a user's stored hours using users/{username}/hoursUpdatedAt (or lastLogin).
+ * This subtracts whole hours that passed and preserves remainder milliseconds by adjusting hoursUpdatedAt.
+ * Returns an object { hours, hoursUpdatedAt }.
+ */
+async function normalizeUserHours(username, maybeData){
+  let data = maybeData;
+  if(!data){
+    const snap = await get(ref(db, `users/${username}`));
+    if(!snap.exists()) return { hours:0, hoursUpdatedAt: Date.now() };
+    data = snap.val();
+  }
+
+  const storedHours = Number(data.hours || 0);
+  let storedUpdatedAt = Number(data.hoursUpdatedAt || data.lastLogin || Date.now());
+  if(!storedUpdatedAt || isNaN(storedUpdatedAt)) storedUpdatedAt = Date.now();
+
+  const elapsedMs = Date.now() - storedUpdatedAt;
+  const elapsedWholeHours = Math.floor(elapsedMs / msPerHour);
+  if(elapsedWholeHours <= 0){
+    return { hours: storedHours, hoursUpdatedAt: storedUpdatedAt };
+  }
+
+  const newHours = Math.max(0, storedHours - elapsedWholeHours);
+  const remainderMs = elapsedMs - (elapsedWholeHours * msPerHour);
+  const newUpdatedAt = Date.now() - remainderMs; // preserve remainder
+
+  // persist normalized values
+  try{
+    const updates = {};
+    updates[`users/${username}/hours`] = newHours;
+    updates[`users/${username}/hoursUpdatedAt`] = newUpdatedAt;
+    await update(ref(db), updates);
+  }catch(e){
+    console.error('normalizeUserHours save failed', e);
+  }
+
+  return { hours: newHours, hoursUpdatedAt: newUpdatedAt };
+}
+
+function formatRemainingMs(ms){
+  if(ms <= 0) return '0h 0m 0s';
+  const h = Math.floor(ms / msPerHour);
+  const m = Math.floor((ms % msPerHour) / (60*1000));
+  const s = Math.floor((ms % (60*1000)) / 1000);
+  return `${h}h ${m}m ${s}s`;
+}
+
+function startUserHoursCountdown(){
+  stopUserHoursCountdown();
+  if(!currentUser || !currentUserData) return;
+
+  function tick(){
+    const hours = Number(currentUserData.hours || 0);
+    const updatedAt = Number(currentUserData.hoursUpdatedAt || currentUserData.lastLogin || Date.now());
+
+    if(hours <= 0){
+      hoursSpan.textContent = '0h 0m 0s';
+      if(currentUserData.hours !== 0){
+        update(ref(db), { [`users/${currentUser}/hours`]: 0, [`users/${currentUser}/hoursUpdatedAt`]: Date.now() }).catch(()=>{});
+        currentUserData.hours = 0;
+        currentUserData.hoursUpdatedAt = Date.now();
+      }
+      return;
+    }
+
+    const elapsedMs = Date.now() - updatedAt;
+    const totalMs = hours * msPerHour;
+    const remainingMs = Math.max(0, totalMs - elapsedMs);
+
+    if(remainingMs <= 0){
+      currentUserData.hours = 0;
+      currentUserData.hoursUpdatedAt = Date.now();
+      hoursSpan.textContent = '0h 0m 0s';
+      update(ref(db), { [`users/${currentUser}/hours`]: 0, [`users/${currentUser}/hoursUpdatedAt`]: Date.now() }).catch(()=>{});
+      return;
+    }
+
+    hoursSpan.textContent = formatRemainingMs(remainingMs);
+  }
+
+  tick();
+  hoursCountdownInterval = setInterval(tick, 1000);
+}
+
+function stopUserHoursCountdown(){
+  if(hoursCountdownInterval){ clearInterval(hoursCountdownInterval); hoursCountdownInterval = null; }
+}
 
 // ------------------- island clock + one-time welcome -------------------
 const islandLocalTimeEl = document.getElementById('islandLocalTime');
@@ -402,36 +495,50 @@ function showWelcomeOnce(name, durationMs = 6000) {
 startIslandClock();
 
 // === DATA ARRAYS ===
+// Penalties are stored directly in HOURS (not days).
 const rules = [
-  { id: 'no_hit', title: 'No hit', days: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 days.' },
-  { id: 'no_scream', title: 'No scream', days: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 days.' },
-  { id: 'no_cry', title: 'No cry', days: 1, points: 12.5, details: 'Crying is not allowed +1 days.' },
-  { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have days.', days: 20, points: 15, details: 'If Zeyad makes you play with devices when you have days, +20 days to Zeyad!' },
-  { id: 'no_fetn', title: 'No fetn', days: 25, points: 15, details: "Don't make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 days." },
-  { id: 'no_bother', title: 'No bother', days: 5, points: 12.5, details: 'Respect others. Don’t annoy them. +5 days.' },
-  { id: 'respect', title: 'You have to respect', days: 10, points: 12.5, details: 'Treat everyone kindly and with respect, always. +10 days.' },
-  { id: 'no_listen', title: 'No listen', days: 25, points: 15, details: 'You have to listen! If not, +25 days.' },
-  { id: 'play_zezo', title: 'Play with Zezo', days: 25, points: 15, details: 'You must play with Zezo. If not, +25 days.' },
-  { id: 'no_sad', title: 'No sad', days: 10, points: 12.5, details: 'Don’t be sad or +10 days.' },
-  { id: 'no_devices', title: 'No devices when u have days = 5 days', days: 5, points: 12.5, details: 'When you have days, don’t use devices. Each minute = +5 days!' },
-  { id: 'no_copy', title: 'No copy', days: 10, points: 15, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
-  { id: 'no_angry', title: 'No angry', days: 5, points: 12.5, details: 'Don’t be mad +5 days.' },
-  { id: 'no_askzezo', title: 'dont asks zezo', days: 15, points: 12.5, details: 'Don’t ask zezo about any events or discord all instructions are put +15 days.' },
-  { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS', days: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE DAYS +50 DAYS' },
-  { id: 'no_lie', title: 'No lie', days: 25, points: 15, details: 'Do not lie, always tell the truth. +25 days.' },
-  { id: 'no_pause', title: 'No pause', days: 10, points: 12.5, details: 'No pauses. +10 days.' },
-  { id: 'no_funny', title: 'No funny', days: -1, points: 1, details: 'No funny' },
-  { id: 'no_shetema', title: 'No shetema', days: 10, points: 12.5, details: 'No shetema. +10 days.' },
-  { id: 'no_pullhair', title: 'No pull hair', days: 10, points: 12.5, details: 'No pull hair. +10 days.' },
-  { id: 'no_pinch', title: 'No pinch', days: 15, points: 12.5, details: 'No pinch. +15 days.' },
-  { id: 'no_push', title: 'No push', days: 10, points: 12.5, details: 'No push. +10 days.' },
-  { id: 'no_scare', title: 'No scare', days: 10, points: 12.5, details: 'No scare. +10 days.' },
-  { id: 'no_dumb', title: 'No dumb', days: 15, points: 15, details: 'No dumb. +15 days.' },
-  { id: 'no_discord', title: 'no discord', days: 25, points: 12.5, details: 'if you dont see discord labubu messgaes +25 days.' },
-  { id: 'no_3ADY', title: 'No 3ADY', days: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 days.' }
+  { id: 'no_hit', title: 'No hit', hours: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 hour.' },
+  { id: 'no_scream', title: 'No scream', hours: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 hours.' },
+  { id: 'no_cry', title: 'No cry', hours: 1, points: 12.5, details: 'Crying is not allowed +1 hour.' },
+  { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have hours.', hours: 20, points: 15, details: 'If Zeyad makes you play with devices when you have hours, +20 hours to Zeyad!' },
+  { id: 'no_fetn', title: 'No fetn', hours: 25, points: 15, details: "Don't make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 hours." },
+  { id: 'no_bother', title: 'No bother', hours: 5, points: 12.5, details: 'Respect others. Don’t annoy them. +5 hours.' },
+  { id: 'respect', title: 'You have to respect', hours: 10, points: 12.5, details: 'Treat everyone kindly and with respect, always. +10 hours.' },
+  { id: 'no_listen', title: 'No listen', hours: 25, points: 15, details: 'You have to listen! If not, +25 hours.' },
+  { id: 'play_zezo', title: 'Play with Zezo', hours: 25, points: 15, details: 'You must play with Zezo. If not, +25 hours.' },
+  { id: 'no_sad', title: 'No sad', hours: 10, points: 12.5, details: 'Don’t be sad or +10 hours.' },
+  { id: 'no_devices', title: 'No devices when u have hours = 5 hours', hours: 5, points: 12.5, details: 'When you have hours, don’t use devices.' },
+  { id: 'no_copy', title: 'No copy', hours: 10, points: 15, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
+  { id: 'no_angry', title: 'No angry', hours: 5, points: 12.5, details: 'Don’t be mad +5 hours.' },
+  { id: 'no_askzezo', title: 'dont asks zezo', hours: 15, points: 12.5, details: 'Don’t ask zezo about any events or discord all instructions are put +15 hours.' },
+  { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS', hours: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS +50 hours' },
+  { id: 'no_lie', title: 'No lie', hours: 25, points: 15, details: 'Do not lie, always tell the truth. +25 hours.' },
+  { id: 'no_pause', title: 'No pause', hours: 10, points: 12.5, details: 'No pauses. +10 hours.' },
+  { id: 'no_funny', title: 'No funny', hours: -1, points: 1, details: 'No funny' },
+  { id: 'no_shetema', title: 'No shetema', hours: 10, points: 12.5, details: 'No shetema. +10 hours.' },
+  { id: 'no_pullhair', title: 'No pull hair', hours: 10, points: 12.5, details: 'No pull hair. +10 hours.' },
+  { id: 'no_pinch', title: 'No pinch', hours: 15, points: 12.5, details: 'No pinch. +15 hours.' },
+  { id: 'no_push', title: 'No push', hours: 10, points: 12.5, details: 'No push. +10 hours.' },
+  { id: 'no_scare', title: 'No scare', hours: 10, points: 12.5, details: 'No scare. +10 hours.' },
+  { id: 'no_dumb', title: 'No dumb', hours: 15, points: 15, details: 'No dumb. +15 hours.' },
+  { id: 'no_discord', title: 'no discord', hours: 25, points: 12.5, details: 'if you dont see discord labubu messgaes +25 hours.' },
+  { id: 'no_3ADY', title: 'No 3ADY', hours: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 hours.' }
 ];
 
-const shopItems = [{cost:100,days:1},{cost:450,days:5},{cost:1450,days:15},{cost:2450,days:25},{cost:3450,days:35},{cost:4450,days:45},{cost:5450,days:55},{cost:6450,days:65},{cost:7450,days:75},{cost:8950,days:85,points:60},{cost:10450,days:100,points:75}];
+// shop items: HOURS are direct values (not days)
+const shopItems = [
+  { cost: 100, hours: 1 },
+  { cost: 450, hours: 5 },
+  { cost: 1450, hours: 15 },
+  { cost: 2450, hours: 25 },
+  { cost: 3450, hours: 35 },
+  { cost: 4450, hours: 45 },
+  { cost: 5450, hours: 55 },
+  { cost: 6450, hours: 65 },
+  { cost: 7450, hours: 75 },
+  { cost: 8950, hours: 85, points: 60 },
+  { cost: 10450, hours: 100, points: 75 }
+];
 
 const pointsExchangeItems = [{points:100,credits:500},{points:300,credits:2000},{points:500,credits:5500},{points:1000,credits:12000},{points:2000,credits:24000},{points:3000,credits:37000},{points:4000,credits:50000}];
 
@@ -441,18 +548,18 @@ function renderRules() {
   rules.forEach((r,i)=>{
     const div = document.createElement('div');
     div.className = 'rule-item';
-    div.dataset.id = r.id; div.dataset.days = r.days; div.dataset.points = r.points;
+    div.dataset.id = r.id; div.dataset.hours = r.hours; div.dataset.points = r.points;
     const textContainer = document.createElement('div'); textContainer.style.flex = '1'; textContainer.innerHTML = `<strong>${r.title}</strong><div class="rule-details">${r.details}</div>`;
-    const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.min=0; qtyInput.value=0; qtyInput.className='rule-qty'; qtyInput.addEventListener('input', updateTotalDays);
+    const qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.min=0; qtyInput.value=0; qtyInput.className='rule-qty'; qtyInput.addEventListener('input', updateTotalHours);
     div.appendChild(textContainer); div.appendChild(qtyInput);
-    div.addEventListener('click',(e)=>{ if(e.target.tagName.toLowerCase() !== 'input'){ div.classList.toggle('selected'); if(div.classList.contains('selected') && qtyInput.value==0) qtyInput.value = 1; else if(!div.classList.contains('selected')) qtyInput.value = 0; updateTotalDays(); } });
+    div.addEventListener('click',(e)=>{ if(e.target.tagName.toLowerCase() !== 'input'){ div.classList.toggle('selected'); if(div.classList.contains('selected') && qtyInput.value==0) qtyInput.value = 1; else if(!div.classList.contains('selected')) qtyInput.value = 0; updateTotalHours(); } });
     container.appendChild(div);
     if(i < rules.length -1){ const hr = document.createElement('hr'); hr.style.margin='5px 0'; container.appendChild(hr); }
   });
 }
 renderRules();
 
-function updateTotalDays(){ let total = 0; document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; const daysPer = parseInt(item.dataset.days); total += daysPer * qty; }); document.getElementById('total-days').textContent = `Total Days Penalty: ${total}`; }
+function updateTotalHours(){ let total = 0; document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; const hoursPer = parseInt(item.dataset.hours); total += hoursPer * qty; }); document.getElementById('total-hours').textContent = `Total Hours Penalty: ${total}`; }
 
 // === USERS DROPDOWNS ===
 async function loadUsersDropdowns(){
@@ -481,26 +588,26 @@ async function login(username, password, keep, isAutoLogin = false){
   const data = snap.val();
   if(data.password !== password) return alert("Incorrect password");
 
-  currentUser = username; currentUserData = data;
+  currentUser = username;
+
+  // Normalize stored hours (subtract whole hours that passed)
+  const normalized = await normalizeUserHours(username, data);
+  const updatedHours = normalized.hours;
+  const updatedAt = normalized.hoursUpdatedAt || Date.now();
 
   const signature = data.signature || null; const expiry = signature?.expiry || 0;
   if(!signature || expiry <= Date.now()){
-    await update(userRef, { days: 0, credits: 0, points: 0, signature: null, lastLogin: Date.now() });
+    await update(userRef, { hours: 0, credits: 0, points: 0, signature: null, lastLogin: Date.now() });
     alert("Your signature expired or not found. You need to create a new signature now.");
     window.location.href = "signature.html?user=" + encodeURIComponent(username);
     return;
   }
 
-  const now = new Date(); const lastLogin = data.lastLogin || 0;
-  function getMidnight(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-  const nowMidnight = getMidnight(now); const lastLoginMidnight = getMidnight(new Date(lastLogin));
-  const msPerDay = 1000*60*60*24; let daysPassed = 0;
-  if(lastLogin) daysPassed = Math.floor((nowMidnight - lastLoginMidnight) / msPerDay);
-  let updatedDays = (data.days || 0) - daysPassed; if(updatedDays < 0) updatedDays = 0;
-  const msLeft = expiry - Date.now(); const sigDaysLeft = Math.ceil(msLeft / msPerDay); const displayDaysLeft = sigDaysLeft > 0 ? sigDaysLeft : 0;
+  await update(userRef, { lastLogin: Date.now() }).catch(()=>{});
+  const freshSnap = await get(userRef);
+  const freshData = freshSnap.exists() ? freshSnap.val() : data;
 
-  await update(userRef, { days: updatedDays, lastLogin: Date.now() });
-  currentUserData.days = updatedDays; currentUserData.lastLogin = Date.now();
+  currentUserData = Object.assign({}, freshData, { hours: updatedHours, hoursUpdatedAt: updatedAt, lastLogin: Date.now() });
 
   if(!isAutoLogin){
     welcomeText.textContent = `Welcome back, ${username}!`;
@@ -511,25 +618,43 @@ async function login(username, password, keep, isAutoLogin = false){
   document.getElementById("login-form").style.display = "none";
   document.getElementById("report-form").style.display = "block";
   reporterInput.value = username;
-  daysSpan.textContent = updatedDays;
-  creditsSpan.textContent = data.credits || 0;
-  pointsSpan.textContent = data.points || 0;
-  sigDaysLeftSpan.textContent = displayDaysLeft;
+
+  // show values
+  creditsSpan.textContent = currentUserData.credits || 0;
+  pointsSpan.textContent = currentUserData.points || 0;
+  sigHoursLeftSpan.textContent = (() => {
+    const s = currentUserData.signature?.expiry || 0;
+    const left = Math.ceil((s - Date.now()) / msPerHour);
+    return left > 0 ? left : 0;
+  })();
 
   await loadUsersDropdowns();
 
-  // start listening to notifications for this user
+  // start listening to notifications
   listenToNotifications();
+
+  // start the hours countdown UI
+  startUserHoursCountdown();
 }
 
-function logout(){ currentUser = null; currentUserData = null; localStorage.removeItem('loginData'); sessionStorage.removeItem('loginData'); document.getElementById('login-form').style.display='block'; document.getElementById('report-form').style.display='none'; closeIslandMenu(); updateNotifyDot(0); }
+function logout(){ 
+  currentUser = null; 
+  currentUserData = null; 
+  localStorage.removeItem('loginData'); 
+  sessionStorage.removeItem('loginData'); 
+  document.getElementById('login-form').style.display='block'; 
+  document.getElementById('report-form').style.display='none'; 
+  closeIslandMenu(); 
+  updateNotifyDot(0); 
+  stopUserHoursCountdown();
+}
 
 // === SHOP / POINTS RENDER (same ids used inside island menu) ===
 function renderShopItems(){
   const shopContainer = document.getElementById('shopItems');
   shopContainer.innerHTML = '';
   shopItems.forEach(item=>{
-    shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.days})">Buy: ${item.cost} <img src="EGP.png" class="coin-icon" alt="coin"> → Remove ${item.days} days</button><br>`;
+    shopContainer.innerHTML += `<button onclick="buyItem(${item.cost}, ${item.hours})">Buy: ${item.cost} <img src=\"EGP.png\" class=\"coin-icon\" alt=\"coin\"> → Remove ${item.hours} hours</button><br>`;
   });
 }
 renderShopItems();
@@ -538,7 +663,7 @@ function renderPointsExchangeItems(){
   const exchangeContainer = document.getElementById('pointsExchangeItems');
   exchangeContainer.innerHTML = '';
   pointsExchangeItems.forEach(item=>{
-    exchangeContainer.innerHTML += `<button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} <img src="EGP.png" class="coin-icon" alt="coin"></button><br>`;
+    exchangeContainer.innerHTML += `<button onclick="exchangePoints(${item.points}, ${item.credits})">Exchange ${item.points} Points → ${item.credits} <img src=\"EGP.png\" class=\"coin-icon\" alt=\"coin\"></button><br>`;
   });
 }
 renderPointsExchangeItems();
@@ -656,20 +781,32 @@ function hideAllPanels(){ document.querySelectorAll('.menu-panel').forEach(el =>
 window.togglePanel = (id) => { const el = document.getElementById(id); if(!el) return; el.classList.toggle('show'); }
 
 // === BUY / EXCHANGE / SEND FUNCTIONS ===
-async function buyItem(cost, daysToRemove){ if(!currentUser) return alert('Please login first.'); if((currentUserData.credits||0) < cost) return alert('Not enough credits.'); if((currentUserData.days||0) < daysToRemove) return alert(`You don't have enough days to remove (${daysToRemove} required).`);
-  try{ const applePayAudio = document.getElementById('applePayAudio'); try{ await applePayAudio.play(); }catch(e){}
+async function buyItem(cost, hoursToRemove){
+  if(!currentUser) return alert('Please login first.');
+  if((currentUserData.credits||0) < cost) return alert('Not enough credits.');
+  if((currentUserData.hours||0) < hoursToRemove) return alert(`You don't have enough hours to remove (${hoursToRemove} required).`);
+  try{
+    const applePayAudio = document.getElementById('applePayAudio');
+    try{ await applePayAudio.play(); }catch(e){}
     const bankAmount = Math.floor(cost * 0.90); const zezoAmount = cost - bankAmount;
-    const userRef = ref(db, `users/${currentUser}`); const bankRef = ref(db, `users/bank`); const zezoRef = ref(db, `users/zezo`);
+    const bankRef = ref(db, `users/bank`); const zezoRef = ref(db, `users/zezo`);
     const [bankSnap,zezoSnap] = await Promise.all([ get(bankRef), get(zezoRef) ]);
     const bankData = bankSnap.exists()?bankSnap.val():{credits:0}; const zezoData = zezoSnap.exists()?zezoSnap.val():{credits:0};
     const updates = {};
     updates[`users/${currentUser}/credits`] = (currentUserData.credits||0) - cost;
-    updates[`users/${currentUser}/days`] = (currentUserData.days||0) - daysToRemove;
+    updates[`users/${currentUser}/hours`] = (currentUserData.hours||0) - hoursToRemove;
+    // updatedAt set to now so countdown continues from now
+    updates[`users/${currentUser}/hoursUpdatedAt`] = Date.now();
     updates[`users/bank/credits`] = (bankData.credits||0) + bankAmount;
     updates[`users/zezo/credits`] = (zezoData.credits||0) + zezoAmount;
     await update(ref(db), updates);
-    currentUserData.credits -= cost; currentUserData.days -= daysToRemove; creditsSpan.textContent = currentUserData.credits; daysSpan.textContent = currentUserData.days;
-    alert(`Bought item for ${cost} credits. Removed ${daysToRemove} days. 90% went to Bank and remainder to Zezo.`);
+    currentUserData.credits -= cost;
+    currentUserData.hours -= hoursToRemove;
+    currentUserData.hoursUpdatedAt = Date.now();
+    creditsSpan.textContent = currentUserData.credits;
+    // restart countdown to reflect immediate removal
+    startUserHoursCountdown();
+    alert(`Bought item for ${cost} credits. Removed ${hoursToRemove} hours. 90% went to Bank and remainder to Zezo.`);
   }catch(err){ console.error(err); alert('Failed to complete purchase: '+err.message); }
 }
 window.buyItem = buyItem;
@@ -763,7 +900,7 @@ async function showNotificationDetails(id){
 
 async function deleteNotification(id){ if(!confirm('Delete this notification?')) return; try{ await remove(ref(db, `notifications/${id}`)); alert('Deleted'); }catch(err){ console.error(err); alert('Failed to delete'); } }
 
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>\"']/g, function(m){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[m]; }); }
 
 // === EVENTS SECTION ===
 function formatCountdown(msLeft){ if(msLeft <= 0) return 'Expired'; const totalSeconds = Math.floor(msLeft/1000); const days = Math.floor(totalSeconds/(24*3600)); const hours = Math.floor((totalSeconds%(24*3600))/3600); const minutes = Math.floor((totalSeconds%3600)/60); const seconds = totalSeconds%60; let parts = []; if(days>0) parts.push(`${days}d`); if(hours>0||days>0) parts.push(`${hours}h`); if(minutes>0||hours>0||days>0) parts.push(`${minutes}m`); parts.push(`${seconds}s`); return parts.join(' '); }
@@ -785,10 +922,10 @@ onValue(eventsRef, (snapshot)=>{ renderEvents(snapshot.val()); });
 // === REPORT SUBMIT (merged with Discord webhook) ===
 document.getElementById('reportForm').onsubmit = async e => {
   e.preventDefault(); if(!currentUser) return alert('Please login first.'); const reportedUser = reportedUserSelect.value; if(!reportedUser) return alert('Please select the user you want to report.');
-  const selectedRules = []; let totalDays = 0; let totalPoints = 0;
-  document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; if(qty>0){ const daysPer = parseInt(item.dataset.days); const pointsPer = parseInt(item.dataset.points); selectedRules.push({ id: item.dataset.id, title: item.querySelector('strong').textContent, qty, daysPerOffense: daysPer, pointsPerOffense: pointsPer }); totalDays += daysPer * qty; totalPoints += pointsPer * qty; } });
+  const selectedRules = []; let totalHours = 0; let totalPoints = 0;
+  document.querySelectorAll('.rule-item').forEach(item=>{ const qty = parseInt(item.querySelector('input').value)||0; if(qty>0){ const hoursPer = parseInt(item.dataset.hours); const pointsPer = parseInt(item.dataset.points); selectedRules.push({ id: item.dataset.id, title: item.querySelector('strong').textContent, qty, hoursPerOffense: hoursPer, pointsPerOffense: pointsPer }); totalHours += hoursPer * qty; totalPoints += pointsPer * qty; } });
   if(selectedRules.length === 0) return alert('Please select at least one rule broken.');
-  const report = { reporter: currentUser, reportedUser, rules: selectedRules, totalDays, totalPoints, timestamp: Date.now() };
+  const report = { reporter: currentUser, reportedUser, rules: selectedRules, totalHours, totalPoints, timestamp: Date.now() };
 
   try{
     const autoAcceptSnap = await get(ref(db, 'settings/autoAcceptReports'));
@@ -798,27 +935,41 @@ document.getElementById('reportForm').onsubmit = async e => {
       const reportedUserRef = ref(db, `users/${reportedUser}`);
       const reporterUserRef = ref(db, `users/${currentUser}`);
       const [reportedUserSnap, reporterUserSnap] = await Promise.all([ get(reportedUserRef), get(reporterUserRef) ]);
-      const reportedUserData = reportedUserSnap.val(); const reporterUserData = reporterUserSnap.val();
-      const newReportedDays = (Number(reportedUserData.days||0) + Number(totalDays));
+      const reportedUserData = reportedUserSnap.val() || {};
+      const reporterUserData = reporterUserSnap.val() || {};
+
+      // Normalize reported user's hours so we add to the *remaining* hours
+      const normalizedReported = await normalizeUserHours(reportedUser, reportedUserData);
+      const newReportedHours = Number(normalizedReported.hours || 0) + Number(totalHours);
       const newReporterPoints = (Number(reporterUserData.points||0) + Number(totalPoints));
       const updates = {};
-      updates[`users/${reportedUser}/days`] = newReportedDays;
+      updates[`users/${reportedUser}/hours`] = newReportedHours;
+      // set hoursUpdatedAt to now because we just added hours
+      updates[`users/${reportedUser}/hoursUpdatedAt`] = Date.now();
       updates[`users/${currentUser}/points`] = newReporterPoints;
       await update(ref(db), updates);
+
       currentUserData.points = newReporterPoints; pointsSpan.textContent = currentUserData.points;
-      alert(`Report auto accepted: ${totalDays} days added to ${reportedUser}, and you received ${totalPoints} points.`);
+      alert(`Report auto accepted: ${totalHours} hours added to ${reportedUser}, and you received ${totalPoints} points.`);
+
+      // if the reported user is the currently logged-in user, refresh their countdown
+      if(reportedUser === currentUser){
+        currentUserData.hours = newReportedHours;
+        currentUserData.hoursUpdatedAt = Date.now();
+        startUserHoursCountdown();
+      }
     } else {
       const newReportRef = push(ref(db, 'reports'));
       await update(newReportRef, report);
       alert('Report submitted for manual approval. You will receive points upon approval.');
     }
 
-    document.getElementById('reportForm').reset(); renderRules(); updateTotalDays();
+    document.getElementById('reportForm').reset(); renderRules(); updateTotalHours();
   }catch(error){ console.error('Error submitting report:', error); alert('Failed to submit report: ' + error.message); }
 }
 
 // --- DYNAMIC ISLAND ROTATION (still rotates metrics every 5s) ---
-const metrics = ['days','credits','points','sig'];
+const metrics = ['hours','credits','points','sig'];
 let metricIndex = 0;
 const islandDisplay = document.getElementById('islandDisplay');
 function showMetric(index){ 
@@ -854,11 +1005,7 @@ window.logout = logout;
 
 </script>
 
-<!-- === SHORTS: modular Firebase v10 implementation (drop-in) ===
-     Placed BEFORE compat SDK below so this uses the same modular app.
-     It imports getApp() and getDatabase() and stores posts under 'shorts' in Realtime DB.
-     NOTE: This stores media as data URLs in the DB (simple). For production use Cloud Storage.
--->
+<!-- === SHORTS: modular Firebase v10 implementation (drop-in) === -->
 <style>
   /* Shorts styles - self contained */
   .bottom-dock { position: fixed; right: 14px; bottom: 18px; left: 14px; z-index: 100001; display:flex; justify-content:space-between; gap:8px; max-width:700px; margin: 0 auto; pointer-events: auto; }
@@ -1001,7 +1148,7 @@ postShortBtn.addEventListener('click', async ()=>{
 let shortsListener = null;
 function loadShorts(force){
   if(shortsListener){
-    try{ /* no-op: onValue returns an unsubscribe function in modular SDK - but we used onValue which returns a function in compat; here we will attach only once */ }catch(e){}
+    try{ /* no-op */ }catch(e){}
   }
   onValue(ref(dbMod, 'shorts'), snap => {
     const raw = snap.exists() ? snap.val() : {};
@@ -1133,18 +1280,18 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
     const reporter = document.getElementById("reporter").value.trim();
     const reportedUser = document.getElementById("reportedUser").value.trim();
    
-    // Get the total days penalty from the correct element (which is a div)
-    const totalDaysText = document.getElementById("total-days").textContent;
-    const totalDays = totalDaysText.match(/\d+/)[0] || "0";
+    // Get the total hours penalty from the correct element (which is a div)
+    const totalHoursText = document.getElementById("total-hours").textContent;
+    const totalHours = totalHoursText.match(/\d+/)[0] || "0";
 
-    // Create a list of the rules that were broken, including the penalty days and quantity
+    // Create a list of the rules that were broken, including the penalty hours and quantity
     const brokenRules = [];
     document.querySelectorAll('.rule-item').forEach(item => {
         const qty = parseInt(item.querySelector('input').value) || 0;
         if (qty > 0) {
             const title = item.querySelector('strong').textContent;
-            const daysPer = parseInt(item.dataset.days);
-            brokenRules.push(`- ${title} (x${qty}) for ${qty * daysPer} days`);
+            const hoursPer = parseInt(item.dataset.hours);
+            brokenRules.push(`- ${title} (x${qty}) for ${qty * hoursPer} hours`);
         }
     });
     const rulesList = brokenRules.join('\n') || "No rules specified.";
@@ -1162,7 +1309,7 @@ document.getElementById("reportForm").addEventListener("submit", function(e) {
                   + `**Reporter:** ${reporter}\n`
                   + `**Reported User:** ${reportedUser} ${mention}\n`
                   + `**Broken Rules:**\n${rulesList}\n`
-                  + `**Total Days:** ${totalDays}`;
+                  + `**Total Hours:** ${totalHours}`;
 
     fetch(webhookURL, {
         method: "POST",
@@ -1272,3 +1419,4 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
