@@ -81,7 +81,11 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
   -webkit-backdrop-filter: blur(6px);
   cursor: pointer;
   user-select: none;
-  transition: width 260ms cubic-bezier(.2,.9,.3,1), border-radius 200ms ease, background 180ms ease;
+transition:
+    width 600ms cubic-bezier(.22,1,.36,1),
+    border-radius 450ms cubic-bezier(.25,.9,.25,1),
+    background-color 400ms ease;
+  will-change: width, border-radius, background-color;
 }
 
 /* small red blinking dot on the right when unread notifications */
@@ -1419,4 +1423,3 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 
 </body>
 </html>
-
