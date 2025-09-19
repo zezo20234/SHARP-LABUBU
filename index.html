@@ -64,7 +64,13 @@ img[src$="EGP.png"], .coin-icon, .island-icon {
 #dynamic-island {
   position: fixed;
   left: 50%;
-  top: 8px;
+  /* place under iPhone 11 notch:
+     - use env(safe-area-inset-top) when supported,
+     - fallback to 44px (typical iPhone 11 notch height),
+     - add +6px gap so it's comfortably below the notch. */
+  top: calc(env(safe-area-inset-top, 44px) + 6px);
+  /* older WebKit constant() fallback */
+  top: calc(constant(safe-area-inset-top, 44px) + 6px);
   transform: translateX(-50%);
   z-index: 99999;
   display: flex;
@@ -183,6 +189,7 @@ label { font-weight: bold; margin-top: 15px; display: block; }
 }
 </style>
 </head>
+
 <body>
 
 <div id="welcomeOverlay" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100000;">
