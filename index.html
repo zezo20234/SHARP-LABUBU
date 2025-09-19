@@ -288,20 +288,65 @@ label { font-weight: bold; margin-top: 15px; display: block; }
       </div>
     </div>
 
-    <div id="panelCustomize" class="menu-panel">
-      <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;">
-        <div style="font-weight:700;">Choose island color</div>
-        <div class="palette" id="colorPalette" style="display:flex; gap:8px; flex-wrap:wrap;">
-          <div class="sw" data-color="black" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#000,#000);cursor:pointer;"></div>
-          <div class="sw" data-color="red" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff4b4b,#c0392b);cursor:pointer;"></div>
-          <div class="sw" data-color="orange" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff8a00,#ff5e00);cursor:pointer;"></div>
-          <div class="sw" data-color="yellow" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ffd54a,#ffb300);cursor:pointer;"></div>
-          <div class="sw" data-color="purple" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#9b59b6,#6a2a89);cursor:pointer;"></div>
-          <div class="sw" data-color="pink" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#ff7eb6,#ff4d94);cursor:pointer;"></div>
-          <div class="sw" data-color="green" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,#2ecc71,#27ae60);cursor:pointer;"></div>
-        </div>
-      </div>
+   <!-- panel with added pastels + three moving swatches -->
+<div id="panelCustomize" class="menu-panel">
+  <style>
+    /* small shared styles for swatches (keeps markup tidy) */
+    .palette { display:flex; gap:8px; flex-wrap:wrap; }
+    .sw {
+      width:36px;
+      height:36px;
+      border-radius:8px;
+      cursor:pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), inset 0 -1px 0 rgba(255,255,255,0.06);
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .sw:active { transform: scale(.96); }
+
+    /* animated/moving gradient swatch base */
+    .sw.animated {
+      background-size: 300% 100%;
+      animation: moveGradient 3s linear infinite;
+    }
+
+    /* optional variations for different speeds (if you want varied motion later) */
+    .sw.animated.slow { animation-duration: 5s; }
+    .sw.animated.fast { animation-duration: 2s; }
+
+    @keyframes moveGradient{
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+
+  <div class="panel-inner" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="font-weight:700;">Choose island color</div>
+
+    <div class="palette" id="colorPalette">
+      <div class="sw" data-color="black" style="background:linear-gradient(90deg,#000,#000);"></div>
+      <div class="sw" data-color="red" style="background:linear-gradient(90deg,#ff4b4b,#c0392b);"></div>
+      <div class="sw" data-color="orange" style="background:linear-gradient(90deg,#ff8a00,#ff5e00);"></div>
+      <div class="sw" data-color="yellow" style="background:linear-gradient(90deg,#ffd54a,#ffb300);"></div>
+      <div class="sw" data-color="purple" style="background:linear-gradient(90deg,#9b59b6,#6a2a89);"></div>
+      <div class="sw" data-color="pink" style="background:linear-gradient(90deg,#ff7eb6,#ff4d94);"></div>
+      <div class="sw" data-color="green" style="background:linear-gradient(90deg,#2ecc71,#27ae60);"></div>
+
+      <!-- 3 additional beautiful light (pastel) colors -->
+      <div class="sw" data-color="pastel-mint" style="background:linear-gradient(90deg,#a8f0d1,#6fe8b3);"></div>
+
+      <!-- moving / animated swatches -->
+      <div class="sw animated" data-color="moving-aqua" title="Animated color — moving gradient" style="background: linear-gradient(90deg, #89f7fe, #66a6ff, #a1c4fd);"></div>
+
+      <!-- newly added: moving purple -->
+      <div class="sw animated" data-color="moving-purple" title="Animated purple — moving gradient" style="background: linear-gradient(90deg,#d9a7ff,#9b59b6,#6a2a89);"></div>
+
+      <!-- newly added: moving yellow -->
+      <div class="sw animated slow" data-color="moving-yellow" title="Animated yellow — moving gradient" style="background: linear-gradient(90deg,#fff7a8,#ffd54a,#ffcc33);"></div>
     </div>
+  </div>
+</div>
 
   </div>
 </div>
@@ -764,7 +809,7 @@ colorPalette.querySelectorAll('.sw').forEach(sw=>{
 
 function applyIslandColor(name){
   let css = '';
-  switch(name){
+    switch(name){
     case 'black': css = '#000'; break;
     case 'red': css = 'linear-gradient(90deg,#ff4b4b,#c0392b)'; break;
     case 'orange': css = 'linear-gradient(90deg,#ff8a00,#ff5e00)'; break;
@@ -772,6 +817,10 @@ function applyIslandColor(name){
     case 'purple': css = 'linear-gradient(90deg,#9b59b6,#6a2a89)'; break;
     case 'pink': css = 'linear-gradient(90deg,#ff7eb6,#ff4d94)'; break;
     case 'green': css = 'linear-gradient(90deg,#2ecc71,#27ae60)'; break;
+    case 'pastel-mint': css = 'linear-gradient(90deg,#a8f0d1,#6fe8b3)'; break;
+    case 'moving-aqua': css = 'linear-gradient(90deg,#89f7fe, #66a6ff, #a1c4fd)'; break;
+    case 'moving-purple': css = 'linear-gradient(90deg,#d9a7ff,#9b59b6,#6a2a89)'; break;
+    case 'moving-yellow': css = 'linear-gradient(90deg,#fff7a8,#ffd54a,#ffcc33)'; break;
     default: css = '#000';
   }
   document.documentElement.style.setProperty('--island-bg', css);
