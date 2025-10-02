@@ -1,5 +1,5 @@
 {
-  "name": "SUPER-LABUBU",
+  "name": "SHARP-LABUBU",
   "short_name": "LABUBU",
   "start_url": ".",
   "display": "standalone",
@@ -7,12 +7,12 @@
   "theme_color": "#2b4c7e",
   "icons": [
     {
-      "src": "LAEVENT.jpg",
+      "src": "labubu5.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "LAEVENT.jpg",
+      "src": "labubu5.png",
       "sizes": "512x512",
       "type": "image/png"
     }
