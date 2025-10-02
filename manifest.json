@@ -7,12 +7,12 @@
   "theme_color": "#2b4c7e",
   "icons": [
     {
-      "src": "labubu6.png",
+      "src": "labubu7.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "labubu6.png",
+      "src": "labubu7.png",
       "sizes": "512x512",
       "type": "image/png"
     }
