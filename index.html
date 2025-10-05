@@ -35,7 +35,7 @@ body {
   max-width: 700px;
   margin: 30px auto;
   padding: 10px;
-  background: linear-gradient(135deg, #f0f4f9, #d9e4f5);
+  background: linear-gradient(135deg, #ffffff, #000000);
   color: #333;
   font-size: 1rem;
   line-height: 1.4;
@@ -553,48 +553,50 @@ startIslandClock();
 // === DATA ARRAYS ===
 // Penalties are stored directly in HOURS (not days).
 const rules = [
-  { id: 'no_hit', title: 'No hit', hours: 1, points: 12.5, details: 'Do not physically hurt anyone, as a joke is ok +1 hour.' },
-  { id: 'no_scream', title: 'No scream', hours: 5, points: 12.5, details: 'Speak calmly, only when you are excited or angry +5 hours.' },
-  { id: 'no_cry', title: 'No cry', hours: 1, points: 12.5, details: 'Crying is not allowed +1 hour.' },
-  { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have hours.', hours: 20, points: 15, details: 'If Zeyad makes you play with devices when you have hours, +20 hours to Zeyad!' },
-  { id: 'no_fetn', title: 'No fetn', hours: 25, points: 15, details: "Don't make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 hours." },
-  { id: 'no_bother', title: 'No bother', hours: 5, points: 12.5, details: 'Respect others. Don’t annoy them. +5 hours.' },
-  { id: 'respect', title: 'You have to respect', hours: 10, points: 12.5, details: 'Treat everyone kindly and with respect, always. +10 hours.' },
-  { id: 'no_listen', title: 'No listen', hours: 25, points: 15, details: 'You have to listen! If not, +25 hours.' },
-  { id: 'play_zezo', title: 'Play with Zezo', hours: 25, points: 15, details: 'You must play with Zezo. If not, +25 hours.' },
-  { id: 'no_sad', title: 'No sad', hours: 10, points: 12.5, details: 'Don’t be sad or +10 hours.' },
-  { id: 'no_devices', title: 'No devices when u have hours = 5 hours', hours: 5, points: 12.5, details: 'When you have hours, don’t use devices.' },
-  { id: 'no_copy', title: 'No copy', hours: 10, points: 15, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
-  { id: 'no_angry', title: 'No angry', hours: 5, points: 12.5, details: 'Don’t be mad +5 hours.' },
-  { id: 'no_askzezo', title: 'dont asks zezo', hours: 15, points: 12.5, details: 'Don’t ask zezo about any events or discord all instructions are put +15 hours.' },
-  { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS', hours: 25, points: 15, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS +50 hours' },
-  { id: 'no_lie', title: 'No lie', hours: 25, points: 15, details: 'Do not lie, always tell the truth. +25 hours.' },
-  { id: 'no_pause', title: 'No pause', hours: 10, points: 12.5, details: 'No pauses. +10 hours.' },
-  { id: 'no_funny', title: 'No funny', hours: -1, points: 1, details: 'No funny' },
-  { id: 'no_shetema', title: 'No shetema', hours: 10, points: 12.5, details: 'No shetema. +10 hours.' },
-  { id: 'no_pullhair', title: 'No pull hair', hours: 10, points: 12.5, details: 'No pull hair. +10 hours.' },
-  { id: 'no_pinch', title: 'No pinch', hours: 15, points: 12.5, details: 'No pinch. +15 hours.' },
-  { id: 'no_push', title: 'No push', hours: 10, points: 12.5, details: 'No push. +10 hours.' },
-  { id: 'no_scare', title: 'No scare', hours: 10, points: 12.5, details: 'No scare. +10 hours.' },
-  { id: 'no_dumb', title: 'No dumb', hours: 15, points: 15, details: 'No dumb. +15 hours.' },
-  { id: 'no_discord', title: 'no discord', hours: 25, points: 12.5, details: 'if you dont see discord labubu messgaes +25 hours.' },
-  { id: 'no_3ADY', title: 'No 3ADY', hours: 25, points: 15, details: 'No 3ADY or he can reort on you 3ADY. +25 hours.' }
+  { id: 'no_hit', title: 'No hit', hours: 1, points: 20, minDays: 1, maxDays: 4, details: 'Do not physically hurt anyone, as a joke is ok +1 hour.' },
+  { id: 'no_scream', title: 'No scream', hours: 5, points: 20, minDays: 1, maxDays: 4, details: 'Speak calmly, only when you are excited or angry +5 hours.' },
+  { id: 'no_cry', title: 'No cry', hours: 1, points: 20, minDays: 1, maxDays: 4, details: 'Crying is not allowed +1 hour.' },
+  { id: 'zeyad_devices', title: 'Zeyad can no longer make you play with devices when you have hours.', hours: 20, points: 20, minDays: 1, maxDays: 4, details: 'If Zeyad makes you play with devices when you have hours, +20 hours to Zeyad!' },
+  { id: 'no_fetn', title: 'No fetn', hours: 25, points: 20, minDays: 1, maxDays: 4, details: "Don't make FETN. If someone tells you “blip” please don’t tell or repeat it to anyone. +25 hours." },
+  { id: 'no_bother', title: 'No bother', hours: 5, points: 20, minDays: 1, maxDays: 4, details: 'Respect others. Don’t annoy them. +5 hours.' },
+  { id: 'respect', title: 'You have to respect', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'Treat everyone kindly and with respect, always. +10 hours.' },
+  { id: 'no_listen', title: 'No listen', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'You have to listen! If not, +25 hours.' },
+  { id: 'play_zezo', title: 'Play with Zezo', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'You must play with Zezo. If not, +25 hours.' },
+  { id: 'no_sad', title: 'No sad', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'Don’t be sad or +10 hours.' },
+  { id: 'no_devices', title: 'No devices when u have hours = 5 hours', hours: 5, points: 20, minDays: 1, maxDays: 4, details: 'When you have hours, don’t use devices.' },
+  { id: 'no_copy', title: 'No copy', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'You need proof (note, message) that someone gave you permission to copy them.' },
+  { id: 'no_angry', title: 'No angry', hours: 5, points: 20, minDays: 1, maxDays: 4, details: 'Don’t be mad +5 hours.' },
+  { id: 'no_askzezo', title: 'dont asks zezo', hours: 15, points: 20, minDays: 1, maxDays: 4, details: 'Don’t ask zezo about any events or discord all instructions are put +15 hours.' },
+  { id: 'dont_ask_zeyad', title: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'DONT ASK ZEYAD TO MAKE YOU PLAY WITH DEVICES IF YOU HAVE HOURS +50 hours' },
+  { id: 'no_lie', title: 'No lie', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'Do not lie, always tell the truth. +25 hours.' },
+  { id: 'no_pause', title: 'No pause', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'No pauses. +10 hours.' },
+  { id: 'no_funny', title: 'No funny', hours: -1, points: 20, minDays: 1, maxDays: 4, details: 'No funny' },
+  { id: 'no_shetema', title: 'No shetema', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'No shetema. +10 hours.' },
+  { id: 'no_pullhair', title: 'No pull hair', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'No pull hair. +10 hours.' },
+  { id: 'no_pinch', title: 'No pinch', hours: 15, points: 20, minDays: 1, maxDays: 4, details: 'No pinch. +15 hours.' },
+  { id: 'no_push', title: 'No push', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'No push. +10 hours.' },
+  { id: 'no_scare', title: 'No scare', hours: 10, points: 20, minDays: 1, maxDays: 4, details: 'No scare. +10 hours.' },
+  { id: 'no_dumb', title: 'No dumb', hours: 15, points: 20, minDays: 1, maxDays: 4, details: 'No dumb. +15 hours.' },
+  { id: 'no_discord', title: 'no discord', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'if you dont see discord labubu messgaes +25 hours.' },
+  { id: 'no_3ADY', title: 'No 3ADY', hours: 25, points: 20, minDays: 1, maxDays: 4, details: 'No 3ADY or he can reort on you 3ADY. +25 hours.' }
 ];
+
 
 // shop items: HOURS are direct values (not days)
 const shopItems = [
-  { cost: 100, hours: 1 },
-  { cost: 450, hours: 5 },
-  { cost: 1450, hours: 15 },
-  { cost: 2450, hours: 25 },
-  { cost: 3450, hours: 35 },
-  { cost: 4450, hours: 45 },
-  { cost: 5450, hours: 55 },
-  { cost: 6450, hours: 65 },
-  { cost: 7450, hours: 75 },
-  { cost: 8950, hours: 85, points: 60 },
-  { cost: 10450, hours: 100, points: 75 }
+  { cost: 50, hours: 1 },
+  { cost: 400, hours: 5 },
+  { cost: 1400, hours: 15 },
+  { cost: 2400, hours: 25 },
+  { cost: 3400, hours: 35 },
+  { cost: 4400, hours: 45 },
+  { cost: 5400, hours: 55 },
+  { cost: 6400, hours: 65 },
+  { cost: 7400, hours: 75 },
+  { cost: 8900, hours: 85, points: 60 },
+  { cost: 10400, hours: 100, points: 75 }
 ];
+
 
 const pointsExchangeItems = [{points:100,credits:500},{points:300,credits:2000},{points:500,credits:5500},{points:1000,credits:12000},{points:2000,credits:24000},{points:3000,credits:37000},{points:4000,credits:50000}];
 
