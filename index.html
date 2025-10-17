@@ -1478,239 +1478,169 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
     }, (data.duration || 5) * 1000);
   });
 </script>
-<!-- LIQUID GLASS FOR ALL BUTTONS + DROPDOWNS: paste before </body> -->
+<!-- DYNAMIC-ISLAND BUTTON SIZING + LIQUID GLASS RULE CARDS + GLOBAL BUTTON STYLING -->
 <style>
-  :root{
-    --lg-bg: rgba(255,255,255,0.06);
-    --lg-border: rgba(255,255,255,0.12);
-    --lg-inner: rgba(0,0,0,0.18);
-    --lg-radius: 12px;
-    --lg-padding: 10px 14px;
-    --lg-accent: rgba(255,255,255,0.18);
-    --lg-focus: rgba(99,132,255,0.12);
-    --lg-shadow: 0 10px 30px rgba(2,6,23,0.36);
-    --lg-text: inherit;
-  }
-
-  /* ---------- Buttons (liquid glass) ---------- */
+  /* Universal liquid button style */
   .liquid-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    padding: var(--lg-padding);
-    border-radius: var(--lg-radius);
-    border: 1px solid var(--lg-border);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5rem;
+    padding:10px 14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.10);
     background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-    color: var(--lg-text);
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms, opacity 160ms;
     backdrop-filter: blur(8px) saturate(110%);
     -webkit-backdrop-filter: blur(8px) saturate(110%);
-    box-shadow: var(--lg-shadow), inset 0 -6px 12px var(--lg-inner);
-    position: relative;
-    overflow: hidden;
-    min-height: 44px;
-    line-height: 1;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.35), inset 0 -6px 12px rgba(0,0,0,0.18);
+    color: inherit;
+    font-weight:700;
+    cursor:pointer;
+    transition: transform 160ms cubic-bezier(.2,.9,.3,1), box-shadow 160ms;
     white-space: nowrap;
+    min-height:44px;
+    line-height:1;
+    position:relative;
+    overflow:hidden;
   }
-  .liquid-btn::before {
-    content:"";
-    position:absolute;
-    left:-40%;
-    top:-70%;
-    width:180%;
-    height:220%;
-    background: linear-gradient(120deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0) 100%);
-    transform: rotate(-18deg);
-    pointer-events:none;
-    mix-blend-mode: overlay;
-    filter: blur(8px);
-    opacity: .95;
-    transition: transform 900ms cubic-bezier(.2,.9,.3,1), left 900ms;
+  .liquid-btn:active { transform: translateY(1px) scale(.997); box-shadow: 0 6px 18px rgba(2,6,23,0.30); }
+
+  /* Island-specific sizing */
+  #islandMenu .menu-actions button,
+  #islandMenu .menu-actions .liquid-btn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 86px;
+    padding: 8px 12px;
+    margin: 2px 4px;
+    border-radius: 10px;
+    font-size: 0.95rem;
   }
-  .liquid-btn:hover::before { left:-10%; transform: translateX(6%) rotate(-18deg); }
 
-  .liquid-btn:active { transform: translateY(1px) scale(.997); box-shadow: 0 6px 18px rgba(2,6,23,0.36), inset 0 -4px 8px rgba(0,0,0,0.22); }
-  .liquid-btn:focus { outline: none; box-shadow: 0 12px 36px rgba(2,6,23,0.36), 0 0 0 4px var(--lg-focus); }
-
-  /* preserve primary look */
-  .liquid-btn.primary, .dock-btn.primary.liquid-btn { background: linear-gradient(180deg,#2b4c7e,#1f3557); color: #fff; border: 1px solid rgba(255,255,255,0.08); }
-  .dock-btn.liquid-btn { background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,245,245,0.92)); color: #2b4c7e; border: 1px solid rgba(200,210,220,0.7); }
-
-  /* icon sizing inside button */
-  .liquid-btn img, .liquid-btn .coin-icon, .liquid-btn .island-icon { width: 20px; height: 20px; display:inline-block; vertical-align:middle; }
-
-  /* allow icon-only buttons to stay square-ish */
-  .liquid-btn.icon-only { padding: 8px; min-width:44px; min-height:44px; }
-
-  /* ---------- Selects (liquid-glass dropdown) ---------- */
-  .liquid-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    display: inline-block;
-    width: 100%;
-    padding: 10px 40px 10px 12px; /* leave space on right for arrow */
-    border-radius: var(--lg-radius);
-    border: 1px solid var(--lg-border);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat calc(100% - 12px) center/18px 18px;
-    color: var(--lg-text);
-    backdrop-filter: blur(8px) saturate(110%);
-    -webkit-backdrop-filter: blur(8px) saturate(110%);
-    box-shadow: var(--lg-shadow), inset 0 -6px 12px var(--lg-inner);
-    font-weight: 700;
-    cursor: pointer;
-    transition: box-shadow 220ms, transform 220ms;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+  #islandMenu .menu-actions {
+    display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
   }
-  /* smaller arrow & slightly transparent on light backgrounds */
-  .liquid-select::-ms-expand { display: none; }
-  .liquid-select:focus { outline:none; box-shadow: 0 12px 36px rgba(2,6,23,0.36), 0 0 0 4px var(--lg-focus); }
 
-  /* ensure option readability (browsers limit styling for option) */
-  select.liquid-select option { font-weight: 600; }
+  #dynamic-island { min-width: 160px; max-width: 92vw; box-sizing: border-box; }
 
-  /* inline small select (auto width) */
-  .liquid-select.inline { width: auto; display:inline-block; min-width: 120px; }
-
-  /* ---------- Form inputs matching glass ---------- */
-  .liquid-input {
-    padding: 10px 12px;
-    border-radius: var(--lg-radius);
-    border: 1px solid var(--lg-border);
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    backdrop-filter: blur(8px) saturate(110%);
-    -webkit-backdrop-filter: blur(8px) saturate(110%);
-    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.08);
-    color: var(--lg-text);
-    transition: box-shadow 180ms, transform 180ms;
-    font-weight: 700;
-  }
-  .liquid-input:focus { outline:none; box-shadow: 0 12px 36px rgba(2,6,23,0.36), 0 0 0 4px var(--lg-focus); }
-
-  /* ---------- Rule cards (if not already applied) ---------- */
-  .liquid-card {
-    border-radius: var(--lg-radius);
+  /* LIQUID CARD for rule items */
+  .rule-item.liquid-card {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px;
+    border-radius:12px;
     background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.06);
     backdrop-filter: blur(6px) saturate(110%);
     -webkit-backdrop-filter: blur(6px) saturate(110%);
+    border: 1px solid rgba(255,255,255,0.06);
     box-shadow: 0 8px 20px rgba(2,6,23,0.18), inset 0 -6px 12px rgba(0,0,0,0.12);
-    transition: transform 140ms, box-shadow 140ms;
+    transition: transform 140ms, box-shadow 140ms, background 140ms;
+    cursor: pointer;
   }
-  .liquid-card.selected { background: linear-gradient(90deg, rgba(43,76,126,0.95), rgba(31,53,87,0.95)); color: #fff; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 16px 44px rgba(12,24,62,0.45); transform: translateY(-4px); }
+  .rule-item.liquid-card .rule-details { color: inherit; }
+  .rule-item.liquid-card:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(2,6,23,0.22); }
+  .rule-item.liquid-card.selected {
+    background: linear-gradient(90deg, rgba(255, 0, 0, 0.95), rgb(0, 81, 255));
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 16px 44px rgba(12,24,62,0.45);
+    transform: translateY(-4px);
+  }
+  .rule-item.liquid-card .rule-qty {
+    width:64px; min-width:56px;
+    padding:6px 8px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: inherit; text-align:center; font-weight:700;
+    box-shadow: inset 0 -3px 8px rgba(0,0,0,0.12);
+  }
+  .rule-item.liquid-card > div:first-child { flex:1; display:flex; flex-direction:column; gap:4px; }
 
-  /* responsiveness */
   @media (max-width:420px) {
-    .liquid-btn { padding: 8px 10px; --lg-radius: 10px; }
-    .liquid-select { padding: 8px 36px 8px 10px; }
+    #islandMenu .menu-actions button { min-width:64px; padding:8px 10px; font-size:0.9rem; }
+    .rule-item.liquid-card { padding:8px; gap:8px; }
+    .rule-item.liquid-card .rule-qty { width:56px; }
   }
-
-  /* reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .liquid-btn, .liquid-select, .liquid-input, .liquid-card { transition: none !important; }
-    .liquid-btn::before { transition: none !important; }
+    .liquid-btn, .rule-item.liquid-card { transition: none !important; }
   }
 </style>
 
 <script>
   (function(){
-    // Apply classes to types of elements we want to style
-    function applyLiquidToElement(el){
-      if(!el || el.nodeType !== 1) return;
-      const tag = el.tagName.toLowerCase();
-
-      // Buttons
-      if(tag === 'button' || (tag === 'input' && (el.type === 'button' || el.type === 'submit' || el.type === 'reset')) || el.classList.contains('dock-btn')){
-        if(!el.classList.contains('liquid-btn')) el.classList.add('liquid-btn');
-        // If it's icon-only (no text), add helper class for sizing
-        const text = (el.innerText || '').trim();
-        if(!text) el.classList.add('icon-only'); else el.classList.remove('icon-only');
-      }
-
-      // Selects
-      if(tag === 'select'){
-        if(!el.classList.contains('liquid-select')) el.classList.add('liquid-select');
-        // if it's meant to be small/inline, keep inline class if originally inline-style small width
-        try{
-          const w = el.getAttribute('data-inline');
-          if(w === 'true') el.classList.add('inline');
-        }catch(e){}
-      }
-
-      // Text inputs (nice to match selects)
-      if(tag === 'input' && (el.type === 'text' || el.type === 'number' || el.type === 'search' || el.type === 'email' || el.type === 'password')){
-        if(!el.classList.contains('liquid-input')) el.classList.add('liquid-input');
-      }
-
-      // Existing rule cards -> make them liquid-card
-      if(el.classList.contains('rule-item')) {
-        if(!el.classList.contains('liquid-card')) el.classList.add('liquid-card');
-      }
+    /** Apply the liquid glass look to ALL buttons **/
+    function applyGlobalLiquidButtons() {
+      document.querySelectorAll('button').forEach(btn => {
+        if (!btn.classList.contains('liquid-btn')) {
+          btn.classList.add('liquid-btn');
+        }
+      });
     }
 
-    // apply to initial elements
-    document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="reset"], .dock-btn, select, input[type="text"], input[type="number"], input[type="search"], input[type="email"], input[type="password"], .rule-item').forEach(applyLiquidToElement);
+    /** Island and rule-item setup **/
+    function applyIslandLiquidGlass() {
+      document.querySelectorAll('#islandMenu .menu-actions button').forEach(btn => {
+        if(!btn.classList.contains('liquid-btn')) btn.classList.add('liquid-btn');
+        btn.style.flex='0 0 auto';
+        btn.style.width='auto';
+        btn.style.whiteSpace='nowrap';
+      });
 
-    // Observe DOM for added elements
+      document.querySelectorAll('.rule-item').forEach(item => {
+        if(!item.classList.contains('liquid-card')) item.classList.add('liquid-card');
+        const qty = item.querySelector('input.rule-qty, input[type="number"]');
+        if(qty){ qty.classList.add('rule-qty'); qty.style.boxSizing='border-box'; }
+
+        item.addEventListener('click', (e) => {
+          if(e.target && e.target.tagName && e.target.tagName.toLowerCase()==='input') {
+            const val = parseInt(e.target.value) || 0;
+            if(val > 0) item.classList.add('selected'); else item.classList.remove('selected');
+            if(typeof updateTotalHours==='function') updateTotalHours();
+            return;
+          }
+          item.classList.toggle('selected');
+          const q = item.querySelector('input.rule-qty, input[type="number"]');
+          if(q){
+            if(item.classList.contains('selected') && (parseInt(q.value)||0)===0) q.value = 1;
+            if(!item.classList.contains('selected')) q.value = 0;
+          }
+          if(typeof updateTotalHours==='function') updateTotalHours();
+        });
+      });
+    }
+
+    // Run both
+    applyGlobalLiquidButtons();
+    applyIslandLiquidGlass();
+
+    // Watch for new DOM changes
     const mo = new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes && m.addedNodes.forEach(node => {
           if(node.nodeType !== 1) return;
-          // Node itself
-          applyLiquidToElement(node);
-          // Children
-          node.querySelectorAll && node.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="reset"], .dock-btn, select, input[type="text"], input[type="number"], input[type="search"], input[type="email"], input[type="password"], .rule-item').forEach(applyLiquidToElement);
+
+          // new buttons
+          if(node.tagName && node.tagName.toLowerCase()==='button') {
+            node.classList.add('liquid-btn');
+          } else {
+            node.querySelectorAll && node.querySelectorAll('button').forEach(b => b.classList.add('liquid-btn'));
+          }
+
+          // new rule items
+          if(node.matches && node.matches('.rule-item')) node.classList.add('liquid-card');
+          else node.querySelectorAll && node.querySelectorAll('.rule-item').forEach(inner => inner.classList.add('liquid-card'));
         });
       });
     });
-    mo.observe(document.body, { childList: true, subtree: true });
+    mo.observe(document.body, { childList:true, subtree:true });
 
-    // Accessibility: ensure icon-only buttons have aria-label if missing
-    function ensureA11y(){
-      document.querySelectorAll('button.icon-only').forEach(b=>{
-        if(!b.getAttribute('aria-label') && !b.getAttribute('aria-labelledby')){
-          const title = b.getAttribute('title') || b.getAttribute('aria-label') || b.getAttribute('alt') || '';
-          if(title) b.setAttribute('aria-label', title);
-        }
-      });
-    }
-    ensureA11y();
-
-    // run again after small delay (in case elements are created by other scripts on load)
-    setTimeout(()=> {
-      document.querySelectorAll('button, input[type="button"], input[type="submit"], .dock-btn, select').forEach(applyLiquidToElement);
-      ensureA11y();
-    }, 350);
-
-    // Expose toggle helper
-    window.toggleLiquidGlass = function(enable){
-      const allButtons = document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="reset"], .dock-btn');
-      const allSelects = document.querySelectorAll('select');
-      const allInputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="search"], input[type="email"], input[type="password"]');
-      if(enable === false){
-        allButtons.forEach(b => b.classList.remove('liquid-btn','icon-only'));
-        allSelects.forEach(s => s.classList.remove('liquid-select','inline'));
-        allInputs.forEach(i => i.classList.remove('liquid-input'));
-        document.querySelectorAll('.rule-item').forEach(r => r.classList.remove('liquid-card'));
-      } else {
-        allButtons.forEach(b => { if(!b.classList.contains('liquid-btn')) b.classList.add('liquid-btn'); });
-        allSelects.forEach(s => { if(!s.classList.contains('liquid-select')) s.classList.add('liquid-select'); });
-        allInputs.forEach(i => { if(!i.classList.contains('liquid-input')) i.classList.add('liquid-input'); });
-        document.querySelectorAll('.rule-item').forEach(r => { if(!r.classList.contains('liquid-card')) r.classList.add('liquid-card'); });
-        ensureA11y();
-      }
-    };
+    // expose helper
+    window.applyIslandLiquidGlass = () => { applyGlobalLiquidButtons(); applyIslandLiquidGlass(); };
   })();
 </script>
-<!-- END LIQUID GLASS FOR ALL BUTTONS & DROPDOWNS -->
+<!-- END: GLOBAL LIQUID GLASS BUTTONS -->
 
 </body>
 </html>
