@@ -1641,7 +1641,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   })();
 </script>
 <!-- END: GLOBAL LIQUID GLASS BUTTONS -->
-<!-- START: Sharp-Labubu 9PM Riyadh permanent lock -->
+<!-- START: Sharp-Labubu 1PM Riyadh permanent lock -->
 <style>
   /* Top countdown bar */
   #sharpLabubuTimerBar {
@@ -1698,14 +1698,14 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 </style>
 
 <div id="sharpLabubuTimerBar">
-  <div class="label">Service ends at 21:00 (Riyadh)</div>
+  <div class="label">Service ends at FOREVER</div>
   <div class="count" id="sharpLabubuCountdown">--:--:--</div>
 </div>
 
 <div id="sharpLabubuEndedOverlay">
   <div class="card">
-    <h1>sharp-labubu has ended service</h1>
-    <p>WE WILL TELL YOU ON DISORD WHEN ITS BACK BYE BYE</p>
+    <h1>sharp-labubu has ended service FOREVER</h1>
+    <p>sharp-labubu has ended service FOREVER WE WILL SEE IF WE WILL BRING IT BACK</p>
     <div style="font-size:.9rem; opacity:.8; margin-top:10px;" id="sharpLabubuEndedAt"></div>
   </div>
 </div>
@@ -1724,12 +1724,12 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   const endedAtEl = document.getElementById('sharpLabubuEndedAt');
   const serviceRef = rtdb.ref('service');
 
-  // Compute next 9PM Riyadh (UTC+3)
-  function next9pmRiyadhUtc(){
+  // Compute next 1PM Riyadh (UTC+3)
+  function next1pmRiyadhUtc(){
     const now = new Date();
-    const riyadhNow = new Date(now.getTime() + 3*3600*1000);
-    const y = riyadhNow.getUTCFullYear(), m = riyadhNow.getUTCMonth(), d = riyadhNow.getUTCDate();
-    let target = Date.UTC(y, m, d, 18, 0, 0); // 18:00 UTC = 21:00 Riyadh
+    // We'll build a UTC timestamp corresponding to 10:00 UTC (which is 13:00 in Riyadh, UTC+3)
+    const y = now.getUTCFullYear(), m = now.getUTCMonth(), d = now.getUTCDate();
+    let target = Date.UTC(y, m, d, 10, 0, 0); // 10:00 UTC == 13:00 Riyadh
     if(target <= Date.now()) target += 24*3600*1000;
     return target;
   }
@@ -1759,7 +1759,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
         serviceRef.set({
           status: 'ended',
           endedAt: Date.now(),
-          message: 'sharp-labubu has ended service we will tell u when its back'
+          message: 'sharp-labubu has ended service FOREVER WE WILL SEE IF WE BRING IT BACK'
         });
         return;
       }
@@ -1777,13 +1777,14 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
       return;
     }
     const sched = data?.scheduledEndTimestamp;
-    const endTime = (sched && sched > Date.now()) ? sched : next9pmRiyadhUtc();
+    const endTime = (sched && sched > Date.now()) ? sched : next1pmRiyadhUtc();
     if(!data?.scheduledEndTimestamp) serviceRef.update({ scheduledEndTimestamp: endTime, status: 'scheduled' });
     startCountdown(endTime);
   });
 })();
 </script>
 <!-- END: Sharp-Labubu permanent lock -->
+
 
 </body>
 </html>
