@@ -1641,7 +1641,7 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   })();
 </script>
 <!-- END: GLOBAL LIQUID GLASS BUTTONS -->
-<!-- START: Sharp-Labubu 1PM Riyadh permanent lock -->
+<!-- START: Sharp-Labubu 12:25 Riyadh permanent lock -->
 <style>
   /* Top countdown bar */
   #sharpLabubuTimerBar {
@@ -1724,12 +1724,12 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   const endedAtEl = document.getElementById('sharpLabubuEndedAt');
   const serviceRef = rtdb.ref('service');
 
-  // Compute next 1PM Riyadh (UTC+3)
-  function next1pmRiyadhUtc(){
+  // Compute next 12:25 Riyadh (UTC+3)
+  function next1225RiyadhUtc(){
     const now = new Date();
-    // We'll build a UTC timestamp corresponding to 10:00 UTC (which is 13:00 in Riyadh, UTC+3)
+    // 12:25 in Riyadh (UTC+3) is 09:25 UTC
     const y = now.getUTCFullYear(), m = now.getUTCMonth(), d = now.getUTCDate();
-    let target = Date.UTC(y, m, d, 10, 0, 0); // 10:00 UTC == 13:00 Riyadh
+    let target = Date.UTC(y, m, d, 9, 25, 0); // 09:25 UTC == 12:25 Riyadh
     if(target <= Date.now()) target += 24*3600*1000;
     return target;
   }
@@ -1777,13 +1777,14 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
       return;
     }
     const sched = data?.scheduledEndTimestamp;
-    const endTime = (sched && sched > Date.now()) ? sched : next1pmRiyadhUtc();
+    const endTime = (sched && sched > Date.now()) ? sched : next1225RiyadhUtc();
     if(!data?.scheduledEndTimestamp) serviceRef.update({ scheduledEndTimestamp: endTime, status: 'scheduled' });
     startCountdown(endTime);
   });
 })();
 </script>
-<!-- END: Sharp-Labubu permanent lock -->
+<!-- END: Sharp-Labubu 12:25 Riyadh permanent lock -->
+
 
 
 </body>
