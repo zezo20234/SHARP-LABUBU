@@ -1641,6 +1641,151 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   })();
 </script>
 <!-- END: GLOBAL LIQUID GLASS BUTTONS -->
+<!-- START: Sharp-Labubu 12:25 Riyadh permanent lock -->
+<style>
+  /* Top countdown bar */
+  #sharpLabubuTimerBar {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 12px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 120000;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: none;
+  }
+  #sharpLabubuTimerBar .label { opacity: .9; font-size: .9rem; }
+  #sharpLabubuTimerBar .count { font-size: 1.05rem; letter-spacing: .6px; }
+
+  /* Full-screen ended overlay */
+  #sharpLabubuEndedOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 130000;
+    background: red;
+    color: #111;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  #sharpLabubuEndedOverlay.show { display: flex; }
+  #sharpLabubuEndedOverlay .card {
+    max-width: 820px;
+    width: 100%;
+    border-radius: 12px;
+    padding: 28px;
+  }
+  #sharpLabubuEndedOverlay h1 { margin: 0 0 12px 0; font-size: 1.6rem; }
+  #sharpLabubuEndedOverlay p { margin: 0; font-size: 1rem; opacity: .9; }
+
+  @media (max-width:520px){
+    #sharpLabubuTimerBar { padding: 8px 10px; font-size: .95rem; }
+    #sharpLabubuEndedOverlay h1 { font-size: 1.25rem; }
+  }
+</style>
+
+<div id="sharpLabubuTimerBar">
+  <div class="label">Service ends at FOREVER</div>
+  <div class="count" id="sharpLabubuCountdown">--:--:--</div>
+</div>
+
+<div id="sharpLabubuEndedOverlay">
+  <div class="card">
+    <h1>sharp-labubu has ended service FOREVER</h1>
+    <p>sharp-labubu has ended service FOREVER WE WILL SEE IF WE WILL BRING IT BACK. BYE BYE THANK YOU FOR USING US.</p>
+    <div style="font-size:.9rem; opacity:.8; margin-top:10px;" id="sharpLabubuEndedAt"></div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  const rtdb = (window.firebase && window.firebase.database && window.firebase.database()) || (typeof db !== 'undefined' ? db : null);
+  if(!rtdb){
+    console.warn('Firebase not found.');
+    return;
+  }
+
+  const countdownEl = document.getElementById('sharpLabubuCountdown');
+  const barEl = document.getElementById('sharpLabubuTimerBar');
+  const overlay = document.getElementById('sharpLabubuEndedOverlay');
+  const endedAtEl = document.getElementById('sharpLabubuEndedAt');
+  const serviceRef = rtdb.ref('service');
+
+  // Compute next 12:25 Riyadh (UTC+3)
+  function next1225RiyadhUtc(){
+    const now = new Date();
+    // 12:25 in Riyadh (UTC+3) is 09:25 UTC
+    const y = now.getUTCFullYear(), m = now.getUTCMonth(), d = now.getUTCDate();
+    let target = Date.UTC(y, m, d, 9, 25, 0); // 09:25 UTC == 12:25 Riyadh
+    if(target <= Date.now()) target += 24*3600*1000;
+    return target;
+  }
+
+  function fmt(ms){
+    const s = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor((s%(24*3600))/3600);
+    const m = Math.floor((s%3600)/60);
+    const sec = s%60;
+    return `${h}h ${m}m ${sec}s`;
+  }
+
+  function showOverlay(endedAt){
+    overlay.classList.add('show');
+    barEl.style.display = 'none';
+    endedAtEl.textContent = endedAt ? `ended at: ${new Date(endedAt).toLocaleString()}` : '';
+  }
+
+  let interval = null;
+  function startCountdown(endTime){
+    function tick(){
+      const left = endTime - Date.now();
+      if(left <= 0){
+        clearInterval(interval);
+        interval = null;
+        // Save permanent "ended" status
+        serviceRef.set({
+          status: 'ended',
+          endedAt: Date.now(),
+          message: 'sharp-labubu has ended service FOREVER WE WILL SEE IF WE BRING IT BACK'
+        });
+        return;
+      }
+      countdownEl.textContent = fmt(left);
+    }
+    tick();
+    interval = setInterval(tick, 1000);
+  }
+
+  serviceRef.on('value', snap => {
+    const data = snap.val();
+    if(data && data.status === 'ended'){
+      showOverlay(data.endedAt);
+      if(interval){ clearInterval(interval); interval = null; }
+      return;
+    }
+    const sched = data?.scheduledEndTimestamp;
+    const endTime = (sched && sched > Date.now()) ? sched : next1225RiyadhUtc();
+    if(!data?.scheduledEndTimestamp) serviceRef.update({ scheduledEndTimestamp: endTime, status: 'scheduled' });
+    startCountdown(endTime);
+  });
+})();
+</script>
+<!-- END: Sharp-Labubu 12:25 Riyadh permanent lock -->
+
+
 
 </body>
 </html>
