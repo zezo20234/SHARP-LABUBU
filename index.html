@@ -1,365 +1,681 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>3-Team Tournament — Stylish</title>
-  <style>
-    :root{--accent:#0ea5a4;--muted:#6b7280;--card:#ffffff;--glass:rgba(15,23,42,0.04)}
-    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    html,body{height:100%;margin:0;background:#ffffff;color:#0f1724}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>3-Team Tournament — Animated Realtime</title>
 
-    /* layout */
-    .container{max-width:1200px;margin:28px auto;padding:20px;display:grid;grid-template-columns:1fr 360px;gap:22px}
-    @media(max-width:980px){.container{grid-template-columns:1fr;padding:12px}}
+<!-- Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    /* main card */
-    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,0.06);border:1px solid rgba(15,23,42,0.04)}
-    h1{font-size:22px;margin:0 0 6px}
-    .lead{color:var(--muted);margin:0 0 14px}
+<style>
+  /* ---------- Base & Theme ---------- */
+  :root{
+    --bg:#f7fafc;
+    --panel:#ffffff;
+    --muted:#6b7280;
+    --accent:#06b6d4;
+    --accent-2:#7c3aed;
+    --glass: rgba(255,255,255,0.7);
+    --radius:14px;
+    --shadow: 0 12px 30px rgba(15,23,42,0.06);
+  }
+  *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef2ff 0%, #ffffff 45%);color:#0f1724; -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  button{font-family:inherit}
 
-    .controls{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);background:transparent;cursor:pointer}
-    .btn.primary{background:var(--accent);color:white;border:none}
-    .btn.ghost{background:transparent}
+  /* ---------- Layout ---------- */
+  .app {
+    max-width:1200px;
+    margin:28px auto;
+    padding:20px;
+    position:relative;
+  }
 
-    /* matches list */
-    .matches{display:flex;flex-direction:column;gap:12px;margin-top:14px}
-    .match{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;border:1px solid rgba(15,23,42,0.04);background:linear-gradient(180deg,rgba(14,165,164,0.02),transparent)}
-    .teams{display:flex;gap:12px;align-items:center}
-    .teamBadge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:120px;padding:8px;border-radius:10px;background:rgba(15,23,42,0.02);font-weight:700}
-    .meta{color:var(--muted);font-size:13px;margin-right:8px}
+  header.appHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;
+  }
+  .logo{
+    width:56px;height:56px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;box-shadow:0 8px 20px rgba(99,102,241,0.12);
+  }
+  .title{
+    font-size:20px;font-weight:800;
+  }
+  .subtitle{font-size:13px;color:var(--muted)}
 
-    /* modal */
-    .modalBack{position:fixed;inset:0;background:rgba(2,6,23,0.52);display:none;align-items:center;justify-content:center;z-index:60}
-    .modal{width:420px;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 18px 40px rgba(2,6,23,0.2)}
-    .scores{display:flex;gap:10px;align-items:center}
-    input[type=number]{width:84px;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
+  .controlsTop{display:flex;gap:8px;align-items:center}
 
-    /* right column / leaderboard */
-    .rightCol{display:flex;flex-direction:column;gap:16px}
-    .leaderboardCard{padding:14px;border-radius:14px}
-    .lbTitle{display:flex;align-items:center;justify-content:space-between}
-    .pill{display:flex;align-items:center;gap:12px;padding:10px;border-radius:999px;background:linear-gradient(90deg,rgba(14,165,164,0.08),rgba(99,102,241,0.02));border:1px solid rgba(15,23,42,0.04);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
-    .pill img{width:64px;height:64px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,0.5)}
-    .pill .info{flex:1}
-    .pill .info .name{font-weight:700}
-    .pill .stats{min-width:120px;text-align:right}
-    .statRow{font-size:13px;color:var(--muted)}
+  /* ---------- Page container (home / leaderboard) ---------- */
+  .pages {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
+    position:relative;
+    min-height:520px;
+  }
 
-    .notice{padding:10px;border-radius:10px;background:#fffbeb;border:1px solid #fef3c7;color:#92400e}
+  /* Main panel / Right panel layout on large screens */
+  .layout {
+    display:grid;
+    grid-template-columns: 1fr 420px;
+    gap:20px;
+    align-items:start;
+  }
+  @media(max-width:980px){ .layout{ grid-template-columns:1fr } }
 
-    footer{margin-top:16px;color:var(--muted);font-size:13px}
-  </style>
+  /* ---------- Panels ---------- */
+  .panel {
+    background:var(--panel);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:var(--shadow);
+    border:1px solid rgba(15,23,42,0.03);
+    transform-origin:center;
+  }
+
+  /* Animated entrance */
+  .enter-fade { animation:enterUp .5s cubic-bezier(.2,.9,.2,1) both; }
+  @keyframes enterUp { from{ opacity:0; transform:translateY(18px) scale(.995) } to{ opacity:1; transform:none } }
+
+  /* ---------- Home / Matches ---------- */
+  .matchList{display:flex;flex-direction:column;gap:12px}
+  .matchCard{
+    display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:linear-gradient(90deg,rgba(14,165,164,0.03),transparent);
+    transition: transform .25s ease, box-shadow .25s ease;
+    cursor:default;
+  }
+  .matchCard:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,6,23,0.08) }
+
+  .teams { display:flex;gap:12px;align-items:center }
+  .teamBadge{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;background:rgba(15,23,42,0.02);min-width:120px;font-weight:700}
+  .scoreBox{font-weight:900;font-size:18px;min-width:84px;text-align:center}
+
+  .bigCTA {
+    margin-top:16px;
+    display:inline-flex;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 14px 40px rgba(7,89,133,0.12);
+    transform-origin:center;
+  }
+  .bigCTA .arrow{ display:inline-block; transform:translateX(0); transition: transform .25s }
+  .bigCTA:hover .arrow{ transform:translateX(6px) }
+
+  /* ---------- Leaderboard page ---------- */
+  .leaderboardPage { display:none; opacity:0; transform:translateX(30px) scale(.99); transition: all .45s cubic-bezier(.2,.9,.2,1); }
+  .leaderboardPage.active { display:block; opacity:1; transform:none; }
+
+  .pill{
+    display:flex;align-items:center;gap:14px;padding:12px;border-radius:999px;background:linear-gradient(90deg,rgba(124,58,237,0.04),rgba(6,182,212,0.03));
+    transition: transform .25s, box-shadow .25s; box-shadow:0 10px 24px rgba(2,6,23,0.04)
+  }
+  .pill:hover{ transform:translateY(-8px); box-shadow:0 26px 60px rgba(2,6,23,0.08) }
+
+  .pill img{ width:72px;height:72px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.6) }
+  .pill .info { flex:1 }
+  .pill .name { font-weight:800; font-size:16px }
+  .pill .small { color:var(--muted); margin-top:4px; font-size:13px }
+  .pill .stats { text-align:right; min-width:120px; font-weight:700 }
+
+  /* animate pill entry sequentially */
+  .pill.enter { animation: pillIn .45s cubic-bezier(.2,.9,.2,1) both }
+  @keyframes pillIn { from{ opacity:0; transform:translateY(12px) scale(.98) } to{ opacity:1; transform:none } }
+
+  /* ---------- Modal (animated) ---------- */
+  .modalCover { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:80; }
+  .modalCover.show { display:flex; animation: fadeIn .18s both }
+  @keyframes fadeIn { from{ opacity:0 } to{ opacity:1 } }
+
+  .modalCard { width:360px; background:var(--panel); padding:18px; border-radius:12px; box-shadow:0 24px 60px rgba(2,6,23,0.22); transform-origin:center; animation: popIn .28s cubic-bezier(.2,.9,.2,1) both }
+  @keyframes popIn { from{ opacity:0; transform:translateY(16px) scale(.985) } to{ opacity:1; transform:none } }
+  .modalRow{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-top:12px }
+
+  input[type=number]{ width:120px; padding:10px; border-radius:10px; border:1px solid rgba(15,23,42,0.06); font-size:16px; }
+
+  /* ---------- Confetti (tiny) ---------- */
+  .confetti { position:fixed; inset:0; pointer-events:none; z-index:90; }
+
+  /* ---------- Footer small ---------- */
+  .smallFoot{ margin-top:14px; color:var(--muted); font-size:13px; text-align:center }
+</style>
 </head>
 <body>
-  <div class="container">
-    <main class="card">
-      <h1>3-Team Tournament</h1>
-      <p class="lead">Round-robin group: each team plays 2 matches. After all group matches are completed, the Final is automatically scheduled between the top 2 teams.</p>
 
-      <div class="controls">
-        <button id="resetBtn" class="btn">Reset Tournament</button>
-        <button id="manualFinal" class="btn ghost">Create Final Now</button>
-      </div>
+<div class="app">
 
-      <div id="noticeHolder" style="margin-top:12px"></div>
-
-      <div class="matches" id="matches"></div>
-
-      <footer>Click "Add score" to record goals. Win = 3 pts, Draw = 1 pt, Loss = 0 pts.</footer>
-    </main>
-
-    <aside class="rightCol">
-      <div class="card leaderboardCard">
-        <div class="lbTitle">
-          <div>
-            <div style="font-weight:800">Leaderboard</div>
-            <div style="font-size:13px;color:var(--muted)">Best → Worst (auto-sorted)</div>
-          </div>
-          <div style="font-size:13px;color:var(--muted);align-self:flex-start">Teams</div>
-        </div>
-
-        <div style="height:12px"></div>
-        <div id="leaderboardList" style="display:flex;flex-direction:column;gap:10px"></div>
-      </div>
-
-      <div class="card" style="padding:14px">
-        <div style="font-weight:700">Tournament Snapshot</div>
-        <div style="height:10px"></div>
-        <div id="snapshot" style="color:var(--muted)"></div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Modal to add score -->
-  <div class="modalBack" id="modalBack">
-    <div class="modal">
-      <h3 id="modalTitle">Add Score</h3>
-      <div style="height:10px"></div>
-      <div class="scores">
-        <div style="flex:1;text-align:center">
-          <div id="t1name" style="font-weight:700;color:var(--muted)"></div>
-          <input type="number" id="t1score" min="0" value="0">
-        </div>
-        <div style="padding:0 6px;color:var(--muted);font-weight:700">—</div>
-        <div style="flex:1;text-align:center">
-          <div id="t2name" style="font-weight:700;color:var(--muted)"></div>
-          <input type="number" id="t2score" min="0" value="0">
-        </div>
-      </div>
-      <div style="height:14px"></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button id="cancelModal" class="btn">Cancel</button>
-        <button id="saveScore" class="btn primary">Save score</button>
+  <header class="appHeader">
+    <div class="brand">
+      <div class="logo">3T</div>
+      <div>
+        <div class="title">3-Team Tournament</div>
+        <div class="subtitle">Round-robin → Final • Win=3 • Draw=1</div>
       </div>
     </div>
+
+    <div class="controlsTop">
+      <button id="toHome" style="background:#fff;border:1px solid rgba(15,23,42,0.06);padding:8px 12px;border-radius:10px;cursor:pointer">Home</button>
+      <button id="toLb" class="bigCTA" title="Go to leaderboard" aria-label="Go to leaderboard">
+        Leaderboard <span class="arrow">→</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="pages">
+
+    <!-- HOME / MATCHES -->
+    <section id="homePage" class="enter-fade">
+      <div class="layout">
+        <div class="panel">
+          <h3 style="margin:0 0 6px">Group Matches</h3>
+          <div style="color:var(--muted);margin-bottom:12px">Each team plays 2 group matches. Enter scores to update the leaderboard live.</div>
+
+          <div id="matches" class="matchList"></div>
+
+          <div style="margin-top:14px">
+            <button id="shuffleAnim" style="background:transparent;border:1px solid rgba(15,23,42,0.06);padding:8px 10px;border-radius:10px;cursor:pointer">Play with animations</button>
+            <button id="forceFinal" style="margin-left:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer">Force Final</button>
+            <button id="resetBtn" style="margin-left:10px;background:#111;color:white;padding:8px 12px;border-radius:10px">Reset</button>
+          </div>
+
+          <div class="smallFoot">Tip: open this page on two devices to see realtime updates ✨</div>
+        </div>
+
+        <aside class="panel">
+          <h4 style="margin:0 0 10px">Final</h4>
+          <div id="finalPanel" style="min-height:120px; display:flex;align-items:center;justify-content:center;color:var(--muted)">Final will appear after group matches are played.</div>
+
+          <div style="height:16px"></div>
+
+          <h4 style="margin:0 0 8px">Snapshot</h4>
+          <pre id="snapshot" style="background:transparent;border:none;padding:0;margin:6px 0 0;color:var(--muted)"></pre>
+        </aside>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD PAGE -->
+    <section id="leaderboardPage" class="leaderboardPage panel" aria-hidden="true">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-weight:900;font-size:18px">Leaderboard</div>
+          <div style="font-size:13px;color:var(--muted)">Best → Worst • Animated</div>
+        </div>
+        <div>
+          <button id="backHome" style="background:transparent;border:1px solid rgba(15,23,42,0.06);padding:8px 10px;border-radius:10px">Back</button>
+        </div>
+      </div>
+
+      <div id="leaderboardList" style="display:flex;flex-direction:column;gap:12px"></div>
+
+      <div style="height:14px"></div>
+      <div class="smallFoot">Click "Change photo" to upload a local file (saved as base64 to Firebase). Relative filenames like <code>1.png</code> also work.</div>
+    </section>
+
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <div class="confetti" id="confetti"></div>
+</div>
 
-  <script>
-    // Firebase config (from user)
-    const firebaseConfig = {
-      apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
-      authDomain: "sharplabubu.firebaseapp.com",
-      databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
-      projectId: "sharplabubu",
-      storageBucket: "sharplabubu.firebasestorage.app",
-      messagingSenderId: "596148393481",
-      appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
-      measurementId: "G-4M25R3BF08"
-    };
+<!-- Modal -->
+<div class="modalCover" id="modalCover" aria-hidden="true">
+  <div class="modalCard">
+    <div style="font-weight:800;font-size:18px" id="modalTitle">Record score</div>
+    <div style="margin-top:10px;color:var(--muted)" id="modalTeams">Team A — Team B</div>
+    <div class="modalRow">
+      <input type="number" min="0" id="score1" value="0">
+      <div style="font-weight:800;color:var(--muted)">:</div>
+      <input type="number" min="0" id="score2" value="0">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button id="closeModal" style="background:#eee;border:none;padding:8px 12px;border-radius:10px">Cancel</button>
+      <button id="saveScore" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:8px 12px;border-radius:10px;border:none">Save</button>
+    </div>
+  </div>
+</div>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const dbRef = db.ref('tourney3');
+<script>
+/* ===================== Firebase (user config) ===================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+  authDomain: "sharplabubu.firebaseapp.com",
+  databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+  projectId: "sharplabubu",
+  storageBucket: "sharplabubu.firebasestorage.app",
+  messagingSenderId: "596148393481",
+  appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+  measurementId: "G-4M25R3BF08"
+};
+firebase.initializeApp(firebaseConfig);
+const dbRef = firebase.database().ref('tourney3');
 
-    // --- default state with picture field for each team ---
-    const defaultState = {
-      teams: {
-        A: {name:'Team A', pic:'https://via.placeholder.com/160x160.png?text=A', pts:0, gf:0, ga:0, played:0, wins:0, draws:0, losses:0},
-        B: {name:'Team B', pic:'https://via.placeholder.com/160x160.png?text=B', pts:0, gf:0, ga:0, played:0, wins:0, draws:0, losses:0},
-        C: {name:'Team C', pic:'https://via.placeholder.com/160x160.png?text=C', pts:0, gf:0, ga:0, played:0, wins:0, draws:0, losses:0}
-      },
-      matches: [
-        {id:'m1', t1:'A', t2:'B', s1:null, s2:null, stage:'group'},
-        {id:'m2', t1:'A', t2:'C', s1:null, s2:null, stage:'group'},
-        {id:'m3', t1:'B', t2:'C', s1:null, s2:null, stage:'group'}
-      ],
-      final: null
+/* ===================== Defaults & Seed ===================== */
+/* default pics are relative filenames 1.png,2.png,3.png — place them next to this HTML */
+const defaultState = {
+  teams: {
+    A: { name: 'Team A', pic: '1.png' },
+    B: { name: 'Team B', pic: '2.png' },
+    C: { name: 'Team C', pic: '3.png' }
+  },
+  matches: {
+    AB: { id: 'AB', t1:'A', t2:'B', s1:null, s2:null, stage:'group' },
+    AC: { id: 'AC', t1:'A', t2:'C', s1:null, s2:null, stage:'group' },
+    BC: { id: 'BC', t1:'B', t2:'C', s1:null, s2:null, stage:'group' }
+  },
+  final: null
+};
+
+dbRef.once('value').then(snap => {
+  if(!snap.exists()) dbRef.set(defaultState);
+}).catch(err => console.error('Seed error', err));
+
+/* ===================== UI refs ===================== */
+const matchesEl = document.getElementById('matches');
+const finalPanel = document.getElementById('finalPanel');
+const leaderList = document.getElementById('leaderboardList');
+const snapshotEl = document.getElementById('snapshot');
+const noticeEl = document.getElementById('notice');
+const confettiLayer = document.getElementById('confetti');
+
+const modalCover = document.getElementById('modalCover');
+const modalTitle = document.getElementById('modalTitle');
+const modalTeams = document.getElementById('modalTeams');
+const score1 = document.getElementById('score1');
+const score2 = document.getElementById('score2');
+const saveScoreBtn = document.getElementById('saveScore');
+const closeModalBtn = document.getElementById('closeModal');
+
+let currentMatchId = null;
+
+/* ===================== Navigation animations ===================== */
+const homePage = document.getElementById('homePage');
+const leaderboardPage = document.getElementById('leaderboardPage');
+document.getElementById('toLb').addEventListener('click', ()=> showLeaderboard(true));
+document.getElementById('toHome').addEventListener('click', ()=> showHome());
+document.getElementById('backHome').addEventListener('click', ()=> showHome());
+
+function showLeaderboard(focus){
+  leaderboardPage.classList.add('active');
+  leaderboardPage.setAttribute('aria-hidden','false');
+  homePage.style.display = 'none';
+  // animate pills stagger in
+  setTimeout(()=> {
+    const pills = leaderList.querySelectorAll('.pill');
+    pills.forEach((p, i) => {
+      p.classList.add('enter');
+      p.style.animationDelay = (i * 0.06) + 's';
+    });
+  },80);
+  // smooth scroll-like feel (visual)
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showHome(){
+  leaderboardPage.classList.remove('active');
+  leaderboardPage.setAttribute('aria-hidden','true');
+  homePage.style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ===================== Realtime listener ===================== */
+dbRef.on('value', snap => {
+  const data = snap.val();
+  if(!data) return;
+  renderAll(data);
+  autoCreateFinalIfReady(data);
+});
+
+/* ===================== Renderers ===================== */
+
+function getImgSrc(pic){
+  if(!pic) return 'https://via.placeholder.com/160x160.png?text=?';
+  pic = String(pic).trim();
+  if(pic.startsWith('data:')) return pic;
+  if(pic.startsWith('http://') || pic.startsWith('https://')) return pic;
+  // relative filename like 1.png
+  return pic;
+}
+
+function renderAll(state){
+  renderMatches(state);
+  renderFinal(state);
+  renderLeaderboard(state);
+  renderSnapshot(state);
+  renderNotice(state);
+}
+
+function renderMatches(state){
+  // order AB, AC, BC
+  const order = ['AB','AC','BC'];
+  matchesEl.innerHTML = '';
+  order.forEach(id => {
+    const m = state.matches && state.matches[id];
+    if(!m) return;
+    const t1 = state.teams[m.t1].name;
+    const t2 = state.teams[m.t2].name;
+    const sText = (m.s1 === null || m.s2 === null) ? '- : -' : `${m.s1} : ${m.s2}`;
+
+    const card = document.createElement('div');
+    card.className = 'matchCard';
+    card.innerHTML = `
+      <div class="teams">
+        <div class="teamBadge">${t1}</div>
+        <div style="font-size:12px;color:var(--muted);margin-left:8px">vs</div>
+        <div class="teamBadge">${t2}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="scoreBox">${sText}</div>
+        <button class="btnScore" data-id="${id}" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 10px;border-radius:10px">Add score</button>
+      </div>
+    `;
+    matchesEl.appendChild(card);
+  });
+
+  // attach click events
+  matchesEl.querySelectorAll('.btnScore').forEach(b=>{
+    b.addEventListener('click', ()=> openScoreModal(b.dataset.id));
+  });
+}
+
+function renderFinal(state){
+  if(!state.final){
+    finalPanel.innerHTML = '<div style="color:var(--muted)">Final will be scheduled automatically when group matches are finished.</div>';
+    return;
+  }
+  const f = state.final;
+  const t1 = state.teams[f.t1].name;
+  const t2 = state.teams[f.t2].name;
+  const sText = (f.s1 === null || f.s2 === null) ? '- : -' : `${f.s1} : ${f.s2}`;
+  finalPanel.innerHTML = `
+    <div style="width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(124,58,237,0.04),rgba(6,182,212,0.04))">
+        <div style="display:flex;gap:12px;align-items:center"><div style="font-weight:800">${t1}</div><div style="color:var(--muted)">vs</div><div style="font-weight:800">${t2}</div></div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="font-weight:900">${sText}</div>
+          <button id="btnFinalScore" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 10px;border-radius:10px">Add</button>
+        </div>
+      </div>
+    </div>
+  `;
+  const btnFinal = document.getElementById('btnFinalScore');
+  if(btnFinal) btnFinal.addEventListener('click', ()=> openScoreModal('final'));
+}
+
+function renderLeaderboard(state){
+  // compute stats from group matches only (final does not change leaderboard points)
+  const stats = {};
+  Object.keys(state.teams).forEach(k => { stats[k] = { pts:0, gf:0, ga:0, played:0 }; });
+
+  Object.values(state.matches || {}).forEach(m=>{
+    if(m.s1 === null || m.s2 === null) return;
+    const a = Number(m.s1), b = Number(m.s2);
+    stats[m.t1].gf += a; stats[m.t1].ga += b; stats[m.t1].played++;
+    stats[m.t2].gf += b; stats[m.t2].ga += a; stats[m.t2].played++;
+    if(a > b) stats[m.t1].pts += 3;
+    else if(b > a) stats[m.t2].pts += 3;
+    else { stats[m.t1].pts += 1; stats[m.t2].pts += 1; }
+  });
+
+  // produce sorted array
+  const arr = Object.keys(stats).map(k=>({
+    key:k, name: state.teams[k].name, pic: state.teams[k].pic, ...stats[k]
+  }));
+  arr.sort((x,y)=>{
+    if(y.pts !== x.pts) return y.pts - x.pts;
+    const gdx = x.gf - x.ga, gdy = y.gf - y.ga;
+    if(gdy !== gdx) return gdy - gdx;
+    if(y.gf !== x.gf) return y.gf - x.gf;
+    return x.key.localeCompare(y.key);
+  });
+
+  leaderList.innerHTML = '';
+  arr.forEach((t,i) => {
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    // create inner HTML
+    pill.innerHTML = `
+      <img src="${getImgSrc(t.pic)}" alt="${t.name}">
+      <div class="info">
+        <div class="name">${i+1}. ${t.name}</div>
+        <div class="small">Pts: ${t.pts} • GF: ${t.gf} • GA: ${t.ga}</div>
+        <div style="height:8px"></div>
+        <label style="display:inline-block;padding:6px 8px;border-radius:8px;background:#111;color:#fff;font-size:13px;cursor:pointer">
+          Change photo
+          <input type="file" accept="image/*" style="display:none" data-team="${t.key}">
+        </label>
+      </div>
+      <div class="stats">
+        GD:<div style="font-weight:900">${t.gf - t.ga}</div>
+        <div class="small">Played: ${t.played}</div>
+      </div>
+    `;
+
+    leaderList.appendChild(pill);
+
+    // handle file input inside pill
+    const input = pill.querySelector('input[type=file]');
+    if(input){
+      input.addEventListener('change', function(){ handleImgFile(t.key, this.files[0]); });
     }
+  });
+}
 
-    let state = JSON.parse(JSON.stringify(defaultState))
+/* small helper for img src handling */
+function getImgSrc(pic){
+  if(!pic) return 'https://via.placeholder.com/160x160.png?text=?';
+  const s = String(pic).trim();
+  if(s.startsWith('data:')) return s;
+  if(s.startsWith('http://') || s.startsWith('https://')) return s;
+  // relative filename (e.g., 1.png)
+  return s;
+}
 
-    // load or create
-    async function initState(){
-      try{
-        const snap = await dbRef.get()
-        if(snap.exists()) state = snap.val()
-        else { await dbRef.set(defaultState); state = JSON.parse(JSON.stringify(defaultState)) }
-      }catch(e){ console.error('Firebase error, using default', e); state = JSON.parse(JSON.stringify(defaultState)) }
+function renderSnapshot(state){
+  const stats = {};
+  Object.keys(state.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
+  Object.values(state.matches || {}).forEach(m=>{
+    if(m.s1 === null || m.s2 === null) return;
+    const a = Number(m.s1), b=Number(m.s2);
+    stats[m.t1].gf += a; stats[m.t1].ga += b;
+    stats[m.t2].gf += b; stats[m.t2].ga += a;
+    if(a > b) stats[m.t1].pts += 3;
+    else if(b > a) stats[m.t2].pts += 3;
+    else { stats[m.t1].pts++; stats[m.t2].pts++; }
+  });
+  const lines = Object.keys(stats).map(k=> `${state.teams[k].name}: ${stats[k].pts} pts — ${stats[k].gf} GF, ${stats[k].ga} GA`);
+  snapshotEl.textContent = lines.join('\\n');
+}
+
+function renderNotice(state){
+  // show if final exists or pending
+  const allPlayed = Object.values(state.matches || {}).every(m => m.s1 !== null && m.s2 !== null);
+  if(state.final){
+    if(state.final.s1 === null || state.final.s2 === null){
+      noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:linear-gradient(90deg,rgba(6,182,212,0.06),transparent);border:1px solid rgba(15,23,42,0.04)">Final scheduled: ${state.teams[state.final.t1].name} vs ${state.teams[state.final.t2].name} — waiting for score</div>`;
+    } else {
+      noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:#ecfdf5;border:1px solid rgba(15,23,42,0.04)">Final result: ${state.teams[state.final.t1].name} ${state.final.s1} — ${state.final.s2} ${state.teams[state.final.t2].name}</div>`;
+      // celebration if final result just appeared (fire confetti)
+      launchTinyConfetti();
     }
+  } else if(allPlayed){
+    noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:#fff7ed;border:1px solid rgba(15,23,42,0.04)">All group matches done — final will be created automatically.</div>`;
+  } else { noticeEl.innerHTML = ''; }
+}
 
-    // realtime update
-    dbRef.on('value', (snap)=>{
-      if(snap.exists()){
-        state = snap.val()
-        renderAll()
-      }
-    })
+/* ===================== Auto-final logic ===================== */
+async function autoCreateFinalIfReady(state){
+  const matches = state.matches || {};
+  const allPlayed = Object.values(matches).every(m => m.s1 !== null && m.s2 !== null);
+  if(allPlayed && !state.final){
+    // compute standings (same logic)
+    const stats = {};
+    Object.keys(state.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
+    Object.values(matches).forEach(m=>{
+      const a = Number(m.s1), b = Number(m.s2);
+      stats[m.t1].gf += a; stats[m.t1].ga += b;
+      stats[m.t2].gf += b; stats[m.t2].ga += a;
+      if(a > b) stats[m.t1].pts += 3;
+      else if(b > a) stats[m.t2].pts += 3;
+      else { stats[m.t1].pts++; stats[m.t2].pts++; }
+    });
+    const arr = Object.keys(stats).map(k=>({key:k,...stats[k]}));
+    arr.sort((x,y)=>{
+      if(y.pts !== x.pts) return y.pts - x.pts;
+      const gdx = x.gf - x.ga, gdy = y.gf - y.ga;
+      if(gdy !== gdx) return gdy - gdx;
+      if(y.gf !== x.gf) return y.gf - x.gf;
+      return x.key.localeCompare(y.key);
+    });
+    const t1 = arr[0].key, t2 = arr[1].key;
+    await dbRef.child('final').set({ t1, t2, s1: null, s2: null, stage:'final' });
+  }
+}
 
-    async function saveState(){
-      try{ await dbRef.set(state) }catch(e){console.error('Save failed',e)}
-    }
+/* ===================== Modal & scoring ===================== */
 
-    // --- UI rendering ---
-    const matchesEl = document.getElementById('matches')
-    const leaderboardList = document.getElementById('leaderboardList')
-    const snapshotEl = document.getElementById('snapshot')
-    const noticeHolder = document.getElementById('noticeHolder')
+function openScoreModal(matchId){
+  currentMatchId = matchId;
+  // fill modal labels
+  if(matchId === 'final'){
+    dbRef.child('final').once('value').then(snap => {
+      const f = snap.val();
+      if(!f) return;
+      modalTitle.textContent = 'Record Final Score';
+      modalTeams.textContent = `${f.t1} — ${f.t2}`;
+      score1.value = f.s1 === null ? 0 : f.s1;
+      score2.value = f.s2 === null ? 0 : f.s2;
+      modalCover.classList.add('show');
+    });
+  } else {
+    dbRef.child('matches').child(matchId).once('value').then(snap => {
+      const m = snap.val();
+      if(!m) return;
+      modalTitle.textContent = 'Record Match Score';
+      modalTeams.textContent = `${m.t1} — ${m.t2}`;
+      score1.value = m.s1 === null ? 0 : m.s1;
+      score2.value = m.s2 === null ? 0 : m.s2;
+      modalCover.classList.add('show');
+    });
+  }
+}
 
-    function formatMatchRow(m){
-      const div = document.createElement('div');div.className='match'
-      const teams = document.createElement('div');teams.className='teams'
-      const a = state.teams[m.t1]; const b = state.teams[m.t2]
-      const t1 = document.createElement('div');t1.className='teamBadge';t1.innerHTML=`<div style="font-size:13px;color:var(--muted)">`+a.name+`</div>`
-      const t2 = document.createElement('div');t2.className='teamBadge';t2.innerHTML=`<div style="font-size:13px;color:var(--muted)">`+b.name+`</div>`
-      teams.appendChild(t1);teams.appendChild(t2)
+closeModalBtn.addEventListener('click', ()=> { modalCover.classList.remove('show'); currentMatchId = null; });
+saveScoreBtn.addEventListener('click', async () => {
+  const s1 = Number(score1.value), s2 = Number(score2.value);
+  if(isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0){ alert('Enter valid non-negative numbers'); return; }
+  if(currentMatchId === 'final'){
+    await dbRef.child('final').update({ s1, s2 });
+  } else {
+    await dbRef.child('matches').child(currentMatchId).update({ s1, s2 });
+  }
+  modalCover.classList.remove('show');
+  currentMatchId = null;
+});
 
-      const right = document.createElement('div');right.style.display='flex';right.style.alignItems='center';right.style.gap='10px'
-      const meta = document.createElement('div');meta.className='meta';meta.textContent = m.stage === 'group' ? 'Group' : 'Final'
-      const score = document.createElement('div');score.style.fontWeight='700'
-      score.textContent = (m.s1===null) ? '- : -' : `${m.s1} : ${m.s2}`
-      const btn = document.createElement('button');btn.className='btn';btn.textContent='Add score';btn.onclick=()=>openModal(m.id)
+/* ===================== File upload (store base64) ===================== */
+async function handleImgFile(teamKey, file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result; // base64
+    await dbRef.child('teams').child(teamKey).child('pic').set(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
 
-      right.appendChild(meta);right.appendChild(score);right.appendChild(btn)
-      div.appendChild(teams);div.appendChild(right)
-      return div
-    }
+/* ===================== Helpers: attach handlers from rendered pills ===================== */
+/* Since inputs are created dynamically when rendering the leaderboard, we listen on the leaderList container for file input events */
+leaderList.addEventListener('change', function(e){
+  const input = e.target;
+  if(input && input.type === 'file' && input.dataset.team){
+    handleImgFile(input.dataset.team, input.files[0]);
+  }
+});
 
-    function renderMatches(){
-      matchesEl.innerHTML=''
-      const all = [...state.matches]
-      if(state.final) all.push(state.final)
-      all.forEach(m=>matchesEl.appendChild(formatMatchRow(m)))
-    }
+/* ===================== Reset & Force final buttons ===================== */
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  if(!confirm('Reset tournament? This will remove scores and final.')) return;
+  await dbRef.set(defaultState);
+});
 
-    function calcStandings(){
-      Object.keys(state.teams).forEach(k=>{
-        const t = state.teams[k]
-        t.pts=0;t.gf=0;t.ga=0;t.played=0;t.wins=0;t.draws=0;t.losses=0
-      })
-      const all = [...state.matches]
-      all.forEach(m=>{
-        if(m.s1===null) return
-        const a = state.teams[m.t1]
-        const b = state.teams[m.t2]
-        a.gf += m.s1; a.ga += m.s2; a.played++
-        b.gf += m.s2; b.ga += m.s1; b.played++
-        if(m.s1>m.s2){a.wins++; a.pts+=3; b.losses++}
-        else if(m.s2>m.s1){b.wins++; b.pts+=3; a.losses++}
-        else {a.draws++; b.draws++; a.pts+=1; b.pts+=1}
-      })
-    }
+document.getElementById('forceFinal').addEventListener('click', async ()=>{
+  const snap = await dbRef.once('value'); const data = snap.val();
+  if(!data) return;
+  // compute standings like earlier
+  const stats = {};
+  Object.keys(data.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
+  Object.values(data.matches).forEach(m=>{
+    if(m.s1 === null || m.s2 === null) return;
+    const a = Number(m.s1), b = Number(m.s2);
+    stats[m.t1].gf += a; stats[m.t1].ga += b;
+    stats[m.t2].gf += b; stats[m.t2].ga += a;
+    if(a > b) stats[m.t1].pts += 3;
+    else if(b > a) stats[m.t2].pts += 3;
+    else { stats[m.t1].pts++; stats[m.t2].pts++; }
+  });
+  const arr = Object.keys(stats).map(k=>({ key:k, ...stats[k] }));
+  arr.sort((x,y)=>{
+    if(y.pts !== x.pts) return y.pts - x.pts;
+    const gdx = x.gf - x.ga, gdy = y.gf - y.ga;
+    if(gdy !== gdx) return gdy - gdx;
+    if(y.gf !== x.gf) return y.gf - x.gf;
+    return x.key.localeCompare(y.key);
+  });
+  const t1 = arr[0].key, t2 = arr[1].key;
+  await dbRef.child('final').set({ t1, t2, s1: null, s2: null, stage:'final' });
+  alert(`Final forced: ${data.teams[t1].name} vs ${data.teams[t2].name}`);
+});
 
-    function getSortedTable(){
-      calcStandings()
-      const arr = Object.entries(state.teams).map(([k,v])=>({key:k,...v}))
-      arr.sort((x,y)=>{
-        if(y.pts!==x.pts) return y.pts-x.pts
-        const gdx = x.gf - x.ga; const gdy = y.gf - y.ga
-        if(gdy!==gdx) return gdy-gdx
-        if(y.gf!==x.gf) return y.gf-x.gf
-        return x.key.localeCompare(y.key)
-      })
-      return arr
-    }
+/* ===================== Little confetti/celebration ===================== */
+function launchTinyConfetti(){
+  // simple colored squares falling — small and fast
+  const count = 30;
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    const size = Math.random()*10 + 6;
+    el.style.position='absolute';
+    el.style.left = (Math.random()*100) + '%';
+    el.style.top = '-10px';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.borderRadius = '3px';
+    const colors = ['#06b6d4','#7c3aed','#f59e0b','#10b981','#ef4444'];
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.opacity = 0.95;
+    el.style.transform = 'translateY(0) rotate(0deg)';
+    el.style.zIndex = 99;
+    confettiLayer.appendChild(el);
+    const duration = 1000 + Math.random()*1200;
+    el.animate([
+      { transform: `translateY(0) rotate(0deg)`, opacity:1 },
+      { transform: `translateY(${200 + Math.random()*300}px) rotate(${Math.random()*720}deg)`, opacity:0.7 }
+    ], { duration, easing: 'cubic-bezier(.2,.8,.2,1)'});
+    setTimeout(()=> el.remove(), duration + 80);
+  }
+}
 
-    function renderLeaderboard(){
-      const sorted = getSortedTable()
-      leaderboardList.innerHTML=''
-      sorted.forEach((t,i)=>{
-        const pill = document.createElement('div');pill.className='pill'
-        const img = document.createElement('img');img.src = t.pic || 'https://via.placeholder.com/160x160.png?text=?'; img.alt = t.name
-        const info = document.createElement('div');info.className='info'
-        const name = document.createElement('div');name.className='name';name.textContent = `${i+1}. ${t.name}`
-        const meta = document.createElement('div');meta.className='statRow';meta.textContent = `${t.pts} pts • ${t.gf} GF • ${t.ga} GA`;
-        info.appendChild(name);info.appendChild(meta)
-        const stats = document.createElement('div');stats.className='stats';stats.innerHTML = `<div style=\"font-weight:700\">GD: ${t.gf - t.ga}</div><div class=\"statRow\">Played: ${t.played}</div>`
-        pill.appendChild(img);pill.appendChild(info);pill.appendChild(stats)
-        leaderboardList.appendChild(pill)
-      })
-    }
+/* ===================== Small UX: playful animations toggle ===================== */
+document.getElementById('shuffleAnim').addEventListener('click', ()=>{
+  // little bounce on each match card
+  const cards = document.querySelectorAll('.matchCard');
+  cards.forEach((c,i)=>{
+    c.animate([
+      { transform:'translateY(0)' },
+      { transform:'translateY(-10px)' },
+      { transform:'translateY(0)' }
+    ], { duration: 420 + i*80, easing:'cubic-bezier(.2,.9,.2,1)' });
+  });
+});
 
-    function renderSnapshot(){
-      const arr = getSortedTable()
-      let txt = ''
-      arr.forEach((t,i)=>{
-        txt += `${i+1}. ${t.name} — ${t.pts} pts, ${t.gf} GF, ${t.ga} GA` + '
-'
-      })
-      snapshotEl.textContent = txt
-    }
+/* ===================== Safety tiny catch ===================== */
+dbRef.on('child_removed', ()=>{}); // keep alive to surf errors if any
 
-    function renderAll(){
-      renderMatches(); renderLeaderboard(); renderSnapshot(); renderNotice();
-    }
-
-    // --- modal logic ---
-    const modalBack = document.getElementById('modalBack')
-    const t1name = document.getElementById('t1name')
-    const t2name = document.getElementById('t2name')
-    const t1score = document.getElementById('t1score')
-    const t2score = document.getElementById('t2score')
-    let currentMatchId = null
-
-    function openModal(matchId){
-      currentMatchId = matchId
-      const m = (state.matches.find(x=>x.id===matchId) || (state.final && state.final.id===matchId && state.final))
-      if(!m) return
-      t1name.textContent = state.teams[m.t1].name
-      t2name.textContent = state.teams[m.t2].name
-      t1score.value = m.s1===null?0:m.s1
-      t2score.value = m.s2===null?0:m.s2
-      document.getElementById('modalTitle').textContent = (m.stage==='group'?'Record group score':'Record final score')
-      modalBack.style.display='flex'
-    }
-    document.getElementById('cancelModal').onclick = ()=>{modalBack.style.display='none';currentMatchId=null}
-    document.getElementById('saveScore').onclick = async ()=>{
-      const s1 = Math.max(0,parseInt(t1score.value)||0)
-      const s2 = Math.max(0,parseInt(t2score.value)||0)
-      let m = state.matches.find(x=>x.id===currentMatchId)
-      if(!m && state.final && state.final.id===currentMatchId) m = state.final
-      if(!m) return
-      m.s1 = s1; m.s2 = s2
-      await saveState(); modalBack.style.display='none'; currentMatchId=null
-      // after save, check for final creation will be handled by realtime listener but also call check
-      // small delay to allow state to settle
-    }
-
-    // --- final auto-create logic ---
-    async function checkAndCreateFinal(){
-      const allGroupPlayed = state.matches.every(m=>m.s1!==null)
-      if(allGroupPlayed && !state.final){
-        const sorted = getSortedTable()
-        const t1 = sorted[0].key; const t2 = sorted[1].key
-        state.final = {id:'final', t1, t2, s1:null, s2:null, stage:'final'}
-        await saveState()
-        // notification will come from realtime listener; also show quick notice
-        showNotice(`Final scheduled automatically: ${state.teams[t1].name} vs ${state.teams[t2].name}`)
-      }
-    }
-
-    // manual final creation button (overrides)
-    document.getElementById('manualFinal').onclick = async ()=>{
-      const sorted = getSortedTable();
-      const t1 = sorted[0].key; const t2 = sorted[1].key
-      state.final = {id:'final', t1, t2, s1:null, s2:null, stage:'final'}
-      await saveState();
-      showNotice(`Final scheduled: ${state.teams[t1].name} vs ${state.teams[t2].name}`)
-    }
-
-    // reset
-    document.getElementById('resetBtn').onclick = async ()=>{
-      if(!confirm('Reset tournament? This clears scores.')) return
-      state = JSON.parse(JSON.stringify(defaultState))
-      await saveState()
-    }
-
-    // notices
-    function showNotice(msg, timeout=4500){
-      noticeHolder.innerHTML = `<div class=\"notice\">${msg}</div>`
-      setTimeout(()=>{ if(noticeHolder.innerHTML) noticeHolder.innerHTML = '' }, timeout)
-    }
-
-    function renderNotice(){
-      // if final scheduled show small info
-      if(state.final){
-        const m = state.final
-        const status = (m.s1===null) ? `Scheduled: ${state.teams[m.t1].name} vs ${state.teams[m.t2].name}` : `Final result: ${m.s1} : ${m.s2}`
-        noticeHolder.innerHTML = `<div style=\"padding:10px;border-radius:10px;background:linear-gradient(90deg,rgba(14,165,164,0.06),transparent);border:1px solid rgba(15,23,42,0.04)\">${status}</div>`
-      } else {
-        // if all group played but final null, inform that system will auto-create
-        const allGroupPlayed = state.matches.every(x=>x.s1!==null)
-        if(allGroupPlayed) noticeHolder.innerHTML = `<div style=\"padding:10px;border-radius:10px;background:#eef2ff;border:1px solid rgba(15,23,42,0.04)\">All group matches done — final will be created automatically.</div>`
-        else noticeHolder.innerHTML = ''
-      }
-    }
-
-    // watch for changes and run final check after updates
-    dbRef.on('value', (snap)=>{
-      if(snap.exists()){
-        state = snap.val(); renderAll();
-        // small safety: try create final if needed
-        checkAndCreateFinal().catch(e=>console.error(e))
-      }
-    })
-
-    // initial boot
-    (async ()=>{ await initState(); renderAll(); checkAndCreateFinal(); })()
-  </script>
+</script>
 </body>
 </html>
