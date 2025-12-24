@@ -3,246 +3,206 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>3-Team Tournament — Animated Realtime</title>
+<title>3-Team Tournament — Realtime (mobile friendly)</title>
 
-<!-- Firebase compat -->
+<!-- Firebase (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-  /* ---------- Base & Theme ---------- */
   :root{
     --bg:#f7fafc;
     --panel:#ffffff;
     --muted:#6b7280;
     --accent:#06b6d4;
     --accent-2:#7c3aed;
-    --glass: rgba(255,255,255,0.7);
     --radius:14px;
     --shadow: 0 12px 30px rgba(15,23,42,0.06);
   }
   *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef2ff 0%, #ffffff 45%);color:#0f1724; -webkit-font-smoothing:antialiased}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#eef2ff 0%, #ffffff 45%);color:#0f1724;-webkit-font-smoothing:antialiased}
   a{color:inherit}
   button{font-family:inherit}
 
-  /* ---------- Layout ---------- */
+  /* App container */
   .app {
-    max-width:1200px;
-    margin:28px auto;
-    padding:20px;
-    position:relative;
+    max-width:1100px;
+    margin:18px auto;
+    padding:16px;
   }
 
+  /* Header */
   header.appHeader{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    margin-bottom:18px;
+    margin-bottom:12px;
   }
-  .brand{
-    display:flex;align-items:center;gap:12px;
-  }
-  .logo{
-    width:56px;height:56px;border-radius:12px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;box-shadow:0 8px 20px rgba(99,102,241,0.12);
-  }
-  .title{
-    font-size:20px;font-weight:800;
-  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;box-shadow:0 8px 20px rgba(99,102,241,0.12)}
+  .title{font-size:18px;font-weight:800}
   .subtitle{font-size:13px;color:var(--muted)}
 
+  /* Controls */
   .controlsTop{display:flex;gap:8px;align-items:center}
+  .btn { padding:10px 12px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-weight:700; cursor:pointer }
+  .btn.ghost { background:#fff;border:1px solid rgba(15,23,42,0.06);color:var(--muted) }
 
-  /* ---------- Page container (home / leaderboard) ---------- */
-  .pages {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:18px;
-    position:relative;
-    min-height:520px;
-  }
+  /* Pages */
+  .pages { display:block; }
 
-  /* Main panel / Right panel layout on large screens */
+  /* Layout: large screens two-column, mobile stacked */
   .layout {
     display:grid;
-    grid-template-columns: 1fr 420px;
-    gap:20px;
+    grid-template-columns:1fr 420px;
+    gap:18px;
     align-items:start;
   }
-  @media(max-width:980px){ .layout{ grid-template-columns:1fr } }
+  @media (max-width:920px) {
+    .layout { grid-template-columns:1fr; }
+    .logo{width:48px;height:48px}
+    .btn{padding:10px 14px}
+  }
 
-  /* ---------- Panels ---------- */
+  /* Card/panel */
   .panel {
     background:var(--panel);
     border-radius:var(--radius);
-    padding:18px;
+    padding:14px;
     box-shadow:var(--shadow);
     border:1px solid rgba(15,23,42,0.03);
-    transform-origin:center;
   }
 
-  /* Animated entrance */
-  .enter-fade { animation:enterUp .5s cubic-bezier(.2,.9,.2,1) both; }
-  @keyframes enterUp { from{ opacity:0; transform:translateY(18px) scale(.995) } to{ opacity:1; transform:none } }
-
-  /* ---------- Home / Matches ---------- */
-  .matchList{display:flex;flex-direction:column;gap:12px}
+  /* Matches */
+  .matchList{display:flex;flex-direction:column;gap:12px;margin-top:8px}
   .matchCard{
     display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:linear-gradient(90deg,rgba(14,165,164,0.03),transparent);
-    transition: transform .25s ease, box-shadow .25s ease;
-    cursor:default;
+    transition: transform .22s ease, box-shadow .22s ease;
   }
-  .matchCard:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,6,23,0.08) }
-
-  .teams { display:flex;gap:12px;align-items:center }
-  .teamBadge{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;background:rgba(15,23,42,0.02);min-width:120px;font-weight:700}
+  .matchCard:active, .matchCard:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,6,23,0.08) }
+  .teams{display:flex;gap:10px;align-items:center}
+  .teamBadge{display:flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;background:rgba(15,23,42,0.02);min-width:110px;font-weight:700}
   .scoreBox{font-weight:900;font-size:18px;min-width:84px;text-align:center}
 
-  .bigCTA {
-    margin-top:16px;
-    display:inline-flex;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 14px 40px rgba(7,89,133,0.12);
-    transform-origin:center;
-  }
-  .bigCTA .arrow{ display:inline-block; transform:translateX(0); transition: transform .25s }
-  .bigCTA:hover .arrow{ transform:translateX(6px) }
+  /* Final panel */
+  .finalBox { margin-top:8px;padding:12px;border-radius:12px;background:linear-gradient(90deg,rgba(124,58,237,0.03),rgba(6,182,212,0.02));display:flex;align-items:center;justify-content:space-between }
 
-  /* ---------- Leaderboard page ---------- */
-  .leaderboardPage { display:none; opacity:0; transform:translateX(30px) scale(.99); transition: all .45s cubic-bezier(.2,.9,.2,1); }
-  .leaderboardPage.active { display:block; opacity:1; transform:none; }
-
+  /* Leaderboard */
+  .leaderboardList{display:flex;flex-direction:column;gap:12px;margin-top:6px}
   .pill{
-    display:flex;align-items:center;gap:14px;padding:12px;border-radius:999px;background:linear-gradient(90deg,rgba(124,58,237,0.04),rgba(6,182,212,0.03));
-    transition: transform .25s, box-shadow .25s; box-shadow:0 10px 24px rgba(2,6,23,0.04)
+    display:flex;align-items:center;gap:12px;padding:12px;border-radius:999px;background:linear-gradient(90deg,rgba(124,58,237,0.04),rgba(6,182,212,0.03));transition:transform .22s, box-shadow .22s;box-shadow:0 10px 24px rgba(2,6,23,0.04)
   }
   .pill:hover{ transform:translateY(-8px); box-shadow:0 26px 60px rgba(2,6,23,0.08) }
+  .pill img{width:64px;height:64px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.6)}
+  .pill .info{flex:1}
+  .pill .name{font-weight:800}
+  .pill .small{color:var(--muted);margin-top:4px;font-size:13px}
+  .pill .stats{text-align:right;min-width:120px;font-weight:800}
 
-  .pill img{ width:72px;height:72px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.6) }
-  .pill .info { flex:1 }
-  .pill .name { font-weight:800; font-size:16px }
-  .pill .small { color:var(--muted); margin-top:4px; font-size:13px }
-  .pill .stats { text-align:right; min-width:120px; font-weight:700 }
+  /* Modal */
+  .modalCover{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:80;background:rgba(2,6,23,0.45)}
+  .modalCover.show{display:flex}
+  .modalCard{width:320px;background:var(--panel);padding:14px;border-radius:12px;box-shadow:0 24px 60px rgba(2,6,23,0.22)}
+  .modalRow{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px}
 
-  /* animate pill entry sequentially */
-  .pill.enter { animation: pillIn .45s cubic-bezier(.2,.9,.2,1) both }
-  @keyframes pillIn { from{ opacity:0; transform:translateY(12px) scale(.98) } to{ opacity:1; transform:none } }
+  input[type=number]{width:120px;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);font-size:16px}
+  label.fileLabel{display:inline-block;padding:6px 8px;border-radius:8px;background:#111;color:#fff;font-size:13px;cursor:pointer}
 
-  /* ---------- Modal (animated) ---------- */
-  .modalCover { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:80; }
-  .modalCover.show { display:flex; animation: fadeIn .18s both }
-  @keyframes fadeIn { from{ opacity:0 } to{ opacity:1 } }
-
-  .modalCard { width:360px; background:var(--panel); padding:18px; border-radius:12px; box-shadow:0 24px 60px rgba(2,6,23,0.22); transform-origin:center; animation: popIn .28s cubic-bezier(.2,.9,.2,1) both }
-  @keyframes popIn { from{ opacity:0; transform:translateY(16px) scale(.985) } to{ opacity:1; transform:none } }
-  .modalRow{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-top:12px }
-
-  input[type=number]{ width:120px; padding:10px; border-radius:10px; border:1px solid rgba(15,23,42,0.06); font-size:16px; }
-
-  /* ---------- Confetti (tiny) ---------- */
-  .confetti { position:fixed; inset:0; pointer-events:none; z-index:90; }
-
-  /* ---------- Footer small ---------- */
-  .smallFoot{ margin-top:14px; color:var(--muted); font-size:13px; text-align:center }
+  /* Small */
+  .smallFoot{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+  pre { margin:0; font-family:inherit; color:var(--muted) }
 </style>
 </head>
 <body>
 
 <div class="app">
-
   <header class="appHeader">
     <div class="brand">
       <div class="logo">3T</div>
       <div>
         <div class="title">3-Team Tournament</div>
-        <div class="subtitle">Round-robin → Final • Win=3 • Draw=1</div>
+        <div class="subtitle">Round-robin → Final • Win = 3 • Draw = 1</div>
       </div>
     </div>
 
     <div class="controlsTop">
-      <button id="toHome" style="background:#fff;border:1px solid rgba(15,23,42,0.06);padding:8px 12px;border-radius:10px;cursor:pointer">Home</button>
-      <button id="toLb" class="bigCTA" title="Go to leaderboard" aria-label="Go to leaderboard">
-        Leaderboard <span class="arrow">→</span>
-      </button>
+      <button id="navHome" class="btn.ghost btn">Home</button>
+      <button id="navLeaderboard" class="btn">Leaderboard</button>
     </div>
   </header>
 
-  <div class="pages">
+  <main class="pages">
+    <section class="layout">
 
-    <!-- HOME / MATCHES -->
-    <section id="homePage" class="enter-fade">
-      <div class="layout">
-        <div class="panel">
-          <h3 style="margin:0 0 6px">Group Matches</h3>
-          <div style="color:var(--muted);margin-bottom:12px">Each team plays 2 group matches. Enter scores to update the leaderboard live.</div>
+      <!-- LEFT: Home / Matches -->
+      <div class="panel" id="homePanel">
+        <h3 style="margin:0 0 6px">Group Matches</h3>
+        <div style="color:var(--muted);margin-bottom:12px">Each team plays 2 group matches (round-robin). Enter scores to update the leaderboard live. Final is created automatically once all group matches have scores.</div>
 
-          <div id="matches" class="matchList"></div>
+        <div id="matches" class="matchList"></div>
 
-          <div style="margin-top:14px">
-            <button id="shuffleAnim" style="background:transparent;border:1px solid rgba(15,23,42,0.06);padding:8px 10px;border-radius:10px;cursor:pointer">Play with animations</button>
-            <button id="forceFinal" style="margin-left:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer">Force Final</button>
-            <button id="resetBtn" style="margin-left:10px;background:#111;color:white;padding:8px 12px;border-radius:10px">Reset</button>
-          </div>
-
-          <div class="smallFoot">Tip: open this page on two devices to see realtime updates ✨</div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <button id="resetBtn" style="background:#111;color:#fff;padding:10px 12px;border-radius:10px">Reset</button>
         </div>
 
-        <aside class="panel">
-          <h4 style="margin:0 0 10px">Final</h4>
-          <div id="finalPanel" style="min-height:120px; display:flex;align-items:center;justify-content:center;color:var(--muted)">Final will appear after group matches are played.</div>
-
-          <div style="height:16px"></div>
-
-          <h4 style="margin:0 0 8px">Snapshot</h4>
-          <pre id="snapshot" style="background:transparent;border:none;padding:0;margin:6px 0 0;color:var(--muted)"></pre>
-        </aside>
+        <div class="smallFoot">Tip: Use the Leaderboard button to switch views. Works well on mobile — large touch targets included.</div>
       </div>
+
+      <!-- RIGHT: Final + Snapshot -->
+      <aside class="panel">
+        <h4 style="margin:0 0 8px">Final</h4>
+        <div id="finalPanel" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--muted)">Final will appear when group matches are complete.</div>
+
+        <div style="height:12px"></div>
+
+        <h4 style="margin:0 0 8px">Snapshot</h4>
+        <pre id="snapshot" style="background:transparent;border:none;padding:0;margin:6px 0 0;color:var(--muted)"></pre>
+      </aside>
+
     </section>
 
-    <!-- LEADERBOARD PAGE -->
-    <section id="leaderboardPage" class="leaderboardPage panel" aria-hidden="true">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <!-- Leaderboard page (separate area) -->
+    <section id="leaderboardPanel" class="panel" style="margin-top:18px;display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div>
           <div style="font-weight:900;font-size:18px">Leaderboard</div>
-          <div style="font-size:13px;color:var(--muted)">Best → Worst • Animated</div>
+          <div style="font-size:13px;color:var(--muted)">Best → Worst</div>
         </div>
         <div>
-          <button id="backHome" style="background:transparent;border:1px solid rgba(15,23,42,0.06);padding:8px 10px;border-radius:10px">Back</button>
+          <button id="backBtn" class="btn.ghost btn">Back</button>
         </div>
       </div>
 
-      <div id="leaderboardList" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="leaderboardList" class="leaderboardList"></div>
 
-      <div style="height:14px"></div>
-      <div class="smallFoot">Click "Change photo" to upload a local file (saved as base64 to Firebase). Relative filenames like <code>1.png</code> also work.</div>
+      <div class="smallFoot">You can upload a photo (saved as base64 to Firebase) or use a relative filename like <code>1.png</code> placed next to this HTML.</div>
     </section>
 
-  </div>
-
-  <div class="confetti" id="confetti"></div>
+  </main>
 </div>
 
 <!-- Modal -->
-<div class="modalCover" id="modalCover" aria-hidden="true">
+<div id="modalCover" class="modalCover" aria-hidden="true">
   <div class="modalCard">
-    <div style="font-weight:800;font-size:18px" id="modalTitle">Record score</div>
-    <div style="margin-top:10px;color:var(--muted)" id="modalTeams">Team A — Team B</div>
+    <div style="font-weight:800;font-size:16px" id="modalTitle">Record score</div>
+    <div style="margin-top:8px;color:var(--muted)" id="modalTeams">Team A — Team B</div>
+
     <div class="modalRow">
-      <input type="number" min="0" id="score1" value="0">
-      <div style="font-weight:800;color:var(--muted)">:</div>
-      <input type="number" min="0" id="score2" value="0">
+      <input id="score1" type="number" min="0" value="0" />
+      <div style="font-weight:700;color:var(--muted)">:</div>
+      <input id="score2" type="number" min="0" value="0" />
     </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
       <button id="closeModal" style="background:#eee;border:none;padding:8px 12px;border-radius:10px">Cancel</button>
-      <button id="saveScore" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:8px 12px;border-radius:10px;border:none">Save</button>
+      <button id="submitScore" class="btn">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ===================== Firebase (user config) ===================== */
+/* ================= Firebase config (user provided) ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
   authDomain: "sharplabubu.firebaseapp.com",
@@ -256,8 +216,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const dbRef = firebase.database().ref('tourney3');
 
-/* ===================== Defaults & Seed ===================== */
-/* default pics are relative filenames 1.png,2.png,3.png — place them next to this HTML */
+/* ================= Default data (relative filenames ok) ================= */
 const defaultState = {
   teams: {
     A: { name: 'Team A', pic: '1.png' },
@@ -265,65 +224,40 @@ const defaultState = {
     C: { name: 'Team C', pic: '3.png' }
   },
   matches: {
-    AB: { id: 'AB', t1:'A', t2:'B', s1:null, s2:null, stage:'group' },
-    AC: { id: 'AC', t1:'A', t2:'C', s1:null, s2:null, stage:'group' },
-    BC: { id: 'BC', t1:'B', t2:'C', s1:null, s2:null, stage:'group' }
+    AB: { id:'AB', t1:'A', t2:'B', s1:null, s2:null, stage:'group' },
+    AC: { id:'AC', t1:'A', t2:'C', s1:null, s2:null, stage:'group' },
+    BC: { id:'BC', t1:'B', t2:'C', s1:null, s2:null, stage:'group' }
   },
   final: null
 };
 
-dbRef.once('value').then(snap => {
+/* Seed DB if empty */
+dbRef.once('value').then(snap=>{
   if(!snap.exists()) dbRef.set(defaultState);
-}).catch(err => console.error('Seed error', err));
+}).catch(e=>console.error('seed error', e));
 
-/* ===================== UI refs ===================== */
+/* ================= UI refs ================= */
 const matchesEl = document.getElementById('matches');
 const finalPanel = document.getElementById('finalPanel');
 const leaderList = document.getElementById('leaderboardList');
 const snapshotEl = document.getElementById('snapshot');
-const noticeEl = document.getElementById('notice');
-const confettiLayer = document.getElementById('confetti');
+const leaderboardPanel = document.getElementById('leaderboardPanel');
+const resetBtn = document.getElementById('resetBtn');
+const navLeaderboard = document.getElementById('navLeaderboard');
+const navHome = document.getElementById('navHome');
+const backBtn = document.getElementById('backBtn');
 
 const modalCover = document.getElementById('modalCover');
 const modalTitle = document.getElementById('modalTitle');
 const modalTeams = document.getElementById('modalTeams');
 const score1 = document.getElementById('score1');
 const score2 = document.getElementById('score2');
-const saveScoreBtn = document.getElementById('saveScore');
-const closeModalBtn = document.getElementById('closeModal');
+const submitScore = document.getElementById('submitScore');
+const closeModal = document.getElementById('closeModal');
 
 let currentMatchId = null;
 
-/* ===================== Navigation animations ===================== */
-const homePage = document.getElementById('homePage');
-const leaderboardPage = document.getElementById('leaderboardPage');
-document.getElementById('toLb').addEventListener('click', ()=> showLeaderboard(true));
-document.getElementById('toHome').addEventListener('click', ()=> showHome());
-document.getElementById('backHome').addEventListener('click', ()=> showHome());
-
-function showLeaderboard(focus){
-  leaderboardPage.classList.add('active');
-  leaderboardPage.setAttribute('aria-hidden','false');
-  homePage.style.display = 'none';
-  // animate pills stagger in
-  setTimeout(()=> {
-    const pills = leaderList.querySelectorAll('.pill');
-    pills.forEach((p, i) => {
-      p.classList.add('enter');
-      p.style.animationDelay = (i * 0.06) + 's';
-    });
-  },80);
-  // smooth scroll-like feel (visual)
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function showHome(){
-  leaderboardPage.classList.remove('active');
-  leaderboardPage.setAttribute('aria-hidden','true');
-  homePage.style.display = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/* ===================== Realtime listener ===================== */
+/* ================= Realtime updates ================= */
 dbRef.on('value', snap => {
   const data = snap.val();
   if(!data) return;
@@ -331,15 +265,13 @@ dbRef.on('value', snap => {
   autoCreateFinalIfReady(data);
 });
 
-/* ===================== Renderers ===================== */
-
+/* ================= Render functions ================= */
 function getImgSrc(pic){
   if(!pic) return 'https://via.placeholder.com/160x160.png?text=?';
-  pic = String(pic).trim();
-  if(pic.startsWith('data:')) return pic;
-  if(pic.startsWith('http://') || pic.startsWith('https://')) return pic;
-  // relative filename like 1.png
-  return pic;
+  const s = String(pic).trim();
+  if(s.startsWith('data:')) return s;
+  if(s.startsWith('http://') || s.startsWith('https://')) return s;
+  return s; // relative filename like 1.png
 }
 
 function renderAll(state){
@@ -347,71 +279,64 @@ function renderAll(state){
   renderFinal(state);
   renderLeaderboard(state);
   renderSnapshot(state);
-  renderNotice(state);
 }
 
 function renderMatches(state){
-  // order AB, AC, BC
   const order = ['AB','AC','BC'];
   matchesEl.innerHTML = '';
-  order.forEach(id => {
+  order.forEach(id=>{
     const m = state.matches && state.matches[id];
     if(!m) return;
     const t1 = state.teams[m.t1].name;
     const t2 = state.teams[m.t2].name;
-    const sText = (m.s1 === null || m.s2 === null) ? '- : -' : `${m.s1} : ${m.s2}`;
+    const scoreText = (m.s1 === null || m.s2 === null) ? '- : -' : `${m.s1} : ${m.s2}`;
 
     const card = document.createElement('div');
     card.className = 'matchCard';
     card.innerHTML = `
       <div class="teams">
         <div class="teamBadge">${t1}</div>
-        <div style="font-size:12px;color:var(--muted);margin-left:8px">vs</div>
+        <div style="color:var(--muted);margin-left:6px;margin-right:6px">vs</div>
         <div class="teamBadge">${t2}</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
-        <div class="scoreBox">${sText}</div>
-        <button class="btnScore" data-id="${id}" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 10px;border-radius:10px">Add score</button>
-      </div>
-    `;
+        <div class="scoreBox">${scoreText}</div>
+        <button class="addScoreBtn" data-id="${id}" style="padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none">Add</button>
+      </div>`;
     matchesEl.appendChild(card);
   });
 
-  // attach click events
-  matchesEl.querySelectorAll('.btnScore').forEach(b=>{
-    b.addEventListener('click', ()=> openScoreModal(b.dataset.id));
+  // attach
+  matchesEl.querySelectorAll('.addScoreBtn').forEach(b=>{
+    b.addEventListener('click', ()=> openModal(b.dataset.id));
   });
 }
 
 function renderFinal(state){
   if(!state.final){
-    finalPanel.innerHTML = '<div style="color:var(--muted)">Final will be scheduled automatically when group matches are finished.</div>';
+    finalPanel.innerHTML = '<div style="color:var(--muted)">Final will be scheduled automatically after all group matches are played.</div>';
     return;
   }
   const f = state.final;
   const t1 = state.teams[f.t1].name;
   const t2 = state.teams[f.t2].name;
-  const sText = (f.s1 === null || f.s2 === null) ? '- : -' : `${f.s1} : ${f.s2}`;
+  const scoreText = (f.s1 === null || f.s2 === null) ? '- : -' : `${f.s1} : ${f.s2}`;
   finalPanel.innerHTML = `
-    <div style="width:100%">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(124,58,237,0.04),rgba(6,182,212,0.04))">
-        <div style="display:flex;gap:12px;align-items:center"><div style="font-weight:800">${t1}</div><div style="color:var(--muted)">vs</div><div style="font-weight:800">${t2}</div></div>
-        <div style="display:flex;gap:12px;align-items:center">
-          <div style="font-weight:900">${sText}</div>
-          <button id="btnFinalScore" style="background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 10px;border-radius:10px">Add</button>
-        </div>
+    <div class="finalBox">
+      <div style="display:flex;gap:10px;align-items:center"><div style="font-weight:800">${t1}</div><div style="color:var(--muted)">vs</div><div style="font-weight:800">${t2}</div></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="font-weight:900">${scoreText}</div>
+        <button id="finalAdd" style="padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none">Add</button>
       </div>
-    </div>
-  `;
-  const btnFinal = document.getElementById('btnFinalScore');
-  if(btnFinal) btnFinal.addEventListener('click', ()=> openScoreModal('final'));
+    </div>`;
+  const btn = document.getElementById('finalAdd');
+  if(btn) btn.addEventListener('click', ()=> openModal('final'));
 }
 
 function renderLeaderboard(state){
-  // compute stats from group matches only (final does not change leaderboard points)
+  // compute stats from group matches only
   const stats = {};
-  Object.keys(state.teams).forEach(k => { stats[k] = { pts:0, gf:0, ga:0, played:0 }; });
-
+  Object.keys(state.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0, played:0 });
   Object.values(state.matches || {}).forEach(m=>{
     if(m.s1 === null || m.s2 === null) return;
     const a = Number(m.s1), b = Number(m.s2);
@@ -422,7 +347,6 @@ function renderLeaderboard(state){
     else { stats[m.t1].pts += 1; stats[m.t2].pts += 1; }
   });
 
-  // produce sorted array
   const arr = Object.keys(stats).map(k=>({
     key:k, name: state.teams[k].name, pic: state.teams[k].pic, ...stats[k]
   }));
@@ -438,42 +362,25 @@ function renderLeaderboard(state){
   arr.forEach((t,i) => {
     const pill = document.createElement('div');
     pill.className = 'pill';
-    // create inner HTML
     pill.innerHTML = `
       <img src="${getImgSrc(t.pic)}" alt="${t.name}">
       <div class="info">
         <div class="name">${i+1}. ${t.name}</div>
         <div class="small">Pts: ${t.pts} • GF: ${t.gf} • GA: ${t.ga}</div>
         <div style="height:8px"></div>
-        <label style="display:inline-block;padding:6px 8px;border-radius:8px;background:#111;color:#fff;font-size:13px;cursor:pointer">
-          Change photo
+        <label class="fileLabel">Change photo
           <input type="file" accept="image/*" style="display:none" data-team="${t.key}">
         </label>
       </div>
-      <div class="stats">
-        GD:<div style="font-weight:900">${t.gf - t.ga}</div>
-        <div class="small">Played: ${t.played}</div>
-      </div>
+      <div class="stats">GD: ${t.gf - t.ga}<div class="small">Played: ${t.played}</div></div>
     `;
-
     leaderList.appendChild(pill);
 
-    // handle file input inside pill
     const input = pill.querySelector('input[type=file]');
     if(input){
-      input.addEventListener('change', function(){ handleImgFile(t.key, this.files[0]); });
+      input.addEventListener('change', function(){ handleFileUpload(t.key, this.files[0]); });
     }
   });
-}
-
-/* small helper for img src handling */
-function getImgSrc(pic){
-  if(!pic) return 'https://via.placeholder.com/160x160.png?text=?';
-  const s = String(pic).trim();
-  if(s.startsWith('data:')) return s;
-  if(s.startsWith('http://') || s.startsWith('https://')) return s;
-  // relative filename (e.g., 1.png)
-  return s;
 }
 
 function renderSnapshot(state){
@@ -481,7 +388,7 @@ function renderSnapshot(state){
   Object.keys(state.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
   Object.values(state.matches || {}).forEach(m=>{
     if(m.s1 === null || m.s2 === null) return;
-    const a = Number(m.s1), b=Number(m.s2);
+    const a = Number(m.s1), b = Number(m.s2);
     stats[m.t1].gf += a; stats[m.t1].ga += b;
     stats[m.t2].gf += b; stats[m.t2].ga += a;
     if(a > b) stats[m.t1].pts += 3;
@@ -489,31 +396,24 @@ function renderSnapshot(state){
     else { stats[m.t1].pts++; stats[m.t2].pts++; }
   });
   const lines = Object.keys(stats).map(k=> `${state.teams[k].name}: ${stats[k].pts} pts — ${stats[k].gf} GF, ${stats[k].ga} GA`);
-  snapshotEl.textContent = lines.join('\\n');
+  snapshotEl.textContent = lines.join('\n');
 }
 
-function renderNotice(state){
-  // show if final exists or pending
-  const allPlayed = Object.values(state.matches || {}).every(m => m.s1 !== null && m.s2 !== null);
-  if(state.final){
-    if(state.final.s1 === null || state.final.s2 === null){
-      noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:linear-gradient(90deg,rgba(6,182,212,0.06),transparent);border:1px solid rgba(15,23,42,0.04)">Final scheduled: ${state.teams[state.final.t1].name} vs ${state.teams[state.final.t2].name} — waiting for score</div>`;
-    } else {
-      noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:#ecfdf5;border:1px solid rgba(15,23,42,0.04)">Final result: ${state.teams[state.final.t1].name} ${state.final.s1} — ${state.final.s2} ${state.teams[state.final.t2].name}</div>`;
-      // celebration if final result just appeared (fire confetti)
-      launchTinyConfetti();
-    }
-  } else if(allPlayed){
-    noticeEl.innerHTML = `<div style="padding:10px;border-radius:10px;background:#fff7ed;border:1px solid rgba(15,23,42,0.04)">All group matches done — final will be created automatically.</div>`;
-  } else { noticeEl.innerHTML = ''; }
+/* ================= Helper: get image src (relative names fine) ================= */
+function getImgSrc(pic){
+  if(!pic) return 'https://via.placeholder.com/160x160.png?text=?';
+  const s = String(pic).trim();
+  if(s.startsWith('data:')) return s;
+  if(s.startsWith('http://') || s.startsWith('https://')) return s;
+  return s;
 }
 
-/* ===================== Auto-final logic ===================== */
+/* ================= Auto-final creation (ONLY automatic) ================= */
 async function autoCreateFinalIfReady(state){
   const matches = state.matches || {};
-  const allPlayed = Object.values(matches).every(m => m.s1 !== null && m.s2 !== null);
+  const allPlayed = Object.values(matches).every(m=> m.s1 !== null && m.s2 !== null);
   if(allPlayed && !state.final){
-    // compute standings (same logic)
+    // compute standings from group matches
     const stats = {};
     Object.keys(state.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
     Object.values(matches).forEach(m=>{
@@ -524,7 +424,7 @@ async function autoCreateFinalIfReady(state){
       else if(b > a) stats[m.t2].pts += 3;
       else { stats[m.t1].pts++; stats[m.t2].pts++; }
     });
-    const arr = Object.keys(stats).map(k=>({key:k,...stats[k]}));
+    const arr = Object.keys(stats).map(k=>({ key:k, ...stats[k] }));
     arr.sort((x,y)=>{
       if(y.pts !== x.pts) return y.pts - x.pts;
       const gdx = x.gf - x.ga, gdy = y.gf - y.ga;
@@ -537,15 +437,12 @@ async function autoCreateFinalIfReady(state){
   }
 }
 
-/* ===================== Modal & scoring ===================== */
-
-function openScoreModal(matchId){
+/* ================= Modal control & saving scores ================= */
+function openModal(matchId){
   currentMatchId = matchId;
-  // fill modal labels
   if(matchId === 'final'){
-    dbRef.child('final').once('value').then(snap => {
-      const f = snap.val();
-      if(!f) return;
+    dbRef.child('final').once('value').then(snap=>{
+      const f = snap.val(); if(!f) return;
       modalTitle.textContent = 'Record Final Score';
       modalTeams.textContent = `${f.t1} — ${f.t2}`;
       score1.value = f.s1 === null ? 0 : f.s1;
@@ -553,9 +450,8 @@ function openScoreModal(matchId){
       modalCover.classList.add('show');
     });
   } else {
-    dbRef.child('matches').child(matchId).once('value').then(snap => {
-      const m = snap.val();
-      if(!m) return;
+    dbRef.child('matches').child(matchId).once('value').then(snap=>{
+      const m = snap.val(); if(!m) return;
       modalTitle.textContent = 'Record Match Score';
       modalTeams.textContent = `${m.t1} — ${m.t2}`;
       score1.value = m.s1 === null ? 0 : m.s1;
@@ -565,10 +461,11 @@ function openScoreModal(matchId){
   }
 }
 
-closeModalBtn.addEventListener('click', ()=> { modalCover.classList.remove('show'); currentMatchId = null; });
-saveScoreBtn.addEventListener('click', async () => {
+closeModal.addEventListener('click', ()=> { modalCover.classList.remove('show'); currentMatchId = null; });
+
+submitScore.addEventListener('click', async ()=>{
   const s1 = Number(score1.value), s2 = Number(score2.value);
-  if(isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0){ alert('Enter valid non-negative numbers'); return; }
+  if(isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0){ alert('Enter valid non-negative scores'); return; }
   if(currentMatchId === 'final'){
     await dbRef.child('final').update({ s1, s2 });
   } else {
@@ -578,104 +475,49 @@ saveScoreBtn.addEventListener('click', async () => {
   currentMatchId = null;
 });
 
-/* ===================== File upload (store base64) ===================== */
-async function handleImgFile(teamKey, file){
+/* ================= File upload handler (store base64) ================= */
+async function handleFileUpload(teamKey, file){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = async e => {
-    const dataUrl = e.target.result; // base64
+    const dataUrl = e.target.result;
     await dbRef.child('teams').child(teamKey).child('pic').set(dataUrl);
   };
   reader.readAsDataURL(file);
 }
 
-/* ===================== Helpers: attach handlers from rendered pills ===================== */
-/* Since inputs are created dynamically when rendering the leaderboard, we listen on the leaderList container for file input events */
-leaderList.addEventListener('change', function(e){
-  const input = e.target;
-  if(input && input.type === 'file' && input.dataset.team){
-    handleImgFile(input.dataset.team, input.files[0]);
+/* ================= Attach dynamic file input events through delegation ================= */
+document.addEventListener('change', function(e){
+  const el = e.target;
+  if(el && el.tagName === 'INPUT' && el.type === 'file' && el.dataset && el.dataset.team){
+    handleFileUpload(el.dataset.team, el.files[0]);
   }
 });
 
-/* ===================== Reset & Force final buttons ===================== */
-document.getElementById('resetBtn').addEventListener('click', async ()=>{
-  if(!confirm('Reset tournament? This will remove scores and final.')) return;
+/* ================= Navigation (Home <-> Leaderboard) ================= */
+navLeaderboard.addEventListener('click', ()=> {
+  document.getElementById('homePanel').style.display = 'none';
+  document.querySelector('.layout').style.display = 'none';
+  leaderboardPanel.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+navHome.addEventListener('click', ()=> {
+  leaderboardPanel.style.display = 'none';
+  document.querySelector('.layout').style.display = '';
+  document.getElementById('homePanel').style.display = '';
+});
+backBtn.addEventListener('click', ()=> navHome.click());
+
+/* ================= Reset button ================= */
+resetBtn.addEventListener('click', async ()=>{
+  if(!confirm('Reset tournament? This will clear all scores and final.')) return;
   await dbRef.set(defaultState);
 });
 
-document.getElementById('forceFinal').addEventListener('click', async ()=>{
-  const snap = await dbRef.once('value'); const data = snap.val();
-  if(!data) return;
-  // compute standings like earlier
-  const stats = {};
-  Object.keys(data.teams).forEach(k=> stats[k] = { pts:0, gf:0, ga:0 });
-  Object.values(data.matches).forEach(m=>{
-    if(m.s1 === null || m.s2 === null) return;
-    const a = Number(m.s1), b = Number(m.s2);
-    stats[m.t1].gf += a; stats[m.t1].ga += b;
-    stats[m.t2].gf += b; stats[m.t2].ga += a;
-    if(a > b) stats[m.t1].pts += 3;
-    else if(b > a) stats[m.t2].pts += 3;
-    else { stats[m.t1].pts++; stats[m.t2].pts++; }
-  });
-  const arr = Object.keys(stats).map(k=>({ key:k, ...stats[k] }));
-  arr.sort((x,y)=>{
-    if(y.pts !== x.pts) return y.pts - x.pts;
-    const gdx = x.gf - x.ga, gdy = y.gf - y.ga;
-    if(gdy !== gdx) return gdy - gdx;
-    if(y.gf !== x.gf) return y.gf - x.gf;
-    return x.key.localeCompare(y.key);
-  });
-  const t1 = arr[0].key, t2 = arr[1].key;
-  await dbRef.child('final').set({ t1, t2, s1: null, s2: null, stage:'final' });
-  alert(`Final forced: ${data.teams[t1].name} vs ${data.teams[t2].name}`);
-});
+/* ================= Safety listener to surface errors in console ================= */
+dbRef.on('child_removed', ()=>{});
 
-/* ===================== Little confetti/celebration ===================== */
-function launchTinyConfetti(){
-  // simple colored squares falling — small and fast
-  const count = 30;
-  for(let i=0;i<count;i++){
-    const el = document.createElement('div');
-    const size = Math.random()*10 + 6;
-    el.style.position='absolute';
-    el.style.left = (Math.random()*100) + '%';
-    el.style.top = '-10px';
-    el.style.width = size + 'px';
-    el.style.height = size + 'px';
-    el.style.borderRadius = '3px';
-    const colors = ['#06b6d4','#7c3aed','#f59e0b','#10b981','#ef4444'];
-    el.style.background = colors[Math.floor(Math.random()*colors.length)];
-    el.style.opacity = 0.95;
-    el.style.transform = 'translateY(0) rotate(0deg)';
-    el.style.zIndex = 99;
-    confettiLayer.appendChild(el);
-    const duration = 1000 + Math.random()*1200;
-    el.animate([
-      { transform: `translateY(0) rotate(0deg)`, opacity:1 },
-      { transform: `translateY(${200 + Math.random()*300}px) rotate(${Math.random()*720}deg)`, opacity:0.7 }
-    ], { duration, easing: 'cubic-bezier(.2,.8,.2,1)'});
-    setTimeout(()=> el.remove(), duration + 80);
-  }
-}
-
-/* ===================== Small UX: playful animations toggle ===================== */
-document.getElementById('shuffleAnim').addEventListener('click', ()=>{
-  // little bounce on each match card
-  const cards = document.querySelectorAll('.matchCard');
-  cards.forEach((c,i)=>{
-    c.animate([
-      { transform:'translateY(0)' },
-      { transform:'translateY(-10px)' },
-      { transform:'translateY(0)' }
-    ], { duration: 420 + i*80, easing:'cubic-bezier(.2,.9,.2,1)' });
-  });
-});
-
-/* ===================== Safety tiny catch ===================== */
-dbRef.on('child_removed', ()=>{}); // keep alive to surf errors if any
-
+/* Done. */
 </script>
 </body>
 </html>
