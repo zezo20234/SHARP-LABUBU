@@ -1648,115 +1648,108 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
 </script>
 <!-- END: GLOBAL LIQUID GLASS BUTTONS -->
 <style>
-  /* Button Style to match your existing UI */
+  /* Dynamic Island Mini-Button Style */
   #le3baBtn { 
-    background: linear-gradient(135deg, #ff8a00, #ff4b4b);
-    color: white;
-    font-weight: 700;
-    border: none;
-    margin-right: 8px; /* Spacing between this and Logout */
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(90deg, #ff8a00, #ff4b4b); 
+    color: white; 
+    font-weight: 800; 
+    font-size: 0.85rem; 
+    padding: 6px 12px; 
+    border-radius: 30px; 
+    border: 1px solid rgba(255,255,255,0.4); 
+    box-shadow: 0 4px 10px rgba(255, 75, 75, 0.4); 
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    margin-left: 8px; /* Spacing from existing island elements */
+    z-index: 100000;
   }
+  #le3baBtn:active { transform: scale(0.92); }
 
-  /* LE3BA Modal Styling */
+  /* LE3BA Modal */
   .le3ba-modal { 
     display: none; 
     position: fixed; 
     inset: 0; 
-    background: rgba(0,0,0,0.85); 
-    z-index: 200000; 
+    background: rgba(0,0,0,0.8); 
+    z-index: 100005; 
     align-items: center; 
     justify-content: center; 
     padding: 20px; 
-    backdrop-filter: blur(8px);
-    font-family: sans-serif;
+    backdrop-filter: blur(4px);
   }
   .le3ba-modal.show { display: flex; }
   .le3ba-card { 
     background: white; 
     padding: 25px; 
-    border-radius: 24px; 
+    border-radius: 20px; 
     width: 100%; 
     max-width: 400px; 
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    color: #333;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
   }
-  .le3ba-score-row { 
+  .le3ba-score { 
+    font-size: 2.2rem; 
+    font-weight: 900; 
+    margin: 15px 0; 
+    color: #2b4c7e; 
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 20px 0;
-  }
-  .score-box {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 18px;
-    border: 2px solid #eee;
-    min-width: 100px;
-  }
-  .score-box b { display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px; }
-  .score-box span { font-size: 2.2rem; font-weight: 900; color: #ff4b4b; }
-  
-  .challenge-container {
-    background: #fff4e6;
-    border: 2px dashed #ff8a00;
-    border-radius: 16px;
-    padding: 20px;
-    margin: 20px 0;
-  }
-  .prize-tag {
-    color: #27ae60;
-    font-weight: 800;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 5px;
-    margin-bottom: 10px;
+    gap: 15px;
   }
+  .score-badge {
+    background: #f0f4f8;
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 2px solid #cfd8e3;
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    min-width: 80px;
+  }
+  .score-badge span { font-size: 2rem; color: #ff4b4b; }
   
   #le3baCompleteBtn {
-    background: #27ae60; 
+    background: linear-gradient(90deg, #2ecc71, #27ae60); 
     color: white; 
     width: 100%; 
-    font-size: 1.1rem;
-    padding: 15px;
-    margin-bottom: 10px;
+    font-size: 1.2rem;
+    padding: 14px;
+    margin-top: 10px;
   }
   #le3baCloseBtn {
-    background: #f0f0f0; 
+    background: #eee; 
     color: #333; 
     width: 100%; 
-    padding: 10px;
+    margin-top: 10px;
   }
 </style>
 
-<button id="le3baBtn" class="liquid-btn">🎮 LE3BA</button>
+<button id="le3baBtn">🎮 LE3BA</button>
 
 <div id="le3baModal" class="le3ba-modal">
   <div class="le3ba-card">
-     <h2 style="margin: 0; color: #ff4b4b; font-size: 1.8rem;">Asser VS Lilly</h2>
-     <p style="margin: 5px 0; color: #999; font-weight: 600;">Daily Challenge Race!</p>
-     
-     <div class="le3ba-score-row">
-       <div class="score-box"><b>ASSER</b><span id="scoreAsser">0</span></div>
-       <div style="font-weight: 900; font-size: 1.2rem; color: #ccc;">VS</div>
-       <div class="score-box"><b>LILLY</b><span id="scoreLilly">0</span></div>
+     <h2 style="margin-top: 0; color: #ff8a00;">🏆 Asser vs Lilly 🏆</h2>
+     <div class="le3ba-score">
+       <div class="score-badge">Asser <span id="scoreAsser">0</span></div>
+       <div style="align-self: center; font-size: 1.5rem; color: #999;">VS</div>
+       <div class="score-badge">Lilly <span id="scoreLilly">0</span></div>
      </div>
-
-     <div class="challenge-container">
-        <div class="prize-tag">
-          <img src="labubu7.png" style="width:24px; border-radius:50%"> 
-          +<span id="le3baPrizeText">100</span> Credits
-        </div>
-        <h3 id="le3baDateTitle" style="margin: 0 0 10px 0; font-size: 1.1rem;">April 15</h3>
-        <p id="le3baChallengeText" style="font-size: 1.1rem; line-height: 1.4; font-weight: 600; margin: 0;">Loading challenge...</p>
-     </div>
-
-     <p id="le3baStatus" style="font-weight: bold; margin-bottom: 15px;"></p>
+     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
      
-     <button id="le3baCompleteBtn" class="liquid-btn" style="display:none;">I FINISHED FIRST! ✅</button>
-     <button id="le3baCloseBtn" class="liquid-btn">Maybe Later</button>
+     <h3 id="le3baDate" style="margin:0 0 10px 0; color: #333;">April 15 Challenge</h3>
+     <p style="font-size: 1.1rem; margin: 0;"><strong>Prize:</strong> <span id="le3baPrize" style="color:#27ae60; font-weight:bold;">100</span> <img src="EGP.png" class="coin-icon" style="width:20px"></p>
+     
+     <div style="background: #fff3e0; padding: 15px; border-radius: 12px; border: 1px solid #ffd54a; margin: 15px 0;">
+        <strong style="color: #ff8a00; display:block; margin-bottom: 8px;">Today's Mission:</strong>
+        <span id="le3baChallenge" style="font-size: 1.05rem; font-weight: 600;">Loading...</span>
+     </div>
+     
+     <p id="le3baStatus" style="font-weight: bold; color: #ff4b4b; min-height: 24px; margin: 10px 0;"></p>
+     
+     <button id="le3baCompleteBtn" class="liquid-btn" style="display:none;">I Did It First! ✋</button>
+     <button id="le3baCloseBtn" class="liquid-btn">Close</button>
   </div>
 </div>
 
@@ -1764,142 +1757,174 @@ document.getElementById('menuLogoutBtn').addEventListener('click', () => {
   import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  // --- 1. INJECT BUTTON NEXT TO LOGOUT ---
-  const btn = document.getElementById('le3baBtn');
-  const logout = document.getElementById('logoutBtn');
-  if (logout && logout.parentElement) {
-    // Insert it right before the Logout button
-    logout.parentElement.insertBefore(btn, logout);
+  // --- 1. DYNAMIC ISLAND INJECTION ---
+  const btnOpen = document.getElementById('le3baBtn');
+  const islandWelcome = document.getElementById('islandWelcome');
+  const islandTime = document.querySelector('.island-time');
+  
+  // Find the island container based on existing elements
+  let islandContainer = document.querySelector('.dynamic-island') || document.getElementById('dynamicIsland');
+  if (!islandContainer && islandWelcome) islandContainer = islandWelcome.parentElement;
+  if (!islandContainer && islandTime) islandContainer = islandTime.parentElement;
+
+  if (islandContainer) {
+      // Append inside the island flex container
+      islandContainer.appendChild(btnOpen);
+      islandContainer.style.display = 'flex';
+      islandContainer.style.alignItems = 'center';
+  } else {
+      // Fallback if the island container isn't found
+      btnOpen.style.position = 'fixed';
+      btnOpen.style.top = '15px';
+      btnOpen.style.right = '15px';
   }
+  // ------------------------------------
 
-  const db = getDatabase(getApp());
+  let app;
+  try { app = getApp(); } catch(e) { console.error("Firebase app not found for LE3BA"); }
+  const db = getDatabase(app);
 
-  // Challenges for Asser (8) and Lilly (10) - Getting harder each day
   const challenges = {
-    15: "Clean your whole room and make your bed perfectly.",
-    16: "Read 10 pages of a story book out loud to a parent.",
-    17: "Do 20 jumping jacks and 10 sit-ups without stopping.",
-    18: "Draw a map of your house and label all the rooms.",
-    19: "Help prepare a salad or set the dinner table alone.",
-    20: "Write a 5-sentence story about a magic Labubu.",
-    21: "Organize all your shoes and fold 5 pieces of clothing.",
-    22: "Learn how to say 'I am the champion' in 4 different languages.",
-    23: "Stay completely silent for 15 minutes (The Silence Challenge).",
-    24: "Solve 10 math addition/subtraction problems correctly.",
-    25: "Build a fort using only blankets and pillows.",
-    26: "Do a 30-second plank and then 15 squats.",
-    27: "Write a 'Thank You' note to someone in the family.",
-    28: "Read a news article or a long story and explain it to the other person.",
-    29: "Clean the windows or mirrors in one room until they shine.",
-    30: "Final Boss: Run around the house 5 times then do 20 pushups!"
+    15: "Make your bed perfectly without being asked.",
+    16: "Read 5 pages of any book out loud.",
+    17: "Do 15 jumping jacks and 5 pushups without stopping.",
+    18: "Draw a colorful picture of your favorite animal.",
+    19: "Help set the table for a meal (plates, forks, cups).",
+    20: "Write a short creative story (at least 5 sentences).",
+    21: "Clean up your toys/room for 10 straight minutes.",
+    22: "Learn how to say 'Hello' in 3 completely new languages.",
+    23: "Do 30 jumping jacks and hold a plank for 20 seconds.",
+    24: "Write down 3 specific things you are grateful for today.",
+    25: "Build the highest tower you can using blocks, cups, or cards.",
+    26: "Memorize a short poem or a joke and perform it perfectly.",
+    27: "Help a parent with a chore they didn't ask you to do.",
+    28: "Read a full chapter of a book and summarize it to a parent.",
+    29: "Solve 5 math word problems (ask a parent to write them for you!).",
+    30: "Create a completely new game with rules, and teach someone how to play."
   };
 
   function getLoggedUser() {
-    const data = localStorage.getItem('loginData') || sessionStorage.getItem('loginData');
-    return data ? JSON.parse(data).username : null;
+    try {
+      const raw = localStorage.getItem('loginData') || sessionStorage.getItem('loginData');
+      if(!raw) return null;
+      return JSON.parse(raw).username;
+    } catch(e) { return null; }
   }
 
+  const btnClose = document.getElementById('le3baCloseBtn');
   const modal = document.getElementById('le3baModal');
   const completeBtn = document.getElementById('le3baCompleteBtn');
   const statusEl = document.getElementById('le3baStatus');
 
-  btn.onclick = openLe3ba;
-  document.getElementById('le3baCloseBtn').onclick = () => modal.classList.remove('show');
+  btnOpen.addEventListener('click', openLe3ba);
+  btnClose.addEventListener('click', () => modal.classList.remove('show'));
 
   async function openLe3ba() {
-    modal.classList.add('show');
-    statusEl.textContent = "Checking records...";
-    completeBtn.style.display = 'none';
+     modal.classList.add('show');
+     statusEl.textContent = "Loading current scores...";
+     completeBtn.style.display = 'none';
 
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.getMonth() + 1;
+     const today = new Date();
+     const day = today.getDate();
+     const month = today.getMonth() + 1;
 
-    // April 15 - 30 Logic
-    if (month !== 4 || day < 15 || day > 30) {
-      document.getElementById('le3baChallengeText').textContent = "No challenges active today!";
-      statusEl.textContent = "The game runs from April 15th to April 30th.";
-      return;
-    }
+     if (month !== 4 || day < 15 || day > 30) {
+         document.getElementById('le3baDate').textContent = "Event Closed";
+         document.getElementById('le3baChallenge').textContent = "No active challenges for today.";
+         document.getElementById('le3baPrize').textContent = "0";
+         statusEl.textContent = "The LE3BA challenges are only active from April 15 to April 30.";
+         return;
+     }
 
-    const prize = (day - 14) * 100; // 15th=100, 16th=200...
-    document.getElementById('le3baDateTitle').textContent = `April ${day} Challenge`;
-    document.getElementById('le3baPrizeText').textContent = prize;
-    document.getElementById('le3baChallengeText').textContent = challenges[day];
+     document.getElementById('le3baDate').textContent = `April ${day} Challenge`;
+     const prize = (day - 14) * 100;
+     document.getElementById('le3baPrize').textContent = prize;
+     document.getElementById('le3baChallenge').textContent = challenges[day];
 
-    try {
-      const snap = await get(ref(db, 'le3ba'));
-      const data = snap.exists() ? snap.val() : { scores: { asser: 0, lilly: 0 }, completedDays: {} };
+     try {
+       const le3baRef = ref(db, 'le3ba');
+       const snap = await get(le3baRef);
+       const data = snap.exists() ? snap.val() : { scores: { asser: 0, lilly: 0 }, completedDays: {} };
 
-      document.getElementById('scoreAsser').textContent = data.scores?.asser || 0;
-      document.getElementById('scoreLilly').textContent = data.scores?.lilly || 0;
+       document.getElementById('scoreAsser').textContent = data.scores?.asser || 0;
+       document.getElementById('scoreLilly').textContent = data.scores?.lilly || 0;
 
-      const winnerToday = (data.completedDays || {})[day];
-      if (winnerToday) {
-        statusEl.textContent = `❌ Already done by ${winnerToday.toUpperCase()}!`;
-        statusEl.style.color = "#e74c3c";
-      } else {
-        statusEl.textContent = "🚀 Race is ON! Be the first to finish!";
-        statusEl.style.color = "#27ae60";
-        completeBtn.style.display = 'block';
-      }
-    } catch (e) { statusEl.textContent = "Error loading data."; }
+       const doneBy = (data.completedDays || {})[day.toString()];
+
+       if (doneBy) {
+           statusEl.textContent = `Already done today by ${doneBy.toUpperCase()}!`;
+           statusEl.style.color = '#c0392b';
+       } else {
+           statusEl.textContent = "Challenge is open! Who will finish it first? ⏱️";
+           statusEl.style.color = '#27ae60';
+           completeBtn.style.display = 'block';
+       }
+     } catch (err) {
+       console.error(err);
+       statusEl.textContent = "Error loading LE3BA data.";
+     }
   }
 
-  completeBtn.onclick = async () => {
-    const username = getLoggedUser();
-    if (!username) return alert("Please login!");
-    
-    const user = username.toLowerCase();
-    if (user !== 'asser' && user !== 'lilly') return alert("Only Asser or Lilly can play!");
+  completeBtn.addEventListener('click', async () => {
+     const user = getLoggedUser();
+     if (!user) { alert("Please login first to play!"); return; }
 
-    const day = new Date().getDate();
-    const prize = (day - 14) * 100;
+     const targetUser = user.toLowerCase();
+     if (targetUser !== 'asser' && targetUser !== 'lilly') {
+         alert("Hey! This game is exclusively for Asser and Lilly!");
+         return;
+     }
 
-    completeBtn.disabled = true;
-    statusEl.textContent = "Verifying victory...";
+     const today = new Date();
+     const day = today.getDate();
+     const prize = (day - 14) * 100;
 
-    try {
-      // 1. Double check nobody won while the modal was open
-      const checkSnap = await get(ref(db, `le3ba/completedDays/${day}`));
-      if (checkSnap.exists()) {
-        alert(`Too slow! ${checkSnap.val()} already claimed it!`);
-        location.reload();
-        return;
-      }
+     statusEl.textContent = "Checking to see if you were first...";
+     completeBtn.disabled = true;
+     completeBtn.style.opacity = '0.5';
 
-      // 2. Fetch current user data and scores
-      const le3baSnap = await get(ref(db, 'le3ba'));
-      const scores = le3baSnap.exists() ? (le3baSnap.val().scores || {asser:0, lilly:0}) : {asser:0, lilly:0};
-      
-      const userRef = ref(db, `users/${user}/credits`);
-      const userSnap = await get(userRef);
-      const currentCredits = userSnap.exists() ? Number(userSnap.val()) : 0;
+     try {
+         const dayRef = ref(db, `le3ba/completedDays/${day}`);
+         const daySnap = await get(dayRef);
+         if (daySnap.exists()) {
+             statusEl.textContent = `Too late! Already done by ${daySnap.val().toUpperCase()}`;
+             statusEl.style.color = '#c0392b';
+             completeBtn.style.display = 'none';
+             return;
+         }
 
-      // 3. Update everything at once
-      const updates = {};
-      updates[`le3ba/completedDays/${day}`] = user;
-      updates[`le3ba/scores/${user}`] = (scores[user] || 0) + 1;
-      updates[`users/${user}/credits`] = currentCredits + prize;
+         const le3baRef = ref(db, 'le3ba');
+         const le3baSnap = await get(le3baRef);
+         const currentScores = le3baSnap.exists() && le3baSnap.val().scores ? le3baSnap.val().scores : { asser: 0, lilly: 0 };
 
-      await update(ref(db), updates);
+         const updates = {};
+         updates[`le3ba/completedDays/${day}`] = targetUser;
+         updates[`le3ba/scores/${targetUser}`] = (currentScores[targetUser] || 0) + 1;
 
-      statusEl.textContent = `🎉 YOU WON! +${prize} credits added!`;
-      completeBtn.style.display = 'none';
-      
-      // Visual update
-      document.getElementById(`score${user === 'asser' ? 'Asser' : 'Lilly'}`).textContent = (scores[user] || 0) + 1;
-      
-      // Play success sound if it exists in your app
-      const snd = document.getElementById('applePayAudio');
-      if(snd) snd.play().catch(()=>{});
+         const userRef = ref(db, `users/${targetUser}/credits`);
+         const userSnap = await get(userRef);
+         const currentCredits = userSnap.exists() ? Number(userSnap.val()) : 0;
+         updates[`users/${targetUser}/credits`] = currentCredits + prize;
 
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong. Try again!");
-      completeBtn.disabled = false;
-    }
-  };
+         await update(ref(db), updates);
+
+         statusEl.textContent = `🎉 Awesome! You won ${prize} credits and 1 LE3BA point!`;
+         statusEl.style.color = '#27ae60';
+         completeBtn.style.display = 'none';
+
+         document.getElementById(`score${targetUser === 'asser' ? 'Asser' : 'Lilly'}`).textContent = (currentScores[targetUser] || 0) + 1;
+
+         const successSound = document.getElementById('applePayAudio');
+         if(successSound) successSound.play().catch(()=>{});
+
+     } catch(err) {
+         console.error(err);
+         statusEl.textContent = "Error saving. Try again.";
+     } finally {
+         completeBtn.disabled = false;
+         completeBtn.style.opacity = '1';
+     }
+  });
 </script>
 </body>
 </html>
