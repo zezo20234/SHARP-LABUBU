@@ -1,104 +1,1123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Search Suggestions</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f4f4f9; }
-        .search-container { position: relative; width: 300px; }
-        
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        #results-list {
-            position: absolute;
-            width: 100%;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none; /* Hidden by default */
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        #results-list li {
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        #results-list li:hover { background-color: #f0f0f0; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minecraft Market Explorer</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:rgba(17,24,39,.88);
+      --panel2:rgba(15,23,42,.94);
+      --border:rgba(255,255,255,.1);
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --vat:#fbbf24;
+      --chip:#1f2937;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left, #172554 0, transparent 28%),
+        radial-gradient(circle at top right, #0f766e 0, transparent 20%),
+        linear-gradient(180deg, #050816 0%, #0b1220 100%);
+      color:var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      padding:24px;
+    }
+    .wrap{
+      max-width:1400px;
+      margin:0 auto;
+    }
+    header{
+      display:flex;
+      gap:16px;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-size:28px;
+      letter-spacing:.3px;
+    }
+    .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .top-right{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    select, button, input{
+      font:inherit;
+    }
+    .citybox, .searchbox, .panel, .cart, .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      border-radius:20px;
+      backdrop-filter: blur(10px);
+    }
+    .citybox{
+      padding:12px 14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .citybox label{color:var(--muted); font-size:14px}
+    .citybox select{
+      background:#0f172a;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+      min-width:160px;
+    }
+    .layout{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+      align-items:start;
+    }
+    .left{
+      display:grid;
+      gap:18px;
+    }
+    .searchbox{
+      padding:16px;
+      position:relative;
+    }
+    .search-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    #searchInput{
+      flex:1;
+      min-width:220px;
+      padding:15px 16px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#0f172a;
+      color:var(--text);
+      outline:none;
+      font-size:16px;
+    }
+    #searchInput:focus{
+      border-color:rgba(56,189,248,.8);
+      box-shadow:0 0 0 3px rgba(56,189,248,.15);
+    }
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:14px 16px;
+      cursor:pointer;
+      color:#06101f;
+      font-weight:700;
+      background:var(--accent);
+    }
+    .btn.secondary{
+      background:#cbd5e1;
+      color:#0f172a;
+    }
+    .btn.green{
+      background:var(--accent2);
+      color:white;
+    }
+    .btn.red{
+      background:var(--danger);
+      color:white;
+    }
+    .suggestions{
+      position:absolute;
+      left:16px;
+      right:16px;
+      top:76px;
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      z-index:10;
+      display:none;
+      max-height:340px;
+      overflow-y:auto;
+    }
+    .s-item{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    .s-item:hover{background:rgba(56,189,248,.14)}
+    .s-item:last-child{border-bottom:none}
+    .s-name{
+      font-weight:700;
+      line-height:1.2;
+    }
+    .s-price{
+      color:var(--accent2);
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .s-meta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .card{
+      padding:18px;
+    }
+    .card h2, .cart h2{
+      margin:0 0 8px 0;
+      font-size:22px;
+    }
+    .city-badge{
+      display:inline-block;
+      color:#cbd5e1;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.18);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      margin-bottom:14px;
+    }
+    .price-grid{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .row:last-child{border-bottom:none}
+    .label{color:var(--muted)}
+    .value{font-weight:800}
+    .vat{color:var(--vat)}
+    .total{
+      font-size:20px;
+      color:var(--accent);
+    }
+    .note{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:10px;
+      line-height:1.4;
+    }
+    .cart{
+      padding:16px;
+      position:sticky;
+      top:18px;
+    }
+    .cart-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .cart-list{
+      display:grid;
+      gap:10px;
+      max-height:56vh;
+      overflow:auto;
+      padding-right:4px;
+      margin-bottom:12px;
+    }
+    .cart-item{
+      background:rgba(15,23,42,.8);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px;
+    }
+    .cart-item-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .cart-item-name{
+      font-weight:700;
+    }
+    .cart-city{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:3px;
+    }
+    .cart-mini{
+      margin-top:8px;
+      display:grid;
+      gap:4px;
+      color:#dbeafe;
+      font-size:13px;
+    }
+    .remove{
+      border:none;
+      background:transparent;
+      color:var(--danger);
+      font-weight:900;
+      cursor:pointer;
+      font-size:18px;
+      line-height:1;
+    }
+    .totals{
+      padding-top:12px;
+      border-top:1px solid rgba(255,255,255,.08);
+      display:grid;
+      gap:8px;
+    }
+    .totals .row{padding:0; border:none}
+    .small-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .empty{
+      color:var(--muted);
+      text-align:center;
+      padding:18px 8px;
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:16px;
+    }
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      .cart{position:static}
+      .suggestions{top:118px}
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Minecraft Market Explorer</h1>
+        <div class="sub">Search any item, see the city price, VAT, and keep a cart for your shop or city roleplay.</div>
+      </div>
+      <div class="top-right">
+        <div class="citybox">
+          <label for="citySelect">City</label>
+          <select id="citySelect">
+            <option value="Barcelona">Barcelona</option>
+            <option value="Madrid">Madrid</option>
+          </select>
+        </div>
+      </div>
+    </header>
 
-<div class="search-container">
-    <input type="text" id="search-input" placeholder="Type a letter (e.g., 'a', 'j')...">
-    <ul id="results-list"></ul>
-</div>
+    <div class="layout">
+      <div class="left">
+        <div class="searchbox">
+          <div class="search-row">
+            <input id="searchInput" type="text" placeholder="Type a few letters... example: dia, iron, log, cook, rail" autocomplete="off" />
+            <button class="btn secondary" id="clearSearchBtn">Clear</button>
+          </div>
+          <div class="suggestions" id="suggestions"></div>
+          <div class="note" id="searchHint">Try short searches like <b>dia</b>, <b>iron</b>, <b>food</b>, <b>log</b>, <b>train</b>, or <b>metro</b>.</div>
+        </div>
+
+        <div class="card" id="detailCard">
+          <h2 id="itemName">Select an item</h2>
+          <div class="city-badge" id="itemCity">CITY PRICE</div>
+
+          <div class="price-grid">
+            <div class="row">
+              <div class="label">Original city price</div>
+              <div class="value" id="basePrice">0€</div>
+            </div>
+            <div class="row">
+              <div class="label">VAT (10%)</div>
+              <div class="value vat" id="vatPrice">0€</div>
+            </div>
+            <div class="row">
+              <div class="label">Price with tax</div>
+              <div class="value total" id="finalPrice">0€</div>
+            </div>
+            <div class="row">
+              <div class="label">Madrid price for this item</div>
+              <div class="value" id="otherCityPrice">0€</div>
+            </div>
+          </div>
+
+          <div class="small-actions">
+            <button class="btn green" id="addBtn">Add to cart</button>
+            <button class="btn secondary" id="copyItemBtn">Copy item line</button>
+          </div>
+
+          <div class="note">
+            Madrid is cheaper than Barcelona by about 15%. VAT is added on top after the city price.
+          </div>
+        </div>
+      </div>
+
+      <div class="cart">
+        <div class="cart-head">
+          <h2>Cart</h2>
+          <div class="city-badge" id="cartCount">0 items</div>
+        </div>
+
+        <div class="cart-list" id="cartList">
+          <div class="empty">No items in cart yet.</div>
+        </div>
+
+        <div class="totals">
+          <div class="row">
+            <div class="label">Subtotal</div>
+            <div class="value" id="subtotal">0€</div>
+          </div>
+          <div class="row">
+            <div class="label">Total VAT</div>
+            <div class="value vat" id="totalVat">0€</div>
+          </div>
+          <div class="row">
+            <div class="label">Grand total</div>
+            <div class="value total" id="grandTotal">0€</div>
+          </div>
+        </div>
+
+        <div class="small-actions">
+          <button class="btn green" id="copyCartBtn">Copy cart summary</button>
+          <button class="btn red" id="clearCartBtn">Clear cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
-    // 1. Your data pool (The "stuff" you're looking for)
-    const items = [
-        "Apple", "Apple Pie", "Banana", "Blueberry", "Burger", 
-        "Carrot", "Cherry", "Dragonfruit", "Eggplant", "Fig", 
-        "Grape", "Honeydew", "Ice Cream", "Jackfruit", "Kiwi", 
-        "Lemon", "Mango", "Nectarine", "Orange", "Papaya"
-    ];
+const rawBarcelona = `
+# Terrain
+Dirt - 1€
+Coarse Dirt - 2€
+Rooted Dirt - 2€
+Grass Block - 1€
+Podzol - 2€
+Mycelium - 6€
+Stone - 2€
+Cobblestone - 2€
+Moss Block - 6€
+Moss Carpet - 2€
+Clay - 5€
+Mud - 2€
+Packed Mud - 4€
+Gravel - 1€
+Sand - 2€
+Red Sand - 2€
+Snow Block - 3€
+Ice - 4€
+Packed Ice - 8€
+Blue Ice - 15€
+Obsidian - 10€
+Crying Obsidian - 14€
+Soul Sand - 3€
+Soul Soil - 3€
+Netherrack - 2€
+Glowstone - 8€
+End Stone - 4€
+Prismarine - 8€
+Prismarine Bricks - 10€
+Dark Prismarine - 10€
+Dripstone Block - 4€
+Pointed Dripstone - 3€
+Calcite - 5€
+Tuff - 3€
+Amethyst Block - 12€
+Reinforced Deepslate - 0€
 
-    const searchInput = document.getElementById('search-input');
-    const resultsList = document.getElementById('results-list');
+# Stone family
+Smooth Stone - 3€
+Andesite - 2€
+Polished Andesite - 5€
+Diorite - 2€
+Polished Diorite - 5€
+Granite - 2€
+Polished Granite - 5€
+Deepslate - 3€
+Cobbled Deepslate - 3€
+Polished Deepslate - 6€
+Deepslate Bricks - 7€
+Deepslate Tiles - 7€
+Stone Bricks - 4€
+Cracked Stone Bricks - 4€
+Mossy Stone Bricks - 5€
+Bricks - 6€
+Nether Bricks - 6€
+Red Nether Bricks - 8€
+Blackstone - 5€
+Polished Blackstone - 7€
+Polished Blackstone Bricks - 8€
+End Stone Bricks - 6€
+Sandstone - 4€
+Cut Sandstone - 5€
+Chiseled Sandstone - 5€
+Red Sandstone - 4€
+Cut Red Sandstone - 5€
+Chiseled Red Sandstone - 5€
+Quartz Block - 8€
+Smooth Quartz - 10€
+Quartz Pillar - 12€
+Purpur Block - 9€
+Purpur Pillar - 10€
+Sea Lantern - 15€
 
-    // 2. The "Input" event triggers every time a letter is typed
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase();
-        resultsList.innerHTML = ''; // Clear previous results
+# Wood
+Oak Log - 4€
+Spruce Log - 4€
+Birch Log - 4€
+Jungle Log - 5€
+Acacia Log - 5€
+Dark Oak Log - 5€
+Mangrove Log - 5€
+Cherry Log - 6€
+Bamboo Block - 4€
+Stripped Oak Log - 5€
+Stripped Spruce Log - 5€
+Stripped Birch Log - 5€
+Stripped Jungle Log - 6€
+Stripped Acacia Log - 6€
+Stripped Dark Oak Log - 6€
+Stripped Mangrove Log - 6€
+Stripped Cherry Log - 7€
+Oak Planks - 2€
+Spruce Planks - 2€
+Birch Planks - 2€
+Jungle Planks - 2€
+Acacia Planks - 2€
+Dark Oak Planks - 2€
+Mangrove Planks - 2€
+Cherry Planks - 3€
+Bamboo Planks - 2€
+Sticks - 1€
+Wooden Slab - 1€
+Wooden Stairs - 3€
+Wooden Fence - 3€
+Wooden Fence Gate - 4€
+Wooden Door - 5€
+Wooden Trapdoor - 4€
+Wooden Pressure Plate - 2€
+Wooden Button - 1€
+Wooden Sign - 2€
+Wooden Hanging Sign - 3€
+Wooden Boat - 5€
+Boat with Chest - 12€
+Leaves - 1€
+Sapling - 2€
+Azalea - 3€
+Flowering Azalea - 4€
+Vines - 2€
+Scaffolding - 8€
+Bamboo - 1€
+Bamboo Mosaic - 4€
+Bamboo Mosaic Slab - 2€
+Bamboo Mosaic Stairs - 6€
+Bamboo Fence - 3€
+Bamboo Door - 5€
+Bamboo Trapdoor - 4€
 
-        if (query.length > 0) {
-            // 3. Filter the list based on what the user typed
-            const filteredItems = items.filter(item => 
-                item.toLowerCase().includes(query)
-            );
+# Colored / decorative
+Wool - 4€
+Carpet - 2€
+Candle - 6€
+Banner - 8€
+Bed - 10€
+Concrete Powder - 4€
+Concrete - 8€
+Terracotta - 5€
+Glazed Terracotta - 8€
+Stained Glass - 5€
+Stained Glass Pane - 3€
+Glass - 3€
+Glass Pane - 2€
+Colored Shulker Box - 40€
 
-            // 4. Show results if any match
-            if (filteredItems.length > 0) {
-                resultsList.style.display = 'block';
-                filteredItems.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    // Fill input when a result is clicked
-                    li.onclick = () => {
-                        searchInput.value = item;
-                        resultsList.style.display = 'none';
-                    };
-                    resultsList.appendChild(li);
-                });
-            } else {
-                resultsList.style.display = 'none';
-            }
-        } else {
-            resultsList.style.display = 'none';
-        }
+# Utility / functional
+Crafting Table - 3€
+Furnace - 5€
+Blast Furnace - 15€
+Smoker - 15€
+Cartography Table - 12€
+Loom - 12€
+Smithing Table - 20€
+Stonecutter - 10€
+Enchantment Table - 40€
+Anvil - 35€
+Chipped Anvil - 25€
+Damaged Anvil - 15€
+Grindstone - 10€
+Barrel - 5€
+Chest - 5€
+Trapped Chest - 6€
+Ender Chest - 30€
+Shulker Box - 35€
+Hopper - 25€
+Dispenser - 15€
+Dropper - 10€
+Observer - 20€
+Comparator - 12€
+Repeater - 8€
+Piston - 15€
+Sticky Piston - 20€
+Lever - 2€
+Button - 1€
+Pressure Plate - 2€
+Daylight Sensor - 18€
+Bell - 25€
+Lectern - 15€
+Composter - 8€
+Beacon - 250€
+Conduit - 180€
+Respawn Anchor - 60€
+Lodestone - 50€
+Target Block - 12€
+Note Block - 8€
+Jukebox - 25€
+Music Disc - 15€
+Spore Blossom - 8€
+Honey Block - 10€
+Honeycomb Block - 12€
+Slime Block - 15€
+TNT - 30€
+Campfire - 10€
+Soul Campfire - 12€
+Sea Pickle - 6€
+Cauldron - 8€
+Lightning Rod - 15€
+
+# Redstone / transport
+Redstone Dust - 6€
+Redstone Torch - 4€
+Redstone Block - 25€
+Redstone Lamp - 12€
+Tripwire Hook - 5€
+Rail - 2€
+Powered Rail - 6€
+Detector Rail - 10€
+Activator Rail - 10€
+Minecart - 10€
+Minecart with Chest - 18€
+Minecart with Furnace - 18€
+Minecart with Hopper - 20€
+Minecart with TNT - 25€
+Sculk Sensor - 20€
+Calibrated Sculk Sensor - 25€
+
+# Ores / raw / blocks
+Coal - 4€
+Charcoal - 4€
+Coal Ore - 5€
+Deepslate Coal Ore - 5€
+Copper Ore - 6€
+Deepslate Copper Ore - 6€
+Copper Ingot - 5€
+Raw Copper - 3€
+Copper Block - 25€
+Iron Ore - 8€
+Deepslate Iron Ore - 8€
+Iron Nugget - 1€
+Raw Iron - 6€
+Iron Ingot - 8€
+Iron Block - 45€
+Gold Ore - 12€
+Deepslate Gold Ore - 12€
+Gold Nugget - 2€
+Raw Gold - 10€
+Gold Ingot - 15€
+Gold Block - 90€
+Lapis Lazuli - 8€
+Lapis Ore - 10€
+Deepslate Lapis Ore - 10€
+Redstone Ore - 8€
+Deepslate Redstone Ore - 8€
+Emerald Ore - 30€
+Deepslate Emerald Ore - 30€
+Emerald - 20€
+Diamond Ore - 50€
+Deepslate Diamond Ore - 50€
+Diamond - 40€
+Diamond Block - 200€
+Nether Quartz - 8€
+Nether Quartz Ore - 10€
+Nether Gold Ore - 10€
+Quartz - 8€
+Ancient Debris - 120€
+Netherite Scrap - 100€
+Netherite Ingot - 250€
+Netherite Block - 1200€
+Amethyst Shard - 6€
+Prismarine Shard - 8€
+Prismarine Crystal - 10€
+Glow Ink Sac - 8€
+Ink Sac - 3€
+Slime Ball - 6€
+Magma Cream - 8€
+Blaze Rod - 15€
+Blaze Powder - 10€
+Ender Pearl - 12€
+Ghast Tear - 18€
+Phantom Membrane - 12€
+Honey Bottle - 6€
+Honeycomb - 4€
+Raw Iron Block - 45€
+Raw Gold Block - 90€
+Raw Copper Block - 25€
+Dragon Breath - 150€
+Wither Skeleton Skull - 120€
+Shulker Shell - 40€
+Nether Star - 300€
+Dragon Egg - 500€
+Dragon Head - 180€
+Heart of the Sea - 60€
+Trident - 80€
+Elytra - 200€
+
+# Food / crops
+Wheat - 1€
+Wheat Seeds - 1€
+Carrot - 2€
+Potato - 1€
+Poisonous Potato - 1€
+Beetroot - 1€
+Beetroot Seeds - 1€
+Sugar Cane - 1€
+Melon Slice - 1€
+Pumpkin - 3€
+Pumpkin Pie - 5€
+Apple - 2€
+Sweet Berries - 2€
+Glow Berries - 3€
+Mushroom Stew - 5€
+Beetroot Soup - 4€
+Bread - 3€
+Baked Potato - 3€
+Raw Chicken - 3€
+Cooked Chicken - 5€
+Raw Beef - 4€
+Cooked Beef - 7€
+Raw Porkchop - 4€
+Cooked Porkchop - 7€
+Raw Mutton - 3€
+Cooked Mutton - 5€
+Raw Rabbit - 4€
+Cooked Rabbit - 6€
+Raw Cod - 3€
+Cooked Cod - 4€
+Raw Salmon - 4€
+Cooked Salmon - 5€
+Tropical Fish - 4€
+Pufferfish - 3€
+Cake - 20€
+Cookie - 2€
+Milk Bucket - 3€
+Golden Carrot - 25€
+Golden Apple - 35€
+Enchanted Golden Apple - 250€
+Dried Kelp - 2€
+Tea / Juice / Drink - 5€
+
+# Mob drops
+Leather - 4€
+String - 2€
+Feather - 2€
+Bone - 2€
+Arrow - 2€
+Gunpowder - 4€
+Rotten Flesh - 1€
+Spider Eye - 2€
+Rabbit Hide - 3€
+Rabbit Foot - 5€
+
+# Tools
+Wooden Pickaxe - 5€
+Wooden Axe - 5€
+Wooden Shovel - 4€
+Wooden Hoe - 4€
+Wooden Sword - 5€
+Stone Pickaxe - 8€
+Stone Axe - 8€
+Stone Shovel - 7€
+Stone Hoe - 7€
+Stone Sword - 8€
+Iron Pickaxe - 20€
+Iron Axe - 20€
+Iron Shovel - 18€
+Iron Hoe - 18€
+Iron Sword - 20€
+Diamond Pickaxe - 50€
+Diamond Axe - 50€
+Diamond Shovel - 45€
+Diamond Hoe - 45€
+Diamond Sword - 50€
+Netherite Pickaxe - 150€
+Netherite Axe - 150€
+Netherite Shovel - 140€
+Netherite Hoe - 140€
+Netherite Sword - 150€
+Shears - 12€
+Fishing Rod - 10€
+Flint and Steel - 8€
+Compass - 20€
+Clock - 15€
+Map - 10€
+Lead - 10€
+Carrot on a Stick - 8€
+Warped Fungus on a Stick - 8€
+Saddle - 30€
+Shield - 20€
+Totem of Undying - 120€
+Elytra Repair - 50€
+
+# Armor
+Leather Helmet - 6€
+Leather Chestplate - 8€
+Leather Leggings - 7€
+Leather Boots - 5€
+Chain Helmet - 12€
+Chain Chestplate - 15€
+Chain Leggings - 14€
+Chain Boots - 10€
+Iron Helmet - 20€
+Iron Chestplate - 25€
+Iron Leggings - 22€
+Iron Boots - 15€
+Diamond Helmet - 50€
+Diamond Chestplate - 60€
+Diamond Leggings - 55€
+Diamond Boots - 35€
+Netherite Helmet - 120€
+Netherite Chestplate - 140€
+Netherite Leggings - 130€
+Netherite Boots - 90€
+Leather Horse Armor - 20€
+Iron Horse Armor - 40€
+Golden Horse Armor - 45€
+Diamond Horse Armor - 80€
+
+# Transport / city life
+Boat - 5€
+Local Metro Ticket - 8€
+Local Bus Ticket - 5€
+Taxi Ride - 15€
+Barcelona to Madrid Train Ticket - 150€
+Airport Trip - 100€
+Parking Spot - 25€
+Horse - 50€
+Donkey - 60€
+Mule - 70€
+Llama - 70€
+Strider - 80€
+
+# Property / business
+Small House - 400€
+Medium House - 800€
+Big House - 1500€
+Mansion - 3000€
+City Plot - 200€
+Shop Space - 500€
+Office Space - 600€
+Tower Floor - 700€
+Apartment Rent - 40€
+Storefront Rent - 60€
+Small Shop License - 100€
+Restaurant License - 120€
+Hotel License - 150€
+Bank License - 300€
+Construction Company License - 200€
+Transport Company License - 200€
+`;
+
+function parsePrices(raw){
+  const map = new Map();
+  raw.split('\n').forEach(line => {
+    const t = line.trim();
+    if(!t || t.startsWith('#')) return;
+    const parts = t.split(' - ');
+    if(parts.length < 2) return;
+    const name = parts[0].trim();
+    const value = parts[1].replace('€','').trim();
+    const price = Number(value);
+    if (!Number.isFinite(price)) return;
+    map.set(name, price);
+  });
+  return map;
+}
+
+const bcnMap = parsePrices(rawBarcelona);
+
+const aliasMap = new Map([
+  ['dia', ['Diamond', 'Diamond Block', 'Diamond Sword', 'Diamond Pickaxe', 'Diamond Armor', 'Diamond Helmet', 'Diamond Chestplate', 'Diamond Leggings', 'Diamond Boots', 'Diamond Ore', 'Deepslate Diamond Ore']],
+  ['iron', ['Iron Ingot', 'Iron Block', 'Iron Ore', 'Deepslate Iron Ore', 'Iron Sword', 'Iron Pickaxe', 'Iron Armor', 'Iron Helmet', 'Iron Chestplate', 'Iron Leggings', 'Iron Boots']],
+  ['gold', ['Gold Ingot', 'Gold Block', 'Gold Ore', 'Deepslate Gold Ore', 'Golden Apple', 'Golden Carrot', 'Golden Horse Armor']],
+  ['coal', ['Coal', 'Coal Ore', 'Deepslate Coal Ore']],
+  ['red', ['Redstone Dust', 'Redstone Block', 'Redstone Lamp', 'Redstone Torch', 'Red Sand', 'Red Nether Bricks', 'Redstone Ore', 'Deepslate Redstone Ore']],
+  ['wood', ['Oak Log', 'Spruce Log', 'Birch Log', 'Jungle Log', 'Acacia Log', 'Dark Oak Log', 'Mangrove Log', 'Cherry Log', 'Oak Planks', 'Spruce Planks', 'Birch Planks']],
+  ['log', ['Oak Log', 'Spruce Log', 'Birch Log', 'Jungle Log', 'Acacia Log', 'Dark Oak Log', 'Mangrove Log', 'Cherry Log']],
+  ['plank', ['Oak Planks', 'Spruce Planks', 'Birch Planks', 'Jungle Planks', 'Acacia Planks', 'Dark Oak Planks', 'Mangrove Planks', 'Cherry Planks', 'Bamboo Planks']],
+  ['food', ['Bread', 'Cake', 'Cooked Beef', 'Cooked Chicken', 'Cooked Porkchop', 'Cooked Salmon', 'Apple', 'Carrot', 'Golden Apple', 'Golden Carrot']],
+  ['cook', ['Cooked Chicken', 'Cooked Beef', 'Cooked Porkchop', 'Cooked Salmon', 'Cooked Cod', 'Cooked Mutton', 'Cooked Rabbit', 'Cooked Cod', 'Cooked Salmon', 'Cooking/food']],
+  ['rail', ['Rail', 'Powered Rail', 'Detector Rail', 'Activator Rail', 'Minecart', 'Minecart with Chest', 'Minecart with Furnace', 'Minecart with Hopper', 'Minecart with TNT']],
+  ['metro', ['Local Metro Ticket', 'Rail', 'Powered Rail', 'Minecart', 'Detector Rail', 'Activator Rail']],
+  ['train', ['Local Metro Ticket', 'Barcelona to Madrid Train Ticket', 'Rail', 'Powered Rail', 'Detector Rail', 'Activator Rail', 'Minecart']],
+  ['bus', ['Local Bus Ticket']],
+  ['taxi', ['Taxi Ride']],
+  ['shop', ['Shop Space', 'Small Shop License', 'Storefront Rent', 'Chest', 'Barrel']],
+  ['bank', ['Bank License', 'Ender Chest', 'Chest', 'Shulker Box', 'Gold Block', 'Iron Block']],
+  ['house', ['Small House', 'Medium House', 'Big House', 'Mansion', 'Apartment Rent']],
+  ['ore', ['Diamond Ore', 'Deepslate Diamond Ore', 'Emerald Ore', 'Deepslate Emerald Ore', 'Iron Ore', 'Gold Ore', 'Copper Ore', 'Coal Ore', 'Lapis Ore', 'Redstone Ore']],
+]);
+
+const citySelect = document.getElementById('citySelect');
+const searchInput = document.getElementById('searchInput');
+const suggestions = document.getElementById('suggestions');
+const itemName = document.getElementById('itemName');
+const itemCity = document.getElementById('itemCity');
+const basePrice = document.getElementById('basePrice');
+const vatPrice = document.getElementById('vatPrice');
+const finalPrice = document.getElementById('finalPrice');
+const otherCityPrice = document.getElementById('otherCityPrice');
+const cartList = document.getElementById('cartList');
+const cartCount = document.getElementById('cartCount');
+const subtotalEl = document.getElementById('subtotal');
+const totalVatEl = document.getElementById('totalVat');
+const grandTotalEl = document.getElementById('grandTotal');
+
+let currentItem = null;
+let cart = [];
+
+function roundMoney(n){
+  return Math.max(0, Math.floor(n + 1e-9));
+}
+function madridPrice(bcn){
+  if (bcn <= 0) return 0;
+  return Math.max(1, roundMoney(bcn * 0.85));
+}
+function cityPrice(item, city){
+  const b = bcnMap.get(item) || 0;
+  return city === 'Barcelona' ? b : madridPrice(b);
+}
+function allItems(){
+  return [...bcnMap.keys()].sort((a,b) => a.localeCompare(b));
+}
+function normalize(s){
+  return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+function suggestionScore(name, q){
+  const n = normalize(name);
+  if (n === q) return 0;
+  if (n.startsWith(q)) return 1;
+  if (n.includes(q)) return 2;
+  return 9;
+}
+function getMatches(query){
+  const q = normalize(query);
+  if (!q) return [];
+  const items = allItems();
+  const results = new Set();
+
+  for (const item of items){
+    const n = normalize(item);
+    if (n.includes(q)) results.add(item);
+  }
+
+  for (const [key, list] of aliasMap.entries()){
+    const nk = normalize(key);
+    if (nk.includes(q) || q.includes(nk)){
+      list.forEach(x => results.add(x));
+    }
+  }
+
+  return [...results]
+    .filter(x => bcnMap.has(x))
+    .sort((a,b) => suggestionScore(a,q) - suggestionScore(b,q) || a.localeCompare(b))
+    .slice(0, 12);
+}
+
+function formatEuro(n){
+  return `${Number(n).toFixed(0)}€`;
+}
+
+function selectItem(name){
+  const city = citySelect.value;
+  const bcn = bcnMap.get(name) || 0;
+  const cityBase = cityPrice(name, city);
+  const vat = cityBase * 0.10;
+  const total = cityBase + vat;
+  const other = city === 'Barcelona' ? madridPrice(bcn) : bcn;
+
+  currentItem = name;
+  itemName.textContent = name;
+  itemCity.textContent = `${city} price`;
+  basePrice.textContent = formatEuro(cityBase);
+  vatPrice.textContent = formatEuro(vat);
+  finalPrice.textContent = formatEuro(total);
+  otherCityPrice.textContent = formatEuro(other);
+  suggestions.style.display = 'none';
+  searchInput.value = name;
+}
+
+function renderSuggestions(){
+  const q = searchInput.value.trim();
+  const matches = getMatches(q);
+  suggestions.innerHTML = '';
+
+  if (!q || matches.length === 0){
+    suggestions.style.display = 'none';
+    return;
+  }
+
+  const city = citySelect.value;
+  matches.forEach(name => {
+    const bcn = bcnMap.get(name) || 0;
+    const cityBase = cityPrice(name, city);
+    const madrid = madridPrice(bcn);
+
+    const row = document.createElement('div');
+    row.className = 's-item';
+    row.innerHTML = `
+      <div>
+        <div class="s-name">${name}</div>
+        <div class="s-meta">Barcelona ${formatEuro(bcn)} • Madrid ${formatEuro(madrid)}</div>
+      </div>
+      <div class="s-price">${formatEuro(cityBase)}</div>
+    `;
+    row.addEventListener('click', () => selectItem(name));
+    suggestions.appendChild(row);
+  });
+
+  suggestions.style.display = 'block';
+}
+
+function updateCart(){
+  cartList.innerHTML = '';
+  if (cart.length === 0){
+    cartList.innerHTML = '<div class="empty">No items in cart yet.</div>';
+  }
+
+  let subtotal = 0;
+  let vatTotal = 0;
+
+  cart.forEach((item, idx) => {
+    subtotal += item.base;
+    vatTotal += item.vat;
+
+    const el = document.createElement('div');
+    el.className = 'cart-item';
+    el.innerHTML = `
+      <div class="cart-item-top">
+        <div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-city">${item.city}</div>
+        </div>
+        <button class="remove" aria-label="Remove item">×</button>
+      </div>
+      <div class="cart-mini">
+        <div>Base: ${formatEuro(item.base)}</div>
+        <div>VAT: ${formatEuro(item.vat)}</div>
+        <div>Total: ${formatEuro(item.total)}</div>
+      </div>
+    `;
+    el.querySelector('.remove').addEventListener('click', () => {
+      cart.splice(idx, 1);
+      updateCart();
     });
+    cartList.appendChild(el);
+  });
 
-    // Hide list when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!document.querySelector('.search-container').contains(e.target)) {
-            resultsList.style.display = 'none';
-        }
-    });
+  const grand = subtotal + vatTotal;
+  cartCount.textContent = `${cart.length} items`;
+  subtotalEl.textContent = formatEuro(subtotal);
+  totalVatEl.textContent = formatEuro(vatTotal);
+  grandTotalEl.textContent = formatEuro(grand);
+}
+
+function addCurrentToCart(){
+  if (!currentItem) return;
+  const city = citySelect.value;
+  const base = cityPrice(currentItem, city);
+  const vat = base * 0.10;
+  cart.push({
+    name: currentItem,
+    city,
+    base,
+    vat,
+    total: base + vat
+  });
+  updateCart();
+}
+
+function copyText(text){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', addCurrentToCart);
+document.getElementById('clearCartBtn').addEventListener('click', () => {
+  cart = [];
+  updateCart();
+});
+document.getElementById('copyItemBtn').addEventListener('click', () => {
+  if (!currentItem) return;
+  const city = citySelect.value;
+  const base = cityPrice(currentItem, city);
+  const vat = base * 0.10;
+  const total = base + vat;
+  copyText(`${currentItem} | ${city} | Base ${formatEuro(base)} | VAT ${formatEuro(vat)} | Total ${formatEuro(total)}`);
+});
+document.getElementById('copyCartBtn').addEventListener('click', () => {
+  const lines = cart.map(x => `${x.name} | ${x.city} | Base ${formatEuro(x.base)} | VAT ${formatEuro(x.vat)} | Total ${formatEuro(x.total)}`);
+  const subtotal = cart.reduce((s,x)=>s+x.base,0);
+  const vat = cart.reduce((s,x)=>s+x.vat,0);
+  const grand = subtotal + vat;
+  copyText(`CART SUMMARY\n${lines.join('\n')}\n\nSubtotal: ${formatEuro(subtotal)}\nVAT: ${formatEuro(vat)}\nGrand Total: ${formatEuro(grand)}`);
+});
+document.getElementById('clearSearchBtn').addEventListener('click', () => {
+  searchInput.value = '';
+  suggestions.style.display = 'none';
+  searchInput.focus();
+});
+searchInput.addEventListener('input', renderSuggestions);
+searchInput.addEventListener('focus', renderSuggestions);
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){
+    const matches = getMatches(searchInput.value.trim());
+    if (matches.length) selectItem(matches[0]);
+  }
+});
+citySelect.addEventListener('change', () => {
+  if (currentItem) selectItem(currentItem);
+  renderSuggestions();
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.searchbox')) suggestions.style.display = 'none';
+});
+
+updateCart();
 </script>
-
 </body>
 </html>
