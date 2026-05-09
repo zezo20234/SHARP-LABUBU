@@ -1,1 +1,104 @@
-the labubu has ended forever and if zezo tries to bring it back its not real its just fake dont lsiten to it no matter what zezo says
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Search Suggestions</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f4f4f9; }
+        .search-container { position: relative; width: 300px; }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        #results-list {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #results-list li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #results-list li:hover { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <input type="text" id="search-input" placeholder="Type a letter (e.g., 'a', 'j')...">
+    <ul id="results-list"></ul>
+</div>
+
+<script>
+    // 1. Your data pool (The "stuff" you're looking for)
+    const items = [
+        "Apple", "Apple Pie", "Banana", "Blueberry", "Burger", 
+        "Carrot", "Cherry", "Dragonfruit", "Eggplant", "Fig", 
+        "Grape", "Honeydew", "Ice Cream", "Jackfruit", "Kiwi", 
+        "Lemon", "Mango", "Nectarine", "Orange", "Papaya"
+    ];
+
+    const searchInput = document.getElementById('search-input');
+    const resultsList = document.getElementById('results-list');
+
+    // 2. The "Input" event triggers every time a letter is typed
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        resultsList.innerHTML = ''; // Clear previous results
+
+        if (query.length > 0) {
+            // 3. Filter the list based on what the user typed
+            const filteredItems = items.filter(item => 
+                item.toLowerCase().includes(query)
+            );
+
+            // 4. Show results if any match
+            if (filteredItems.length > 0) {
+                resultsList.style.display = 'block';
+                filteredItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    // Fill input when a result is clicked
+                    li.onclick = () => {
+                        searchInput.value = item;
+                        resultsList.style.display = 'none';
+                    };
+                    resultsList.appendChild(li);
+                });
+            } else {
+                resultsList.style.display = 'none';
+            }
+        } else {
+            resultsList.style.display = 'none';
+        }
+    });
+
+    // Hide list when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!document.querySelector('.search-container').contains(e.target)) {
+            resultsList.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>
