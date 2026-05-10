@@ -3,460 +3,5669 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Minecraft Economy Market</title>
-
+<title>Minecraft Economy Market - Full Item List</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
+:root {
+  --bg: #0b1220;
+  --panel: rgba(15, 23, 42, 0.88);
+  --panel2: rgba(30, 41, 59, 0.95);
+  --border: rgba(255,255,255,.10);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #38bdf8;
+  --accent: #22c55e;
+  --danger: #ef4444;
+  --tax: #fbbf24;
+  --shadow: 0 18px 50px rgba(0,0,0,.35);
 }
-
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',sans-serif}
 body{
-  background:#0f172a;
-  color:white;
   min-height:100vh;
-  padding:20px;
+  background:
+    radial-gradient(circle at top right, #1e293b, transparent 38%),
+    radial-gradient(circle at bottom left, #0f172a, transparent 35%),
+    var(--bg);
+  color:var(--text);
+  padding:24px;
 }
-
+header{
+  max-width:1280px;
+  margin:0 auto 20px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
 h1{
-  text-align:center;
-  margin-bottom:20px;
-  font-size:38px;
+  font-size:1.9rem;
+  background:linear-gradient(90deg, #38bdf8, #818cf8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
-
-.main{
-  max-width:1200px;
-  margin:auto;
-  display:grid;
-  grid-template-columns:1.2fr .8fr;
-  gap:20px;
+.sub{color:var(--muted);font-size:.95rem;margin-top:4px;line-height:1.35}
+.city-box{
+  min-width:220px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
 }
-
-.panel{
-  background:#111827;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:20px;
-  padding:20px;
+.pill{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:.78rem;
+  background:rgba(56,189,248,.14);
+  color:var(--primary);
 }
-
-.city-select{
-  margin-bottom:20px;
-}
-
-select,input{
+select,input[type="text"],input[type="number"]{
   width:100%;
-  background:#1e293b;
-  border:none;
-  color:white;
-  padding:14px;
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--border);
   border-radius:12px;
-  font-size:16px;
+  padding:12px 14px;
+  outline:none;
+  font-size:1rem;
 }
-
+select:focus,input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(56,189,248,.12);
+}
+.layout{
+  max-width:1280px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.4fr .9fr;
+  gap:18px;
+  align-items:start;
+}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:18px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
 .search-wrap{
   position:relative;
+  z-index:30;
+  overflow:visible;
 }
-
 .results{
   position:absolute;
-  top:105%;
   left:0;
-  width:100%;
-  background:#020617;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
+  right:0;
+  top:calc(100% + 8px);
+  background:rgba(2, 6, 23, .98);
+  border:1px solid var(--border);
+  border-radius:14px;
   overflow:hidden;
+  z-index:9999;
   display:none;
-  z-index:100;
-  max-height:400px;
+  max-height:320px;
   overflow-y:auto;
+  box-shadow:0 20px 40px rgba(0,0,0,.45);
 }
-
 .result{
-  padding:14px;
-  border-bottom:1px solid rgba(255,255,255,.05);
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
   cursor:pointer;
-  transition:.15s;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
 }
-
-.result:hover{
-  background:#1e293b;
-}
-
-.result-name{
-  font-weight:600;
-}
-
-.result-price{
-  color:#38bdf8;
-  margin-top:4px;
-  font-size:14px;
-}
-
-.item-box{
-  margin-top:20px;
-  background:#0b1220;
-  border-radius:18px;
-  padding:18px;
-  display:none;
-}
-
-.item-box.active{
-  display:block;
-}
-
-.item-title{
-  font-size:28px;
+.result:hover{background:rgba(56,189,248,.14)}
+.result small{color:var(--muted);display:block;margin-top:2px}
+.detail{margin-top:16px;display:none}
+.detail.active{display:block}
+.detail-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:start;
   margin-bottom:10px;
 }
-
-.price{
-  color:#22c55e;
-  font-size:22px;
-  font-weight:700;
+.detail h2{font-size:1.35rem}
+.kv{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px 12px;
+  margin-top:14px;
 }
-
-.vat{
-  color:#facc15;
-  margin-top:6px;
-}
-
-.recommended{
-  margin-top:16px;
-  background:#1e293b;
-  padding:14px;
-  border-radius:14px;
-}
-
+.k{color:var(--muted)}
+.v{font-weight:600}
+.v.tax{color:var(--tax)}
+.v.good{color:var(--accent)}
 .qty-row{
-  margin-top:18px;
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:1fr 120px;
+  gap:10px;
+  align-items:end;
 }
-
-button{
-  margin-top:15px;
+.btn{
+  margin-top:14px;
   width:100%;
+  background:var(--primary);
+  color:#00111a;
   border:none;
-  background:#38bdf8;
-  color:black;
-  font-weight:700;
-  padding:14px;
   border-radius:14px;
+  padding:13px 16px;
+  font-weight:700;
   cursor:pointer;
-  font-size:16px;
 }
-
+.btn:hover{filter:brightness(1.05)}
+.btn-secondary{
+  background:rgba(148,163,184,.14);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+.cart-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+.cart-list{
+  max-height:60vh;
+  overflow:auto;
+  padding-right:4px;
+}
 .cart-item{
-  padding:12px 0;
+  padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,.06);
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  align-items:center;
 }
-
-.cart-item-name{
-  font-weight:600;
+.cart-item:last-child{border-bottom:none}
+.cart-item .name{font-weight:600}
+.cart-item .meta{color:var(--muted);font-size:.82rem;margin-top:2px}
+.cart-right{text-align:right}
+.cart-right .line{font-weight:700}
+.cart-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:6px;
+  flex-wrap:wrap;
 }
-
-.cart-item-meta{
-  color:#94a3b8;
-  font-size:14px;
+.tiny{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  cursor:pointer;
 }
-
-.total{
-  margin-top:20px;
-  padding-top:20px;
-  border-top:2px solid rgba(255,255,255,.08);
+.tiny.red{color:#fecaca;border-color:rgba(239,68,68,.35)}
+.totals{
+  margin-top:14px;
+  padding-top:12px;
+  border-top:2px solid var(--border);
 }
-
 .total-row{
   display:flex;
   justify-content:space-between;
-  margin-bottom:10px;
+  gap:10px;
+  margin-bottom:6px;
 }
-
 .grand{
-  color:#38bdf8;
-  font-size:24px;
-  font-weight:700;
+  font-size:1.35rem;
+  font-weight:800;
+  color:var(--primary);
 }
-
-@media(max-width:900px){
-  .main{
-    grid-template-columns:1fr;
-  }
+.hint{
+  color:var(--muted);
+  font-size:.88rem;
+  margin-top:8px;
+  line-height:1.4;
+}
+.big-note{
+  margin-top:14px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(34,197,94,.08);
+  border:1px solid rgba(34,197,94,.18);
+  color:#d1fae5;
+  font-size:.9rem;
+}
+@media (max-width: 960px){
+  .layout{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<header>
+  <div>
+    <h1>Minecraft Market Explorer</h1>
+    <div class="sub">Search anything, see city price, VAT, and recommended selling price. Barcelona is the base city and Madrid is cheaper.</div>
+  </div>
+  <div class="city-box">
+    <div class="pill" style="margin-bottom:8px;">City</div>
+    <select id="citySelect">
+      <option value="Barcelona">Barcelona</option>
+      <option value="Madrid">Madrid</option>
+    </select>
+  </div>
+</header>
 
-<h1>Minecraft Economy Market</h1>
+<div class="layout">
+  <section class="panel" style="position:relative; overflow:visible;">
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="Type something like dia, bread, concrete, iron..." autocomplete="off" />
+      <div id="results" class="results"></div>
+    </div>
 
-<div class="main">
+    <div id="detail" class="detail panel" style="margin-top:18px; background: rgba(255,255,255,0.03);">
+      <div class="detail-head">
+        <div>
+          <h2 id="itemName">Choose an item</h2>
+          <div id="itemCategory" class="sub">Search an item to see price</div>
+        </div>
+        <div class="pill" id="itemUnitPill">Unit</div>
+      </div>
 
-<div class="panel">
+      <div class="kv">
+        <div class="k">City buy price</div><div class="v" id="cityPrice">0€</div>
+        <div class="k">With 10% VAT</div><div class="v tax" id="cityPriceVat">0€</div>
 
-<div class="city-select">
-<select id="city">
-<option>Barcelona</option>
-<option>Madrid</option>
-</select>
-</div>
+        <div class="k">Recommended sell price in Barcelona</div><div class="v good" id="sellBarcelona">0€</div>
+        <div class="k">Recommended sell price in Madrid</div><div class="v good" id="sellMadrid">0€</div>
 
-<div class="search-wrap">
-<input type="text" id="search" placeholder="Search item... Example: dia, iron, bread"/>
-<div class="results" id="results"></div>
-</div>
+        <div class="k">Quantity type</div><div class="v" id="qtyType">1 item</div>
+        <div class="k">Selected quantity</div><div class="v" id="selectedQty">1</div>
+      </div>
 
-<div class="item-box" id="itemBox">
+      <div class="qty-row">
+        <div>
+          <div class="sub" id="qtyLabel">Quantity</div>
+          <input id="qtyInput" type="number" min="1" step="1" value="1" />
+        </div>
+        <div>
+          <div class="sub">Quick step</div>
+          <button class="btn btn-secondary" id="resetQtyBtn" type="button">Reset to 1</button>
+        </div>
+      </div>
 
-<div class="item-title" id="itemName"></div>
+      <button class="btn" id="addBtn" type="button">ADD TO CART</button>
 
-<div class="price" id="price"></div>
+      <div class="big-note" id="itemHint">
+        Tip: search works with short letters too, like <b>dia</b> for diamond or <b>conc</b> for concrete.
+      </div>
+    </div>
+  </section>
 
-<div class="vat" id="vat"></div>
+  <aside class="panel">
+    <div class="cart-head">
+      <div>
+        <div style="font-weight:700; font-size:1.1rem;">Cart</div>
+        <div class="sub" id="cartCount">0 items</div>
+      </div>
+      <div class="pill">10% VAT</div>
+    </div>
 
-<div style="margin-top:12px;" id="unit"></div>
+    <div id="cartList" class="cart-list"></div>
 
-<div class="recommended">
-<div><b>Recommended Selling Price:</b></div>
-<div id="recommended"></div>
-</div>
+    <div class="totals">
+      <div class="total-row"><span class="k">Subtotal</span><span id="subtotal">0.00€</span></div>
+      <div class="total-row"><span class="k">VAT</span><span id="vat" class="v tax">0.00€</span></div>
+      <div class="total-row grand"><span>Total</span><span id="grand">0.00€</span></div>
+    </div>
 
-<div class="qty-row">
-<input type="number" id="qty" min="1" value="1">
-</div>
-
-<button id="addBtn">ADD TO CART</button>
-
-</div>
-
-</div>
-
-<div class="panel">
-
-<h2>Cart</h2>
-
-<div id="cart"></div>
-
-<div class="total">
-
-<div class="total-row">
-<div>Subtotal</div>
-<div id="subtotal">0€</div>
-</div>
-
-<div class="total-row">
-<div>VAT</div>
-<div id="vatTotal">0€</div>
-</div>
-
-<div class="total-row grand">
-<div>Total</div>
-<div id="grand">0€</div>
-</div>
-
-</div>
-
-</div>
-
+    <div class="hint">Common blocks are sold by stack. Rare items like diamond, tools, armor, and special items are sold per piece.</div>
+  </aside>
 </div>
 
 <script>
-
-const VAT = 0.10;
+const VAT_RATE = 0.10;
+const MADRID_DISCOUNT = 0.85;
 
 const items = [
-
-{name:"Diamond",barca:45,madrid:34,unit:"1 diamond",sellB:52,sellM:40},
-{name:"Diamond Block",barca:390,madrid:320,unit:"1 block",sellB:430,sellM:360},
-{name:"Iron Ingot",barca:8,madrid:6,unit:"1 ingot",sellB:10,sellM:8},
-{name:"Gold Ingot",barca:15,madrid:12,unit:"1 ingot",sellB:18,sellM:15},
-{name:"Emerald",barca:20,madrid:16,unit:"1 emerald",sellB:24,sellM:20},
-{name:"Bread",barca:3,madrid:2,unit:"1 bread",sellB:4,sellM:3},
-{name:"Cooked Beef",barca:7,madrid:5,unit:"1 steak",sellB:9,sellM:7},
-{name:"Cooked Chicken",barca:5,madrid:4,unit:"1 chicken",sellB:7,sellM:5},
-{name:"Concrete",barca:8,madrid:6,unit:"Stack of 64",sellB:11,sellM:9},
-{name:"Glass",barca:3,madrid:2,unit:"Stack of 64",sellB:5,sellM:4},
-{name:"Oak Planks",barca:2,madrid:1,unit:"Stack of 64",sellB:4,sellM:3},
-{name:"Stone",barca:2,madrid:1,unit:"Stack of 64",sellB:4,sellM:3},
-{name:"Cobblestone",barca:2,madrid:1,unit:"Stack of 64",sellB:4,sellM:3},
-{name:"Iron Pickaxe",barca:20,madrid:17,unit:"1 pickaxe",sellB:25,sellM:21},
-{name:"Diamond Pickaxe",barca:50,madrid:42,unit:"1 pickaxe",sellB:60,sellM:50},
-{name:"Netherite Pickaxe",barca:150,madrid:127,unit:"1 pickaxe",sellB:175,sellM:145},
-{name:"Cake",barca:20,madrid:17,unit:"1 cake",sellB:25,sellM:20},
-{name:"Apple",barca:2,madrid:1,unit:"1 apple",sellB:3,sellM:2},
-{name:"Carrot",barca:2,madrid:1,unit:"1 carrot",sellB:3,sellM:2},
-{name:"Potato",barca:1,madrid:1,unit:"1 potato",sellB:2,sellM:2},
-{name:"Pumpkin Pie",barca:5,madrid:4,unit:"1 pie",sellB:7,sellM:5},
-{name:"Taxi Ride",barca:15,madrid:12,unit:"1 ride",sellB:18,sellM:15},
-{name:"Metro Ticket",barca:8,madrid:6,unit:"1 ticket",sellB:10,sellM:8},
-{name:"Train Ticket",barca:150,madrid:127,unit:"1 ticket",sellB:170,sellM:145},
-{name:"Small House",barca:400,madrid:340,unit:"1 house",sellB:450,sellM:390},
-{name:"Mansion",barca:3000,madrid:2550,unit:"1 mansion",sellB:3400,sellM:2900},
-{name:"Beacon",barca:250,madrid:212,unit:"1 beacon",sellB:290,sellM:240},
-{name:"Netherite Ingot",barca:250,madrid:212,unit:"1 ingot",sellB:290,sellM:240},
-{name:"Elytra",barca:200,madrid:170,unit:"1 elytra",sellB:240,sellM:200},
-{name:"Shulker Box",barca:35,madrid:29,unit:"1 shulker",sellB:42,sellM:35}
-
+  {
+    "name": "Dirt",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Coarse Dirt",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Rooted Dirt",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Grass Block",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Podzol",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Mycelium",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Stone",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Cobblestone",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Moss Block",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Moss Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Clay",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Mud",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Packed Mud",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Gravel",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Sand",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Red Sand",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Snow Block",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Ice",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Packed Ice",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Blue Ice",
+    "buy": 15,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Obsidian",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Crying Obsidian",
+    "buy": 14,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Soul Sand",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Soul Soil",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Netherrack",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Glowstone",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "End Stone",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Prismarine",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Prismarine Bricks",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Dark Prismarine",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Dripstone Block",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Pointed Dripstone",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Calcite",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Tuff",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Amethyst Block",
+    "buy": 12,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Smooth Stone",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Andesite",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Andesite",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Diorite",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Diorite",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Granite",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Granite",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Deepslate",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Cobbled Deepslate",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Deepslate",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Deepslate Bricks",
+    "buy": 7,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Deepslate Tiles",
+    "buy": 7,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Stone Bricks",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Cracked Stone Bricks",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Mossy Stone Bricks",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Bricks",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Nether Bricks",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Red Nether Bricks",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Blackstone",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Blackstone",
+    "buy": 7,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Blackstone Bricks",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "End Stone Bricks",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Sandstone",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Cut Sandstone",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Chiseled Sandstone",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Red Sandstone",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Cut Red Sandstone",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Chiseled Red Sandstone",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Quartz Block",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Smooth Quartz",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Quartz Pillar",
+    "buy": 12,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Purpur Block",
+    "buy": 9,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Purpur Pillar",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Sea Lantern",
+    "buy": 15,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Reinforced Deepslate",
+    "buy": 0,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Magma Block",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Basalt",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Polished Basalt",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Bone Block",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Glow Lichen",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Spore Blossom",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Slime Block",
+    "buy": 15,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Honey Block",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Honeycomb Block",
+    "buy": 12,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Bee Nest",
+    "buy": 15,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Beehive",
+    "buy": 18,
+    "unit": "stack of 64",
+    "category": "Blocks"
+  },
+  {
+    "name": "Coal",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Charcoal",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Raw Copper",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Copper Ingot",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Copper Block",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Raw Iron",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Iron Ingot",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Iron Block",
+    "buy": 45,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Iron Nugget",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Raw Gold",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Gold Ingot",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Gold Block",
+    "buy": 90,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Gold Nugget",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Lapis Lazuli",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Redstone Dust",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Emerald",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Diamond",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Nether Quartz",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Quartz",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Ancient Debris",
+    "buy": 120,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Netherite Scrap",
+    "buy": 100,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Netherite Ingot",
+    "buy": 250,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Amethyst Shard",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Prismarine Shard",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Prismarine Crystal",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Glow Ink Sac",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Ink Sac",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Slime Ball",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Magma Cream",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Blaze Rod",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Blaze Powder",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Ender Pearl",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Ghast Tear",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Phantom Membrane",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Honeycomb",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Honey Bottle",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Nether Wart",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Wither Skeleton Skull",
+    "buy": 120,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Dragon Breath",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Heart of the Sea",
+    "buy": 60,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Nether Star",
+    "buy": 300,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Dragon Egg",
+    "buy": 500,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Dragon Head",
+    "buy": 180,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Shulker Shell",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Trident",
+    "buy": 80,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Conduit",
+    "buy": 180,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Beacon",
+    "buy": 250,
+    "unit": "1 item",
+    "category": "Valuables"
+  },
+  {
+    "name": "Crafting Table",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Furnace",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Blast Furnace",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Smoker",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Cartography Table",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Loom",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Smithing Table",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Stonecutter",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Enchantment Table",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Anvil",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Chipped Anvil",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Damaged Anvil",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Grindstone",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Barrel",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Chest",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Trapped Chest",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Ender Chest",
+    "buy": 30,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Colored Shulker Box",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Hopper",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Dispenser",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Dropper",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Observer",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Comparator",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Repeater",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Piston",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Sticky Piston",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Lever",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Pressure Plate",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Daylight Sensor",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Bell",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Lectern",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Composter",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Target Block",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Note Block",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Jukebox",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Music Disc",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Campfire",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Soul Campfire",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Cauldron",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Lightning Rod",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Respawn Anchor",
+    "buy": 60,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Lodestone",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Item Frame",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Glow Item Frame",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Armor Stand",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Torch",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Redstone Torch",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Lantern",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Soul Lantern",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Sea Pickle",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Tripwire Hook",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Redstone Block",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Redstone Lamp",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Rail",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Powered Rail",
+    "buy": 6,
+    "unit": "stack of 32",
+    "category": "Utilities"
+  },
+  {
+    "name": "Detector Rail",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Activator Rail",
+    "buy": 10,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Minecart",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Minecart with Chest",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Minecart with Furnace",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Minecart with Hopper",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Minecart with TNT",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Sculk Sensor",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Calibrated Sculk Sensor",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Scaffolding",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Bookshelf",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Utilities"
+  },
+  {
+    "name": "Chiseled Bookshelf",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Utilities"
+  },
+  {
+    "name": "Oak Log",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Oak Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Oak Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Oak Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Spruce Log",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Spruce Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Spruce Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Spruce Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Birch Log",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Birch Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Birch Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Birch Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Jungle Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Jungle Log",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Jungle Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Jungle Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Acacia Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Acacia Log",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Acacia Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Acacia Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Dark Oak Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Dark Oak Log",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Dark Oak Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Dark Oak Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Mangrove Log",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Mangrove Log",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Fence Gate",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Trapdoor",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Hanging Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Mangrove Boat",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Mangrove Boat with Chest",
+    "buy": 16,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Cherry Log",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Cherry Log",
+    "buy": 7,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Planks",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Stairs",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Slab",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Fence",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Fence Gate",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Door",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Trapdoor",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Pressure Plate",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Button",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Sign",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Hanging Sign",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Cherry Boat",
+    "buy": 9,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Cherry Boat with Chest",
+    "buy": 22,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Bamboo Log",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Stripped Bamboo Log",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Planks",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Stairs",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Fence",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Fence Gate",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Door",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Trapdoor",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Pressure Plate",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Button",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Sign",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Hanging Sign",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Boat",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Bamboo Boat with Chest",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Transport"
+  },
+  {
+    "name": "Bamboo Mosaic",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Mosaic Slab",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Mosaic Stairs",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Bamboo Block",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Wood"
+  },
+  {
+    "name": "Leaves",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Sapling",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Azalea",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Flowering Azalea",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Vines",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Glow Berries",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Sweet Berries",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Mushroom Stem",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Red Mushroom Block",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Brown Mushroom Block",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Flower Pot",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Dandelion",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Poppy",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Blue Orchid",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Allium",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Azure Bluet",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Red Tulip",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Orange Tulip",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "White Tulip",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Pink Tulip",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Oxeye Daisy",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Cornflower",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Lily of the Valley",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Wither Rose",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Sunflower",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Lilac",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Rose Bush",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Peony",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Pitcher Plant",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Pitcher Pod",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Torchflower",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Torchflower Seeds",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Nature"
+  },
+  {
+    "name": "Wheat",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Wheat Seeds",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Carrot",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Potato",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Poisonous Potato",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Beetroot",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Beetroot Seeds",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Sugar Cane",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Melon Slice",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Pumpkin",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Pumpkin Pie",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Apple",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Bread",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Baked Potato",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Chicken",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Chicken",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Beef",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Beef",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Porkchop",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Porkchop",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Mutton",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Mutton",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Rabbit",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Rabbit",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Cod",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Cod",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Raw Salmon",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cooked Salmon",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Tropical Fish",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Pufferfish",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cake",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Cookie",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Milk Bucket",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Golden Carrot",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Golden Apple",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Enchanted Golden Apple",
+    "buy": 250,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Dried Kelp",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Tea / Juice / Drink",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Mushroom Stew",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Beetroot Soup",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Suspicious Stew",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Rabbit Stew",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Food"
+  },
+  {
+    "name": "Leather",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "String",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Feather",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Bone",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Arrow",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Gunpowder",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Rotten Flesh",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Spider Eye",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Rabbit Hide",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Rabbit Foot",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Mob Drops"
+  },
+  {
+    "name": "Wooden Pickaxe",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Wooden Axe",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Wooden Shovel",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Wooden Hoe",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Wooden Sword",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Stone Pickaxe",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Stone Axe",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Stone Shovel",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Stone Hoe",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Stone Sword",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Iron Pickaxe",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Iron Axe",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Iron Shovel",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Iron Hoe",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Iron Sword",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Diamond Pickaxe",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Diamond Axe",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Diamond Shovel",
+    "buy": 45,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Diamond Hoe",
+    "buy": 45,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Diamond Sword",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Netherite Pickaxe",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Netherite Axe",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Netherite Shovel",
+    "buy": 140,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Netherite Hoe",
+    "buy": 140,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Netherite Sword",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Shears",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Fishing Rod",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Flint and Steel",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Compass",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Clock",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Map",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Lead",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Carrot on a Stick",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Warped Fungus on a Stick",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Saddle",
+    "buy": 30,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Shield",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Totem of Undying",
+    "buy": 120,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Elytra",
+    "buy": 200,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Spyglass",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Bundle",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Name Tag",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Tools"
+  },
+  {
+    "name": "Leather Helmet",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Leather Chestplate",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Leather Leggings",
+    "buy": 7,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Leather Boots",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Chain Helmet",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Chain Chestplate",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Chain Leggings",
+    "buy": 14,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Chain Boots",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Iron Helmet",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Iron Chestplate",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Iron Leggings",
+    "buy": 22,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Iron Boots",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Diamond Helmet",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Diamond Chestplate",
+    "buy": 60,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Diamond Leggings",
+    "buy": 55,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Diamond Boots",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Netherite Helmet",
+    "buy": 120,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Netherite Chestplate",
+    "buy": 140,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Netherite Leggings",
+    "buy": 130,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Netherite Boots",
+    "buy": 90,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Leather Horse Armor",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Iron Horse Armor",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Golden Horse Armor",
+    "buy": 45,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Diamond Horse Armor",
+    "buy": 80,
+    "unit": "1 item",
+    "category": "Armor"
+  },
+  {
+    "name": "Boat",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Local Metro Ticket",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Local Bus Ticket",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Taxi Ride",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Barcelona to Madrid Train Ticket",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Airport Trip",
+    "buy": 100,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Parking Spot",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Small House",
+    "buy": 400,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Medium House",
+    "buy": 800,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Big House",
+    "buy": 1500,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Mansion",
+    "buy": 3000,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "City Plot",
+    "buy": 200,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Shop Space",
+    "buy": 500,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Office Space",
+    "buy": 600,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Tower Floor",
+    "buy": 700,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Apartment Rent",
+    "buy": 40,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Storefront Rent",
+    "buy": 60,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Small Shop License",
+    "buy": 100,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Restaurant License",
+    "buy": 120,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Hotel License",
+    "buy": 150,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Bank License",
+    "buy": 300,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Construction Company License",
+    "buy": 200,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Transport Company License",
+    "buy": 200,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "Elytra Repair",
+    "buy": 50,
+    "unit": "1 item",
+    "category": "Services"
+  },
+  {
+    "name": "White Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Wool",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Carpet",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Concrete Powder",
+    "buy": 4,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Concrete",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Terracotta",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Glazed Terracotta",
+    "buy": 8,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Stained Glass",
+    "buy": 5,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Stained Glass Pane",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Candle",
+    "buy": 6,
+    "unit": "stack of 64",
+    "category": "Colored"
+  },
+  {
+    "name": "White Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Banner",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "White Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Bed",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "White Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Dye",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "White Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Orange Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Magenta Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Blue Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Yellow Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Lime Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Pink Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Gray Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Light Gray Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Cyan Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Purple Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Blue Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Brown Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Green Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Red Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Black Shulker Box",
+    "buy": 35,
+    "unit": "1 item",
+    "category": "Colored"
+  },
+  {
+    "name": "Allay Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Axolotl Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Bat Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Bee Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Blaze Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Camel Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Cat Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Cave Spider Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Chicken Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Cod Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Cow Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Creeper Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Dolphin Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Donkey Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Drowned Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Elder Guardian Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Enderman Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Endermite Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Fox Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Frog Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Ghast Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Glow Squid Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Goat Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Guardian Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Hoglin Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Horse Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Husk Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Iron Golem Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Llama Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Magma Cube Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Mooshroom Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Mule Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Ocelot Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Panda Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Parrot Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Phantom Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Pig Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Piglin Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Piglin Brute Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Pillager Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Polar Bear Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Pufferfish Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Rabbit Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Ravager Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Salmon Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Sheep Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Shulker Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Silverfish Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Skeleton Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Skeleton Horse Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Slime Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Sniffer Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Snow Golem Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Spider Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Squid Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Stray Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Strider Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Tadpole Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Trader Llama Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Tropical Fish Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Turtle Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Vex Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Villager Spawn Egg",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Vindicator Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Wandering Trader Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Warden Spawn Egg",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Witch Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Wither Skeleton Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Wolf Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Zoglin Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Zombie Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Zombie Horse Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Zombie Villager Spawn Egg",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Zombified Piglin Spawn Egg",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Spawn Eggs"
+  },
+  {
+    "name": "Glass Bottle",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Potion",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Splash Potion",
+    "buy": 13,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Lingering Potion",
+    "buy": 18,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Water Bottle",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Experience Bottle",
+    "buy": 8,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Firework Rocket",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Firework Star",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Paper",
+    "buy": 1,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Book",
+    "buy": 3,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Written Book",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Book and Quill",
+    "buy": 6,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Empty Bucket",
+    "buy": 10,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Water Bucket",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Lava Bucket",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Powder Snow Bucket",
+    "buy": 15,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Axolotl Bucket",
+    "buy": 25,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Tropical Fish Bucket",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Pufferfish Bucket",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Salmon Bucket",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Cod Bucket",
+    "buy": 20,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "Recovery Compass",
+    "buy": 60,
+    "unit": "1 item",
+    "category": "Misc"
+  },
+  {
+    "name": "End Rod",
+    "buy": 12,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Cryting Obsidian",
+    "buy": 14,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Stem",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Stem",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Planks",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Nylium",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Nylium",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Roots",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Roots",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Nether Sprouts",
+    "buy": 2,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Twisting Vines",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Weeping Vines",
+    "buy": 2,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Fence",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Door",
+    "buy": 5,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Trapdoor",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Trapdoor",
+    "buy": 4,
+    "unit": "1 item",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Slab",
+    "buy": 1,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Crimson Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Warped Stairs",
+    "buy": 3,
+    "unit": "stack of 64",
+    "category": "Nether"
+  },
+  {
+    "name": "Nether Portal Frame",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  },
+  {
+    "name": "End Portal Frame",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  },
+  {
+    "name": "Spawner",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  },
+  {
+    "name": "Command Block",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  },
+  {
+    "name": "Chain Command Block",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  },
+  {
+    "name": "Repeating Command Block",
+    "buy": 0,
+    "unit": "1 item",
+    "category": "Creative/Unavailable"
+  }
 ];
 
-const search = document.getElementById("search");
-const results = document.getElementById("results");
-const city = document.getElementById("city");
+const itemMap = new Map(items.map(i => [i.name, i]));
 
-const itemBox = document.getElementById("itemBox");
-const itemName = document.getElementById("itemName");
-const price = document.getElementById("price");
-const vat = document.getElementById("vat");
-const unit = document.getElementById("unit");
-const recommended = document.getElementById("recommended");
-const qty = document.getElementById("qty");
-
-const cartDiv = document.getElementById("cart");
-
-let current = null;
-let cart = [];
-
-function money(v){
-  return v.toFixed(2)+"€";
+function money(n) {
+  return Number(n).toFixed(2) + "€";
 }
 
-function showResults(){
+function norm(s) {
+  return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
 
-  const q = search.value.toLowerCase().trim();
+function categoryOf(name) {
+  const n = name.toLowerCase();
+  if (/bread|cake|cookie|steak|beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato|carrot|apple|berries|melon|pumpkin|soup|milk|honey bottle|dried kelp|tea|juice|drink|wheat|beetroot|sugar cane|egg|raw chicken|raw beef|raw porkchop|raw mutton|raw rabbit|raw cod|raw salmon|tropical fish|pufferfish|golden carrot|golden apple|mushroom stew|beetroot soup|suspicious stew|rabbit stew/.test(n)) return "Food";
+  if (/diamond|emerald|netherite|ancient debris|raw iron|raw gold|raw copper|iron ingot|gold ingot|copper ingot|lapis|redstone dust|quartz|amethyst|prismarine shard|prismarine crystal|glow ink sac|ink sac|slime ball|magma cream|blaze rod|blaze powder|ender pearl|ghast tear|phantom membrane|honeycomb|nether wart|wither skeleton skull|dragon breath|dragon egg|dragon head|shulker shell|heart of the sea|nether star|conduit|beacon|elytra|totem|trident/.test(n)) return "Valuable";
+  if (/pickaxe|axe|shovel|hoe|sword|shears|fishing rod|flint and steel|compass|clock|map|lead|carrot on a stick|warped fungus on a stick|saddle|shield|book and quill|spyglass|bundle|name tag|recovery compass|repair/.test(n)) return "Tools";
+  if (/helmet|chestplate|leggings|boots|horse armor/.test(n)) return "Armor";
+  if (/ticket|trip|rent|license|repair|build service|plot|space|floor|parking spot|airport|taxi|metro|bus|train|boat|minecart|house|mansion|apartment/.test(n)) return "Services";
+  if (/spawn egg/.test(n)) return "Spawn Eggs";
+  if (/dye/.test(n)) return "Dyes";
+  if (/wool|carpet|candle|banner|bed|concrete powder|concrete|terracotta|glazed terracotta|stained glass|glass pane|glass$/i.test(n)) return "Colored";
+  return "Blocks";
+}
 
+function isBulk(name) {
+  return String(itemMap.get(name)?.unit || "").includes("stack");
+}
+
+function unitLabel(name) {
+  const u = itemMap.get(name)?.unit || "1 item";
+  return u;
+}
+
+function getBuyPrice(name, city) {
+  const item = itemMap.get(name);
+  if (!item) return 0;
+  if (city === "Barcelona") return item.buy;
+  return Math.max(1, Math.floor(item.buy * MADRID_DISCOUNT));
+}
+
+function sellMultiplier(category) {
+  switch (category) {
+    case "Food": return 1.7;
+    case "Blocks": return 1.55;
+    case "Valuable": return 1.35;
+    case "Tools": return 1.45;
+    case "Armor": return 1.5;
+    case "Services": return 1.25;
+    case "Colored": return 1.45;
+    case "Dyes": return 1.2;
+    case "Spawn Eggs": return 1.4;
+    default: return 1.4;
+  }
+}
+
+function getSellPrice(name, city) {
+  const item = itemMap.get(name);
+  if (!item) return 0;
+  const cat = categoryOf(name);
+  const baseSell = Math.max(1, Math.floor(item.buy * sellMultiplier(cat)));
+  if (city === "Barcelona") return baseSell;
+  return Math.max(1, Math.floor(baseSell * MADRID_DISCOUNT));
+}
+
+function score(name, q) {
+  const n = norm(name);
+  const s = norm(q);
+  if (!s) return -1;
+  if (n === s) return 1000;
+  if (n.startsWith(s)) return 800;
+  if (n.includes(s)) return 600;
+  let pos = 0;
+  for (const ch of s) {
+    pos = n.indexOf(ch, pos);
+    if (pos === -1) return -1;
+    pos++;
+  }
+  return 100;
+}
+
+function searchList(q) {
+  return items
+    .map(i => ({name:i.name, score: score(i.name, q)}))
+    .filter(x => x.score >= 0)
+    .sort((a,b) => b.score - a.score || a.name.localeCompare(b.name))
+    .slice(0, 18)
+    .map(x => x.name);
+}
+
+const citySelect = document.getElementById("citySelect");
+const searchInput = document.getElementById("searchInput");
+const results = document.getElementById("results");
+const detail = document.getElementById("detail");
+
+const itemName = document.getElementById("itemName");
+const itemCategory = document.getElementById("itemCategory");
+const itemUnitPill = document.getElementById("itemUnitPill");
+const cityPrice = document.getElementById("cityPrice");
+const cityPriceVat = document.getElementById("cityPriceVat");
+const sellBarcelona = document.getElementById("sellBarcelona");
+const sellMadrid = document.getElementById("sellMadrid");
+const qtyType = document.getElementById("qtyType");
+const selectedQty = document.getElementById("selectedQty");
+const qtyInput = document.getElementById("qtyInput");
+const qtyLabel = document.getElementById("qtyLabel");
+const itemHint = document.getElementById("itemHint");
+
+const cartList = document.getElementById("cartList");
+const cartCount = document.getElementById("cartCount");
+const subtotalEl = document.getElementById("subtotal");
+const vatEl = document.getElementById("vat");
+const grandEl = document.getElementById("grand");
+const resetQtyBtn = document.getElementById("resetQtyBtn");
+const addBtn = document.getElementById("addBtn");
+
+let currentItem = null;
+let currentQty = 1;
+const cart = [];
+
+function currentCity() {
+  return citySelect.value;
+}
+
+function renderResults() {
+  const q = searchInput.value.trim();
   results.innerHTML = "";
-
-  if(!q){
-    results.style.display="none";
+  if (!q) {
+    results.style.display = "none";
+    return;
+  }
+  const matches = searchList(q);
+  if (!matches.length) {
+    results.style.display = "none";
     return;
   }
 
-  const filtered = items.filter(i =>
-    i.name.toLowerCase().includes(q)
-  );
-
-  if(filtered.length===0){
-    results.style.display="none";
-    return;
-  }
-
-  filtered.forEach(i=>{
+  const city = currentCity();
+  for (const name of matches) {
+    const item = itemMap.get(name);
+    if (!item) continue;
+    const buy = getBuyPrice(name, city);
+    const sell = getSellPrice(name, city);
 
     const div = document.createElement("div");
-    div.className="result";
-
-    const p = city.value==="Barcelona" ? i.barca : i.madrid;
-
+    div.className = "result";
     div.innerHTML = `
-      <div class="result-name">${i.name}</div>
-      <div class="result-price">${money(p)}</div>
+      <div>
+        <div>${item.name}</div>
+        <small>${item.category || categoryOf(item.name)} · ${city} buy ${money(buy)} · ${unitLabel(item.name)}</small>
+      </div>
+      <div style="text-align:right;">
+        <div style="color: var(--primary); font-weight:700;">${money(buy)}</div>
+        <small style="color: var(--accent);">Sell ${money(sell)}</small>
+      </div>
+    `;
+    div.onclick = () => selectItem(name);
+    results.appendChild(div);
+  }
+  results.style.display = "block";
+}
+
+function selectItem(name) {
+  const item = itemMap.get(name);
+  if (!item) return;
+
+  currentItem = item;
+  const city = currentCity();
+  const buy = getBuyPrice(name, city);
+  const sellB = getSellPrice(name, "Barcelona");
+  const sellM = getSellPrice(name, "Madrid");
+
+  itemName.textContent = item.name;
+  itemCategory.textContent = `${categoryOf(item.name)} · ${city} market`;
+  itemUnitPill.textContent = unitLabel(item.name);
+
+  cityPrice.textContent = money(buy);
+  cityPriceVat.textContent = money(buy * (1 + VAT_RATE));
+  sellBarcelona.textContent = money(sellB);
+  sellMadrid.textContent = money(sellM);
+
+  qtyType.textContent = unitLabel(item.name);
+  qtyLabel.textContent = unitLabel(item.name).includes("stack") ? "Quantity (stacks)" : "Quantity (pieces)";
+  itemHint.innerHTML = unitLabel(item.name).includes("stack")
+    ? `This price is for one <b>${unitLabel(item.name)}</b> of ${item.name}.`
+    : `This price is for <b>1 ${item.name}</b>.`;
+
+  currentQty = 1;
+  qtyInput.value = 1;
+  selectedQty.textContent = "1";
+  detail.classList.add("active");
+  results.style.display = "none";
+}
+
+function updateCart() {
+  cartList.innerHTML = "";
+  let sub = 0;
+  let units = 0;
+
+  cart.forEach((item, idx) => {
+    const line = item.price * item.qty;
+    sub += line;
+    units += item.qty;
+
+    const el = document.createElement("div");
+    el.className = "cart-item";
+    el.innerHTML = `
+      <div>
+        <div class="name">${item.name}</div>
+        <div class="meta">${item.city} · x${item.qty} ${item.qtyText} · ${money(item.price)} each</div>
+      </div>
+      <div class="cart-right">
+        <div class="line">${money(line)}</div>
+        <div class="meta">VAT: ${money(line * VAT_RATE)}</div>
+        <div class="cart-actions">
+          <button class="tiny" data-act="minus">-</button>
+          <button class="tiny" data-act="plus">+</button>
+          <button class="tiny red" data-act="remove">Remove</button>
+        </div>
+      </div>
     `;
 
-    div.onclick=()=>{
-      openItem(i);
+    el.querySelector('[data-act="remove"]').onclick = () => {
+      cart.splice(idx, 1);
+      updateCart();
+    };
+    el.querySelector('[data-act="plus"]').onclick = () => {
+      cart[idx].qty += 1;
+      updateCart();
+    };
+    el.querySelector('[data-act="minus"]').onclick = () => {
+      cart[idx].qty -= 1;
+      if (cart[idx].qty <= 0) cart.splice(idx, 1);
+      updateCart();
     };
 
-    results.appendChild(div);
-
+    cartList.appendChild(el);
   });
 
-  results.style.display="block";
-
+  cartCount.textContent = `${cart.length} lines · ${units} units`;
+  subtotalEl.textContent = money(sub);
+  vatEl.textContent = money(sub * VAT_RATE);
+  grandEl.textContent = money(sub * (1 + VAT_RATE));
 }
 
-function openItem(i){
-
-  current=i;
-
-  itemBox.classList.add("active");
-
-  itemName.textContent=i.name;
-
-  const p = city.value==="Barcelona" ? i.barca : i.madrid;
-
-  const sell = city.value==="Barcelona" ? i.sellB : i.sellM;
-
-  price.textContent="Price: "+money(p);
-
-  vat.textContent="With VAT: "+money(p*(1+VAT));
-
-  unit.textContent="Quantity Type: "+i.unit;
-
-  recommended.textContent=money(sell);
-
-  results.style.display="none";
-
-}
-
-search.addEventListener("input",showResults);
-
-city.addEventListener("change",()=>{
-  if(current){
-    openItem(current);
-  }
+searchInput.addEventListener("input", renderResults);
+citySelect.addEventListener("change", () => {
+  renderResults();
+  if (currentItem) selectItem(currentItem.name);
+});
+qtyInput.addEventListener("input", () => {
+  currentQty = Math.max(1, parseInt(qtyInput.value || "1", 10));
+  qtyInput.value = currentQty;
+  selectedQty.textContent = String(currentQty);
+});
+resetQtyBtn.addEventListener("click", () => {
+  currentQty = 1;
+  qtyInput.value = 1;
+  selectedQty.textContent = "1";
+});
+addBtn.addEventListener("click", () => {
+  if (!currentItem) return;
+  const city = currentCity();
+  const price = getBuyPrice(currentItem.name, city);
+  cart.push({
+    name: currentItem.name,
+    city,
+    price,
+    qty: currentQty,
+    qtyText: unitLabel(currentItem.name).includes("stack") ? "stacks" : "pieces"
+  });
+  updateCart();
 });
 
-document.getElementById("addBtn").onclick=()=>{
-
-  if(!current)return;
-
-  const q = parseInt(qty.value)||1;
-
-  const p = city.value==="Barcelona" ? current.barca : current.madrid;
-
-  cart.push({
-    name:current.name,
-    qty:q,
-    price:p
-  });
-
-  renderCart();
-
-};
-
-function renderCart(){
-
-  cartDiv.innerHTML="";
-
-  let subtotal=0;
-
-  cart.forEach((c,index)=>{
-
-    const line = c.qty*c.price;
-
-    subtotal += line;
-
-    const div = document.createElement("div");
-
-    div.className="cart-item";
-
-    div.innerHTML=`
-      <div class="cart-item-name">${c.name}</div>
-      <div class="cart-item-meta">
-        ${c.qty} × ${money(c.price)}
-      </div>
-      <div style="margin-top:8px;font-weight:700;">
-        ${money(line)}
-      </div>
-    `;
-
-    cartDiv.appendChild(div);
-
-  });
-
-  const vatAmount=subtotal*VAT;
-
-  document.getElementById("subtotal").textContent=money(subtotal);
-
-  document.getElementById("vatTotal").textContent=money(vatAmount);
-
-  document.getElementById("grand").textContent=money(subtotal+vatAmount);
-
-}
-
+updateCart();
 </script>
-
 </body>
 </html>
