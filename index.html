@@ -3,586 +3,474 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Minecraft Market Explorer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Minecraft City Market</title>
 <style>
-:root{
-  --bg1:#07111f;
-  --bg2:#0c1729;
-  --panel:rgba(15,23,42,.72);
-  --panel2:rgba(15,23,42,.92);
-  --line:rgba(148,163,184,.18);
-  --text:#e5eefc;
-  --muted:#9fb0cc;
-  --accent:#7dd3fc;
-  --accent2:#34d399;
-  --warn:#fbbf24;
-  --danger:#f87171;
-  --shadow:0 20px 60px rgba(0,0,0,.35);
-  --radius:22px;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(125,211,252,.18), transparent 32%),
-    radial-gradient(circle at top right, rgba(52,211,153,.12), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(251,191,36,.08), transparent 24%),
-    linear-gradient(180deg, var(--bg1), var(--bg2));
-}
-.wrap{
-  max-width:1400px;
-  margin:0 auto;
-  padding:24px;
-}
-.topbar{
-  display:flex;
-  gap:16px;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:18px;
-  flex-wrap:wrap;
-}
-.brand{display:flex;flex-direction:column;gap:4px}
-.brand h1{
-  margin:0;
-  font-size:clamp(1.6rem,2.2vw,2.5rem);
-  line-height:1;
-  letter-spacing:.2px;
-}
-.brand p{margin:0;color:var(--muted);font-size:.95rem}
-.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.chip, select, input[type="number"], input[type="text"]{
-  background:var(--panel);
-  border:1px solid var(--line);
-  color:var(--text);
-  border-radius:16px;
-  outline:none;
-  backdrop-filter: blur(14px);
-}
-.chip{
-  padding:12px 14px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  box-shadow:var(--shadow);
-}
-select, input[type="number"], input[type="text"]{padding:12px 14px;font-size:1rem}
-select{cursor:pointer}
-input[type="text"]{min-width:min(520px, 100%)}
-.page{display:grid;grid-template-columns: 1.3fr .95fr;gap:20px}
-@media (max-width: 1100px){
-  .page{grid-template-columns:1fr}
-  input[type="text"]{min-width:100%}
-}
-.panel{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-.panel-head{
-  padding:18px 20px;
-  border-bottom:1px solid var(--line);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.panel-head h2{margin:0;font-size:1.08rem}
-.panel-head .sub{color:var(--muted);font-size:.9rem}
-.search-area{padding:18px 20px 20px}
-.search-box{position:relative}
-.suggestions{
-  position:absolute;
-  left:0; right:0;
-  top:calc(100% + 8px);
-  background:var(--panel2);
-  border:1px solid var(--line);
-  border-radius:18px;
-  overflow:hidden;
-  display:none;
-  z-index:20;
-  max-height:320px;
-  overflow-y:auto;
-}
-.suggestion{
-  padding:12px 14px;
-  border-bottom:1px solid rgba(255,255,255,.05);
-  cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:14px;
-}
-.suggestion:hover{background:rgba(125,211,252,.10)}
-.suggestion .left{display:flex;flex-direction:column;gap:2px}
-.suggestion .name{font-weight:600}
-.suggestion .meta{font-size:.82rem;color:var(--muted)}
-.badge{
-  padding:5px 10px;
-  border-radius:999px;
-  font-size:.78rem;
-  background:rgba(125,211,252,.12);
-  border:1px solid rgba(125,211,252,.2);
-  color:var(--accent);
-  white-space:nowrap;
-}
-.detail-card{
-  margin-top:16px;
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-  border:1px solid var(--line);
-  border-radius:22px;
-  padding:18px;
-  display:none;
-}
-.detail-card.active{display:block}
-.detail-title{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-.detail-title h3{margin:0;font-size:1.35rem}
-.detail-title .citytag{
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(52,211,153,.12);
-  color:var(--accent2);
-  border:1px solid rgba(52,211,153,.22);
-  font-weight:600;
-  font-size:.85rem;
-}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:650px){.grid2{grid-template-columns:1fr}}
-.stat{
-  background:rgba(2,6,23,.24);
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:18px;
-  padding:14px;
-}
-.stat .label{color:var(--muted);font-size:.85rem;margin-bottom:6px}
-.stat .value{font-size:1.15rem;font-weight:700}
-.price{color:var(--accent2)}
-.price.muted{color:var(--text)}
-.note{margin-top:12px;color:var(--muted);font-size:.9rem;line-height:1.45}
-.actions{
-  margin-top:16px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-.btn{
-  border:none;
-  border-radius:16px;
-  padding:12px 16px;
-  font-weight:700;
-  cursor:pointer;
-  transition:transform .15s ease, opacity .15s ease, background .15s ease;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:linear-gradient(135deg, #38bdf8, #60a5fa);color:#03111f}
-.btn-secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
-.qty-wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.qty-wrap label{color:var(--muted);font-size:.9rem}
-.qty-wrap input[type="number"]{width:110px}
-.cart{
-  display:flex;
-  flex-direction:column;
-  min-height:650px;
-}
-.cart-list{
-  padding:0 0 4px;
-  max-height:540px;
-  overflow:auto;
-}
-.cart-item{
-  padding:16px 20px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:14px;
-}
-.cart-item:last-child{border-bottom:none}
-.cart-name{font-weight:700;margin-bottom:4px}
-.cart-meta{
-  color:var(--muted);
-  font-size:.84rem;
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  align-items:center;
-}
-.cart-right{
-  text-align:right;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  align-items:flex-end;
-}
-.cart-price{font-weight:800;color:var(--accent2)}
-.icon-btn{
-  border:none;
-  background:rgba(248,113,113,.12);
-  color:#fecaca;
-  border:1px solid rgba(248,113,113,.2);
-  border-radius:12px;
-  padding:8px 10px;
-  cursor:pointer;
-  font-weight:700;
-}
-.cart-footer{
-  margin-top:auto;
-  padding:18px 20px 20px;
-  border-top:1px solid var(--line);
-  background:linear-gradient(180deg, transparent, rgba(255,255,255,.02));
-}
-.sumline{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin:8px 0;
-  color:var(--muted);
-}
-.sumline strong{color:var(--text)}
-.total{
-  margin-top:8px;
-  padding:14px 16px;
-  border-radius:18px;
-  background:rgba(52,211,153,.10);
-  border:1px solid rgba(52,211,153,.2);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:1.15rem;
-  font-weight:800;
-}
-.total span:last-child{color:var(--accent2)}
-.empty{
-  padding:26px 20px;
-  color:var(--muted);
-  text-align:center;
-}
-.helper{margin-top:10px;color:var(--muted);font-size:.85rem}
-kbd{
-  background:rgba(255,255,255,.07);
-  border:1px solid var(--line);
-  border-bottom-width:2px;
-  padding:2px 6px;
-  border-radius:8px;
-}
+  :root{
+    --bg:#07111f;
+    --panel:#0f1b2e;
+    --panel-2:#13233b;
+    --line:rgba(255,255,255,.08);
+    --text:#ecf2ff;
+    --muted:#9fb2d0;
+    --accent:#7dd3fc;
+    --accent-2:#34d399;
+    --danger:#fb7185;
+    --warning:#fbbf24;
+    --shadow:0 20px 50px rgba(0,0,0,.28);
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(125,211,252,.12), transparent 34%),
+      radial-gradient(circle at top right, rgba(52,211,153,.10), transparent 30%),
+      linear-gradient(180deg, #07111f 0%, #091423 100%);
+  }
+
+  .shell{
+    width:min(1380px, calc(100vw - 24px));
+    margin:12px auto;
+  }
+
+  header{
+    display:flex;
+    gap:14px;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 20px;
+    border:1px solid var(--line);
+    background:rgba(15,27,46,.84);
+    backdrop-filter: blur(14px);
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    position:sticky;
+    top:10px;
+    z-index:40;
+  }
+
+  .brand h1{
+    margin:0;
+    font-size:1.3rem;
+    letter-spacing:.3px;
+  }
+
+  .brand p{
+    margin:4px 0 0;
+    color:var(--muted);
+    font-size:.92rem;
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  select, input, button{
+    font:inherit;
+  }
+
+  select, .qty-input, .search{
+    background:rgba(255,255,255,.04);
+    color:var(--text);
+    border:1px solid var(--line);
+    outline:none;
+    border-radius:14px;
+  }
+
+  select{
+    padding:12px 14px;
+    min-width:160px;
+  }
+
+  .layout{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns: minmax(0, 1.45fr) 380px;
+    gap:14px;
+    align-items:start;
+  }
+
+  .left,
+  .cart{
+    background:rgba(15,27,46,.82);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .left{
+    padding:18px;
+    position:relative;
+    min-height:calc(100vh - 130px);
+  }
+
+  .cart{
+    position:sticky;
+    top:92px;
+    padding:18px;
+  }
+
+  .search-wrap{
+    position:relative;
+    z-index:20;
+  }
+
+  .search{
+    width:100%;
+    padding:16px 18px;
+    font-size:1rem;
+  }
+
+  .search:focus,
+  select:focus,
+  .qty-input:focus{
+    border-color:rgba(125,211,252,.65);
+    box-shadow:0 0 0 4px rgba(125,211,252,.10);
+  }
+
+  .suggestions{
+    position:absolute;
+    top:calc(100% + 8px);
+    left:0;
+    right:0;
+    display:none;
+    max-height:360px;
+    overflow:auto;
+    background:#0a1628;
+    border:1px solid rgba(125,211,252,.18);
+    border-radius:18px;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);
+    z-index:9999;
+  }
+
+  .suggestion{
+    padding:13px 14px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .suggestion:hover{
+    background:rgba(125,211,252,.12);
+  }
+
+  .suggestion:last-child{
+    border-bottom:none
+  }
+
+  .suggestion .meta{
+    color:var(--muted);
+    font-size:.85rem;
+    white-space:nowrap;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:14px;
+    margin-top:14px;
+  }
+
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:18px;
+  }
+
+  .empty-state{
+    padding:22px;
+    color:var(--muted);
+    border:1px dashed rgba(255,255,255,.10);
+    border-radius:18px;
+    text-align:center;
+  }
+
+  .item-top{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .title{
+    margin:0;
+    font-size:1.4rem;
+    line-height:1.2;
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    color:var(--accent);
+    background:rgba(125,211,252,.08);
+    border:1px solid rgba(125,211,252,.18);
+    padding:7px 10px;
+    border-radius:999px;
+    font-size:.84rem;
+  }
+
+  .price-boxes{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+    margin-top:16px;
+  }
+
+  .price-box{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:14px;
+  }
+
+  .price-box .label{
+    color:var(--muted);
+    font-size:.82rem;
+    margin-bottom:6px;
+  }
+
+  .price-box .value{
+    font-size:1.28rem;
+    font-weight:800;
+  }
+
+  .price-box .sub{
+    color:var(--muted);
+    margin-top:4px;
+    font-size:.82rem;
+  }
+
+  .green{color:var(--accent-2)}
+  .yellow{color:var(--warning)}
+  .red{color:var(--danger)}
+  .blue{color:var(--accent)}
+
+  .mini-info{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+
+  .mini{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;
+    padding:11px 12px;
+  }
+
+  .mini .label{
+    color:var(--muted);
+    font-size:.78rem
+  }
+
+  .mini .value{
+    font-size:.98rem;
+    font-weight:700;
+    margin-top:4px
+  }
+
+  .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:16px;
+    align-items:center;
+  }
+
+  .qty-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .qty-input{
+    width:92px;
+    padding:12px 12px;
+    text-align:center;
+    font-weight:700;
+  }
+
+  .qty-chip{
+    border:none;
+    background:rgba(255,255,255,.06);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+
+  .qty-chip:hover{
+    background:rgba(255,255,255,.10)
+  }
+
+  .add-btn,
+  .clear-btn,
+  .remove-btn{
+    border:none;
+    cursor:pointer;
+    transition:transform .15s ease, opacity .15s ease, background .15s ease;
+  }
+
+  .add-btn{
+    padding:13px 16px;
+    border-radius:14px;
+    background:linear-gradient(135deg, #38bdf8, #34d399);
+    color:#04111d;
+    font-weight:900;
+  }
+
+  .clear-btn{
+    padding:11px 14px;
+    border-radius:14px;
+    background:rgba(255,255,255,.06);
+    color:var(--text);
+  }
+
+  .add-btn:hover,
+  .clear-btn:hover,
+  .remove-btn:hover{
+    transform:translateY(-1px)
+  }
+
+  .remove-btn{
+    background:rgba(251,113,133,.14);
+    color:#ffd8df;
+    border-radius:12px;
+    width:36px;
+    height:36px;
+    font-size:18px;
+    font-weight:900;
+  }
+
+  .cart-header{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:center;
+    margin-bottom:12px;
+  }
+
+  .cart-header h2{
+    margin:0;
+    font-size:1.15rem;
+  }
+
+  .cart-header .count{
+    color:var(--muted);
+    font-size:.92rem;
+  }
+
+  .cart-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:58vh;
+    overflow:auto;
+    padding-right:4px;
+  }
+
+  .cart-item{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    padding:12px;
+  }
+
+  .cart-item-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+  }
+
+  .cart-name{
+    font-weight:800;
+    margin:0 0 4px;
+  }
+
+  .cart-meta{
+    color:var(--muted);
+    font-size:.83rem;
+    line-height:1.45;
+  }
+
+  .cart-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .cart-price{
+    font-weight:900;
+    color:var(--accent-2);
+    white-space:nowrap;
+  }
+
+  .summary{
+    margin-top:14px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+    display:grid;
+    gap:8px;
+  }
+
+  .sum-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:.95rem;
+  }
+
+  .sum-row strong{
+    font-size:1.02rem
+  }
+
+  .grand{
+    color:var(--accent-2);
+    font-size:1.3rem;
+    font-weight:900;
+  }
+
+  @media (max-width: 1080px){
+    .layout{
+      grid-template-columns:1fr
+    }
+
+    .cart{
+      position:relative;
+      top:0
+    }
+
+    .left{
+      min-height:auto
+    }
+
+    .price-boxes,
+    .mini-info{
+      grid-template-columns:1fr
+    }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand">
-      <h1>Minecraft Market Explorer</h1>
-      <p>Search fast, compare Barcelona and Madrid, pick quantity, and keep the cart clean.</p>
-    </div>
-    <div class="controls">
-      <div class="chip">
-        <span>City</span>
-        <select id="citySelect">
-          <option value="Barcelona">Barcelona</option>
-          <option value="Madrid">Madrid</option>
-        </select>
-      </div>
-      <div class="chip">
-        <span>VAT</span>
-        <strong>10%</strong>
-      </div>
-    </div>
-  </div>
 
-  <div class="page">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <h2>Search items</h2>
-          <div class="sub">Type a few letters like <kbd>dia</kbd>, <kbd>bread</kbd>, <kbd>con</kbd>, or <kbd>iron</kbd></div>
-        </div>
-        <div class="sub">Prices change with the city you select</div>
-      </div>
+<h1>Hello</h1>
 
-      <div class="search-area">
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search item name..." autocomplete="off" />
-          <div class="suggestions" id="suggestions"></div>
-        </div>
-
-        <div class="detail-card" id="detailCard">
-          <div class="detail-title">
-            <div>
-              <h3 id="detailName">Item</h3>
-              <div class="small" id="detailHint"></div>
-            </div>
-            <div class="citytag" id="detailCityTag">Barcelona</div>
-          </div>
-
-          <div class="grid2">
-            <div class="stat">
-              <div class="label">Original price in city</div>
-              <div class="value price muted" id="detailBase">0€</div>
-            </div>
-            <div class="stat">
-              <div class="label">Price with VAT</div>
-              <div class="value price" id="detailVat">0€</div>
-            </div>
-            <div class="stat">
-              <div class="label">Recommended selling price in Barcelona</div>
-              <div class="value" id="detailSellBcn">0€</div>
-            </div>
-            <div class="stat">
-              <div class="label">Recommended selling price in Madrid</div>
-              <div class="value" id="detailSellMad">0€</div>
-            </div>
-          </div>
-
-          <div class="actions">
-            <div class="qty-wrap">
-              <label for="quantityInput">Quantity</label>
-              <input type="number" id="quantityInput" min="1" value="1" step="1" />
-            </div>
-            <button class="btn btn-primary" id="addToCartBtn">Add to cart</button>
-            <button class="btn btn-secondary" id="clearSelectionBtn">Clear</button>
-          </div>
-
-          <div class="note" id="detailNote"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel cart">
-      <div class="panel-head">
-        <div>
-          <h2>Cart</h2>
-          <div class="sub">Remove items anytime and check the final total</div>
-        </div>
-        <div class="sub" id="cartCount">0 items</div>
-      </div>
-
-      <div class="cart-list" id="cartList">
-        <div class="empty">Your cart is empty.</div>
-      </div>
-
-      <div class="cart-footer">
-        <div class="sumline"><span>Subtotal</span><strong id="subtotal">0.00€</strong></div>
-        <div class="sumline"><span>VAT (10%)</span><strong id="vatAmount">0.00€</strong></div>
-        <div class="total"><span>Total</span><span id="grandTotal">0.00€</span></div>
-      </div>
-    </section>
-  </div>
-</div>
-
-<script>
-const VAT_RATE = 0.10;
-
-const catalog = [
-  { name: "Bread", unit: "1 bread", pack: "single", bcnBuy: 1, madBuy: 1, bcnSell: 2, madSell: 1, note: "Good normal bakery item." },
-  { name: "Cookie", unit: "1 cookie", pack: "single", bcnBuy: 1, madBuy: 1, bcnSell: 2, madSell: 1, note: "Cheap snack." },
-  { name: "Apple", unit: "1 apple", pack: "single", bcnBuy: 2, madBuy: 1, bcnSell: 3, madSell: 2, note: "Simple fruit." },
-  { name: "Carrot", unit: "1 carrot", pack: "single", bcnBuy: 1, madBuy: 1, bcnSell: 2, madSell: 1, note: "Cheap farm food." },
-  { name: "Potato", unit: "1 potato", pack: "single", bcnBuy: 1, madBuy: 1, bcnSell: 2, madSell: 1, note: "Cheap farm food." },
-  { name: "Baked Potato", unit: "1 baked potato", pack: "single", bcnBuy: 3, madBuy: 2, bcnSell: 4, madSell: 3, note: "Better cooked food." },
-  { name: "Cooked Chicken", unit: "1 piece", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 6, madSell: 5, note: "Shop meal item." },
-  { name: "Cooked Beef", unit: "1 steak", pack: "single", bcnBuy: 7, madBuy: 6, bcnSell: 8, madSell: 7, note: "Restaurant meal item." },
-  { name: "Cooked Porkchop", unit: "1 piece", pack: "single", bcnBuy: 7, madBuy: 6, bcnSell: 8, madSell: 7, note: "Restaurant meal item." },
-  { name: "Cake", unit: "1 cake", pack: "single", bcnBuy: 20, madBuy: 17, bcnSell: 25, madSell: 21, note: "Special food, not everyday." },
-  { name: "Pumpkin Pie", unit: "1 pie", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 6, madSell: 5, note: "Bakery dessert." },
-  { name: "Golden Carrot", unit: "1 carrot", pack: "single", bcnBuy: 25, madBuy: 21, bcnSell: 30, madSell: 25, note: "Luxury food." },
-  { name: "Golden Apple", unit: "1 apple", pack: "single", bcnBuy: 35, madBuy: 30, bcnSell: 45, madSell: 38, note: "Very expensive rare item." },
-  { name: "Concrete", unit: "64 blocks", pack: "stack", bcnBuy: 8, madBuy: 6, bcnSell: 12, madSell: 9, note: "Sold as a stack of 64." },
-  { name: "Glass", unit: "64 blocks", pack: "stack", bcnBuy: 12, madBuy: 10, bcnSell: 16, madSell: 13, note: "Sold as a stack of 64." },
-  { name: "Stone", unit: "64 blocks", pack: "stack", bcnBuy: 4, madBuy: 3, bcnSell: 6, madSell: 5, note: "Sold as a stack of 64." },
-  { name: "Cobblestone", unit: "64 blocks", pack: "stack", bcnBuy: 3, madBuy: 2, bcnSell: 5, madSell: 4, note: "Sold as a stack of 64." },
-  { name: "Oak Planks", unit: "64 blocks", pack: "stack", bcnBuy: 6, madBuy: 5, bcnSell: 9, madSell: 7, note: "Sold as a stack of 64." },
-  { name: "Spruce Planks", unit: "64 blocks", pack: "stack", bcnBuy: 6, madBuy: 5, bcnSell: 9, madSell: 7, note: "Sold as a stack of 64." },
-  { name: "Birch Planks", unit: "64 blocks", pack: "stack", bcnBuy: 6, madBuy: 5, bcnSell: 9, madSell: 7, note: "Sold as a stack of 64." },
-  { name: "Rail", unit: "64 rails", pack: "stack", bcnBuy: 20, madBuy: 16, bcnSell: 28, madSell: 22, note: "Sold as a stack of 64." },
-  { name: "Torch", unit: "64 torches", pack: "stack", bcnBuy: 4, madBuy: 3, bcnSell: 6, madSell: 5, note: "Sold as a stack of 64." },
-  { name: "Iron Ingot", unit: "1 ingot", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 8, madSell: 6, note: "Crafting and trade item." },
-  { name: "Gold Ingot", unit: "1 ingot", pack: "single", bcnBuy: 8, madBuy: 6, bcnSell: 12, madSell: 10, note: "More valuable than iron." },
-  { name: "Diamond", unit: "1 diamond", pack: "single", bcnBuy: 35, madBuy: 28, bcnSell: 50, madSell: 40, note: "Never sold as a stack here." },
-  { name: "Diamond Block", unit: "1 block", pack: "single", bcnBuy: 300, madBuy: 250, bcnSell: 380, madSell: 320, note: "Luxury storage item." },
-  { name: "Emerald", unit: "1 emerald", pack: "single", bcnBuy: 20, madBuy: 17, bcnSell: 28, madSell: 24, note: "Trade item." },
-  { name: "Netherite Ingot", unit: "1 ingot", pack: "single", bcnBuy: 200, madBuy: 170, bcnSell: 260, madSell: 220, note: "Very expensive late-game item." },
-  { name: "Elytra", unit: "1 elytra", pack: "single", bcnBuy: 200, madBuy: 170, bcnSell: 260, madSell: 220, note: "Rare travel item." },
-  { name: "Wooden Pickaxe", unit: "1 tool", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 7, madSell: 6, note: "Starter tool." },
-  { name: "Stone Pickaxe", unit: "1 tool", pack: "single", bcnBuy: 8, madBuy: 7, bcnSell: 10, madSell: 9, note: "Starter tool." },
-  { name: "Iron Pickaxe", unit: "1 tool", pack: "single", bcnBuy: 20, madBuy: 17, bcnSell: 25, madSell: 21, note: "Good mining tool." },
-  { name: "Diamond Pickaxe", unit: "1 tool", pack: "single", bcnBuy: 50, madBuy: 42, bcnSell: 65, madSell: 55, note: "Strong tool." },
-  { name: "Netherite Pickaxe", unit: "1 tool", pack: "single", bcnBuy: 150, madBuy: 127, bcnSell: 190, madSell: 160, note: "Top-tier tool." },
-  { name: "Chest", unit: "1 chest", pack: "single", bcnBuy: 4, madBuy: 3, bcnSell: 6, madSell: 5, note: "Storage item." },
-  { name: "Furnace", unit: "1 furnace", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 8, madSell: 6, note: "Useful utility block." },
-  { name: "Bed", unit: "1 bed", pack: "single", bcnBuy: 10, madBuy: 8, bcnSell: 14, madSell: 11, note: "House item." },
-  { name: "Lantern", unit: "1 lantern", pack: "single", bcnBuy: 8, madBuy: 7, bcnSell: 10, madSell: 9, note: "Decorative light." },
-  { name: "Minecart", unit: "1 minecart", pack: "single", bcnBuy: 10, madBuy: 8, bcnSell: 15, madSell: 12, note: "Transport item." },
-  { name: "Boat", unit: "1 boat", pack: "single", bcnBuy: 5, madBuy: 4, bcnSell: 8, madSell: 6, note: "Transport item." }
-];
-
-const state = { selected: null, cart: [] };
-
-const citySelect = document.getElementById('citySelect');
-const searchInput = document.getElementById('searchInput');
-const suggestions = document.getElementById('suggestions');
-const detailCard = document.getElementById('detailCard');
-const detailName = document.getElementById('detailName');
-const detailHint = document.getElementById('detailHint');
-const detailCityTag = document.getElementById('detailCityTag');
-const detailBase = document.getElementById('detailBase');
-const detailVat = document.getElementById('detailVat');
-const detailSellBcn = document.getElementById('detailSellBcn');
-const detailSellMad = document.getElementById('detailSellMad');
-const detailNote = document.getElementById('detailNote');
-const quantityInput = document.getElementById('quantityInput');
-const addToCartBtn = document.getElementById('addToCartBtn');
-const clearSelectionBtn = document.getElementById('clearSelectionBtn');
-const cartList = document.getElementById('cartList');
-const cartCount = document.getElementById('cartCount');
-const subtotalEl = document.getElementById('subtotal');
-const vatAmountEl = document.getElementById('vatAmount');
-const grandTotalEl = document.getElementById('grandTotal');
-
-function money(n){ return `${Number(n).toFixed(2)}€`; }
-function cityPrice(item, city, type='buy'){
-  if(city === 'Barcelona') return type === 'buy' ? item.bcnBuy : item.bcnSell;
-  return type === 'buy' ? item.madBuy : item.madSell;
-}
-function norm(str){ return String(str).toLowerCase().replace(/[\s\-_/]/g, ''); }
-function searchMatches(q){
-  const query = norm(q);
-  if(!query) return [];
-  return catalog.filter(item => norm(item.name).includes(query) || norm(item.unit).includes(query)).slice(0, 12);
-}
-function showSuggestions(list){
-  suggestions.innerHTML = '';
-  if(!list.length){ suggestions.style.display = 'none'; return; }
-  list.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'suggestion';
-    const city = citySelect.value;
-    const price = cityPrice(item, city, 'buy');
-    const vat = price * (1 + VAT_RATE);
-    row.innerHTML = `
-      <div class="left">
-        <div class="name">${item.name}</div>
-        <div class="meta">${item.pack === 'stack' ? 'Sold by stack' : item.unit} · ${city} ${money(price)} · with VAT ${money(vat)}</div>
-      </div>
-      <div class="badge">${city}</div>
-    `;
-    row.addEventListener('click', () => selectItem(item));
-    suggestions.appendChild(row);
-  });
-  suggestions.style.display = 'block';
-}
-function selectItem(item){
-  state.selected = item;
-  const city = citySelect.value;
-  const base = cityPrice(item, city, 'buy');
-  const vat = base * (1 + VAT_RATE);
-  detailCard.classList.add('active');
-  detailName.textContent = item.name;
-  detailHint.textContent = item.pack === 'stack' ? `Recommended quantity: ${item.unit}` : item.unit;
-  detailCityTag.textContent = city;
-  detailBase.textContent = money(base);
-  detailVat.textContent = money(vat);
-  detailSellBcn.textContent = money(item.bcnSell);
-  detailSellMad.textContent = money(item.madSell);
-  detailNote.textContent = item.note || '';
-  quantityInput.value = 1;
-  suggestions.style.display = 'none';
-}
-function renderCart(){
-  cartList.innerHTML = '';
-  if(state.cart.length === 0){
-    cartList.innerHTML = '<div class="empty">Your cart is empty.</div>';
-    cartCount.textContent = '0 items';
-    subtotalEl.textContent = money(0);
-    vatAmountEl.textContent = money(0);
-    grandTotalEl.textContent = money(0);
-    return;
-  }
-  let subtotal = 0;
-  state.cart.forEach((entry, idx) => {
-    subtotal += entry.lineBase;
-    const div = document.createElement('div');
-    div.className = 'cart-item';
-    div.innerHTML = `
-      <div>
-        <div class="cart-name">${entry.name}</div>
-        <div class="cart-meta">
-          <span>${entry.city}</span>
-          <span>Qty: ${entry.quantity}</span>
-          <span>Unit: ${money(entry.unitPrice)}</span>
-          <span>VAT included</span>
-        </div>
-      </div>
-      <div class="cart-right">
-        <div class="cart-price">${money(entry.lineTotal)}</div>
-        <button class="icon-btn" title="Remove item">Remove</button>
-      </div>
-    `;
-    div.querySelector('button').addEventListener('click', () => {
-      state.cart.splice(idx, 1);
-      renderCart();
-    });
-    cartList.appendChild(div);
-  });
-  const vat = subtotal * VAT_RATE;
-  const total = subtotal + vat;
-  cartCount.textContent = `${state.cart.length} item${state.cart.length === 1 ? '' : 's'}`;
-  subtotalEl.textContent = money(subtotal);
-  vatAmountEl.textContent = money(vat);
-  grandTotalEl.textContent = money(total);
-}
-function addSelectedToCart(){
-  if(!state.selected) return;
-  const qty = Math.max(1, Math.floor(Number(quantityInput.value || 1)));
-  const city = citySelect.value;
-  const unitPrice = cityPrice(state.selected, city, 'buy');
-  const lineBase = unitPrice * qty;
-  const lineTotal = lineBase * (1 + VAT_RATE);
-  state.cart.push({ name: state.selected.name, city, quantity: qty, unitPrice, lineBase, lineTotal });
-  renderCart();
-}
-searchInput.addEventListener('input', () => showSuggestions(searchMatches(searchInput.value)));
-searchInput.addEventListener('focus', () => {
-  const matches = searchMatches(searchInput.value);
-  if(matches.length) showSuggestions(matches);
-});
-searchInput.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){
-    const matches = searchMatches(searchInput.value);
-    if(matches.length) selectItem(matches[0]);
-  }
-});
-citySelect.addEventListener('change', () => {
-  if(state.selected) selectItem(state.selected);
-  if(searchInput.value.trim()) showSuggestions(searchMatches(searchInput.value));
-});
-addToCartBtn.addEventListener('click', addSelectedToCart);
-clearSelectionBtn.addEventListener('click', () => {
-  state.selected = null;
-  detailCard.classList.remove('active');
-  searchInput.value = '';
-  suggestions.style.display = 'none';
-  suggestions.innerHTML = '';
-});
-document.addEventListener('click', (e) => {
-  if(!e.target.closest('.search-box')) suggestions.style.display = 'none';
-});
-renderCart();
-</script>
 </body>
 </html>
