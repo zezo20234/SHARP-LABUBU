@@ -1,640 +1,408 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minecraft City Market</title>
-
-<style>
-
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#0f172a;
-color:white;
-padding:20px;
-}
-
-h1{
-text-align:center;
-margin-bottom:20px;
-}
-
-.topbar{
-display:flex;
-gap:10px;
-margin-bottom:20px;
-flex-wrap:wrap;
-}
-
-input,select{
-padding:14px;
-border:none;
-border-radius:10px;
-font-size:16px;
-}
-
-#search{
-flex:1;
-min-width:250px;
-}
-
-.container{
-display:grid;
-grid-template-columns:1fr 350px;
-gap:20px;
-}
-
-@media(max-width:900px){
-.container{
-grid-template-columns:1fr;
-}
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:18px;
-box-shadow:0 0 15px rgba(0,0,0,0.3);
-position:relative;
-z-index:1;
-}
-
-.price{
-color:#22c55e;
-font-weight:bold;
-}
-
-.small{
-color:#94a3b8;
-margin-top:10px;
-}
-
-button{
-background:#2563eb;
-color:white;
-border:none;
-padding:12px 18px;
-border-radius:10px;
-cursor:pointer;
-margin-top:10px;
-font-size:15px;
-}
-
-button:hover{
-background:#1d4ed8;
-}
-
-.suggestions{
-position:absolute;
-background:#1e293b;
-width:100%;
-border-radius:12px;
-overflow:hidden;
-margin-top:5px;
-z-index:9999;
-box-shadow:0 0 20px rgba(0,0,0,0.4);
-max-height:300px;
-overflow-y:auto;
-}
-
-.suggestion{
-padding:12px;
-cursor:pointer;
-border-bottom:1px solid #334155;
-}
-
-.suggestion:hover{
-background:#334155;
-}
-
-.cart-item{
-border-bottom:1px solid #334155;
-padding:10px 0;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-}
-
-.remove{
-background:#dc2626;
-padding:8px 10px;
-font-size:13px;
-}
-
-.remove:hover{
-background:#b91c1c;
-}
-
-.total{
-margin-top:20px;
-font-size:24px;
-color:#22c55e;
-font-weight:bold;
-}
-
-.qty{
-width:100px;
-margin-top:10px;
-}
-
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minecraft Market Explorer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(15, 23, 42, 0.86);
+      --panel-2: rgba(30, 41, 59, 0.92);
+      --border: rgba(255,255,255,0.10);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --tax: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top right, #1e293b, transparent 38%), radial-gradient(circle at bottom left, #0f172a, transparent 35%), var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    h1 { font-size: 1.8rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
+    .city-box, .mini-box {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      backdrop-filter: blur(10px);
+    }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 1rem;
+    }
+    select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(56,189,248,0.12); }
+    .layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 0.9fr; gap: 18px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 18px; backdrop-filter: blur(12px); }
+    .search-wrap { position: relative; }
+    .results {
+      position: absolute; left: 0; right: 0; top: calc(100% + 8px);
+      background: rgba(2, 6, 23, 0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      z-index: 50;
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .result {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+    .result:hover { background: rgba(56,189,248,0.14); }
+    .result small { color: var(--muted); display:block; margin-top: 2px; }
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; background: rgba(56,189,248,0.14); color: var(--primary); }
+    .detail { margin-top: 16px; display: none; }
+    .detail.active { display: block; }
+    .detail-head { display:flex; justify-content: space-between; gap: 10px; align-items: start; margin-bottom: 10px; }
+    .detail h2 { font-size: 1.35rem; }
+    .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; margin-top: 14px; }
+    .k { color: var(--muted); }
+    .v { font-weight: 600; }
+    .v.tax { color: var(--tax); }
+    .qty-row { margin-top: 16px; display:grid; grid-template-columns: 1fr 120px; gap: 10px; align-items:end; }
+    .btn {
+      margin-top: 14px; width: 100%;
+      background: var(--primary); color: #00111a;
+      border: none; border-radius: 14px; padding: 13px 16px;
+      font-weight: 700; cursor: pointer;
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn-secondary { background: rgba(148,163,184,0.14); color: var(--text); border: 1px solid var(--border); }
+    .cart-head { display:flex; justify-content: space-between; gap: 12px; align-items:center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .cart-list { max-height: 60vh; overflow:auto; padding-right: 4px; }
+    .cart-item {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-item .name { font-weight: 600; }
+    .cart-item .meta { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+    .cart-right { text-align:right; }
+    .cart-right .line { font-weight: 700; }
+    .cart-actions { display:flex; gap: 8px; justify-content:flex-end; margin-top: 6px; flex-wrap: wrap; }
+    .tiny { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); cursor:pointer; }
+    .tiny.red { color: #fecaca; border-color: rgba(239,68,68,0.35); }
+    .totals { margin-top: 14px; padding-top: 12px; border-top: 2px solid var(--border); }
+    .total-row { display:flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .grand { font-size: 1.35rem; font-weight: 800; color: var(--primary); }
+    .hint { color: var(--muted); font-size: 0.88rem; margin-top: 8px; line-height: 1.35; }
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-
-<h1>🏙️ Minecraft Barcelona & Madrid Market</h1>
-
-<div class="topbar">
-
-<div style="position:relative; flex:1;">
-
-<input type="text" id="search" placeholder="Search item...">
-
-<div class="suggestions" id="suggestions"></div>
-
-</div>
-
-<select id="city">
-<option value="Barcelona">Barcelona</option>
-<option value="Madrid">Madrid</option>
-</select>
-
-</div>
-
-<div class="container">
-
-<div>
-
-<div class="card" id="itemCard">
-
-<h2>Search for an item</h2>
-<p class="small">
-Type something like "dia", "bread", "stone", etc.
-</p>
-
-</div>
-
-</div>
-
-<div class="card">
-
-<h2>🛒 Cart</h2>
-
-<div id="cart"></div>
-
-<div class="total" id="total">
-Total: 0€
-</div>
-
-</div>
-
-</div>
-
-<script>
-
-const VAT = 0.10;
-
-const items = [
-
-{
-name:"Bread",
-quantity:"1 Bread",
-barca:1,
-madrid:0.7,
-sellBarca:2,
-sellMadrid:1
-},
-
-{
-name:"Steak",
-quantity:"1 Steak",
-barca:5,
-madrid:4,
-sellBarca:8,
-sellMadrid:6
-},
-
-{
-name:"Cooked Chicken",
-quantity:"1 Chicken",
-barca:4,
-madrid:3,
-sellBarca:6,
-sellMadrid:5
-},
-
-{
-name:"Potato",
-quantity:"1 Potato",
-barca:1,
-madrid:0.5,
-sellBarca:2,
-sellMadrid:1
-},
-
-{
-name:"Apple",
-quantity:"1 Apple",
-barca:2,
-madrid:1,
-sellBarca:3,
-sellMadrid:2
-},
-
-{
-name:"Cake",
-quantity:"1 Cake",
-barca:15,
-madrid:12,
-sellBarca:20,
-sellMadrid:16
-},
-
-{
-name:"Concrete",
-quantity:"64 Blocks",
-barca:8,
-madrid:6,
-sellBarca:12,
-sellMadrid:9
-},
-
-{
-name:"Stone",
-quantity:"64 Blocks",
-barca:4,
-madrid:3,
-sellBarca:6,
-sellMadrid:5
-},
-
-{
-name:"Cobblestone",
-quantity:"64 Blocks",
-barca:3,
-madrid:2,
-sellBarca:5,
-sellMadrid:4
-},
-
-{
-name:"Glass",
-quantity:"64 Blocks",
-barca:12,
-madrid:10,
-sellBarca:16,
-sellMadrid:13
-},
-
-{
-name:"Oak Planks",
-quantity:"64 Blocks",
-barca:6,
-madrid:5,
-sellBarca:9,
-sellMadrid:7
-},
-
-{
-name:"Diamond",
-quantity:"1 Diamond",
-barca:35,
-madrid:28,
-sellBarca:50,
-sellMadrid:40
-},
-
-{
-name:"Diamond Block",
-quantity:"1 Block",
-barca:300,
-madrid:250,
-sellBarca:380,
-sellMadrid:320
-},
-
-{
-name:"Iron Ingot",
-quantity:"1 Ingot",
-barca:5,
-madrid:4,
-sellBarca:8,
-sellMadrid:6
-},
-
-{
-name:"Gold Ingot",
-quantity:"1 Ingot",
-barca:8,
-madrid:6,
-sellBarca:12,
-sellMadrid:10
-},
-
-{
-name:"Netherite Ingot",
-quantity:"1 Ingot",
-barca:200,
-madrid:170,
-sellBarca:260,
-sellMadrid:220
-},
-
-{
-name:"Rail",
-quantity:"64 Rails",
-barca:20,
-madrid:16,
-sellBarca:28,
-sellMadrid:22
-},
-
-{
-name:"Powered Rail",
-quantity:"32 Rails",
-barca:30,
-madrid:25,
-sellBarca:40,
-sellMadrid:32
-},
-
-{
-name:"Minecart",
-quantity:"1 Minecart",
-barca:10,
-madrid:8,
-sellBarca:15,
-sellMadrid:12
-},
-
-{
-name:"Torch",
-quantity:"64 Torches",
-barca:4,
-madrid:3,
-sellBarca:6,
-sellMadrid:5
-},
-
-{
-name:"Lantern",
-quantity:"1 Lantern",
-barca:6,
-madrid:5,
-sellBarca:9,
-sellMadrid:7
-},
-
-{
-name:"Furnace",
-quantity:"1 Furnace",
-barca:5,
-madrid:4,
-sellBarca:8,
-sellMadrid:6
-},
-
-{
-name:"Chest",
-quantity:"1 Chest",
-barca:4,
-madrid:3,
-sellBarca:6,
-sellMadrid:5
-},
-
-{
-name:"Bed",
-quantity:"1 Bed",
-barca:10,
-madrid:8,
-sellBarca:14,
-sellMadrid:11
-}
-
-];
-
-const search = document.getElementById("search");
-const suggestions = document.getElementById("suggestions");
-const itemCard = document.getElementById("itemCard");
-const citySelect = document.getElementById("city");
-const cartDiv = document.getElementById("cart");
-const totalDiv = document.getElementById("total");
-
-let currentItem = null;
-let cart = [];
-
-search.addEventListener("input", ()=>{
-
-const value = search.value.toLowerCase();
-
-suggestions.innerHTML = "";
-
-if(!value) return;
-
-const filtered = items.filter(item =>
-item.name.toLowerCase().includes(value)
-);
-
-filtered.forEach(item=>{
-
-const div = document.createElement("div");
-
-div.className = "suggestion";
-
-div.innerHTML = `
-${item.name}
-`;
-
-div.onclick = ()=>{
-
-showItem(item);
-
-search.value = item.name;
-
-suggestions.innerHTML = "";
-
-};
-
-suggestions.appendChild(div);
-
-});
-
-});
-
-function showItem(item){
-
-currentItem = item;
-
-const city = citySelect.value;
-
-const basePrice =
-city === "Barcelona"
-? item.barca
-: item.madrid;
-
-const vatPrice =
-(basePrice * (1 + VAT)).toFixed(2);
-
-itemCard.innerHTML = `
-
-<h2>${item.name}</h2>
-
-<p class="small">
-Quantity:
-<b>${item.quantity}</b>
-</p>
-
-<br>
-
-<p>
-Original Price:
-<span class="price">
-${basePrice}€
-</span>
-</p>
-
-<br>
-
-<p>
-Price With VAT:
-<span class="price">
-${vatPrice}€
-</span>
-</p>
-
-<br>
-
-<p>
-🏙️ Barcelona Recommended Selling Price:
-<span class="price">
-${item.sellBarca}€
-</span>
-</p>
-
-<br>
-
-<p>
-🌾 Madrid Recommended Selling Price:
-<span class="price">
-${item.sellMadrid}€
-</span>
-</p>
-
-<br>
-
-<label>Quantity:</label>
-
-<br>
-
-<input
-type="number"
-id="qty"
-class="qty"
-min="1"
-value="1"
->
-
-<br>
-
-<button onclick="addToCart()">
-Add To Cart
-</button>
-
-`;
-
-}
-
-function addToCart(){
-
-if(!currentItem) return;
-
-const qty =
-parseInt(document.getElementById("qty").value);
-
-const city = citySelect.value;
-
-const price =
-city === "Barcelona"
-? currentItem.barca
-: currentItem.madrid;
-
-const final =
-(price * (1 + VAT)) * qty;
-
-cart.push({
-
-name:currentItem.name,
-qty:qty,
-total:final
-
-});
-
-renderCart();
-
-}
-
-function renderCart(){
-
-cartDiv.innerHTML = "";
-
-let total = 0;
-
-cart.forEach((item,index)=>{
-
-total += item.total;
-
-const div = document.createElement("div");
-
-div.className = "cart-item";
-
-div.innerHTML = `
-
-<div>
-<b>${item.name}</b>
-<br>
-x${item.qty}
-<br>
-<span class="price">
-${item.total.toFixed(2)}€
-</span>
-</div>
-
-<button
-class="remove"
-onclick="removeItem(${index})"
->
-Remove
-</button>
-
-`;
-
-cartDiv.appendChild(div);
-
-});
-
-totalDiv.innerHTML = `
-Total:
-${total.toFixed(2)}€
-`;
-
-}
-
-function removeItem(index){
-
-cart.splice(index,1);
-
-renderCart();
-
-}
-
-</script>
-
+  <header>
+    <div>
+      <h1>Minecraft Market Explorer</h1>
+      <div class="sub">Search fast, see city price, see VAT, and keep a cart for Barcelona or Madrid.</div>
+    </div>
+    <div class="city-box" style="min-width: 220px;">
+      <div class="pill" style="margin-bottom:8px;">City</div>
+      <select id="citySelect">
+        <option value="Barcelona">Barcelona</option>
+        <option value="Madrid">Madrid</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="search-wrap">
+        <input id="searchInput" type="text" placeholder="Type something like dia, conc, iron, bread..." autocomplete="off" />
+        <div id="results" class="results"></div>
+      </div>
+
+      <div id="detail" class="detail panel" style="margin-top:18px; background: rgba(255,255,255,0.03);">
+        <div class="detail-head">
+          <div>
+            <h2 id="itemName">Choose an item</h2>
+            <div id="itemCategory" class="sub">Search an item to see price</div>
+          </div>
+          <div class="pill" id="itemUnitPill">Unit</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">City price</div><div class="v" id="cityPrice">0€</div>
+          <div class="k">With 10% VAT</div><div class="v tax" id="cityPriceVat">0€</div>
+          <div class="k">Quantity type</div><div class="v" id="qtyType">1 item</div>
+          <div class="k">Selected quantity</div><div class="v" id="selectedQty">1</div>
+        </div>
+
+        <div class="qty-row">
+          <div>
+            <div class="sub" id="qtyLabel">Quantity</div>
+            <input id="qtyInput" type="number" min="1" step="1" value="1" />
+          </div>
+          <div>
+            <div class="sub">Quick step</div>
+            <button class="btn btn-secondary" id="resetQtyBtn" type="button">Reset to 1</button>
+          </div>
+        </div>
+
+        <button class="btn" id="addBtn" type="button">ADD TO CART</button>
+        <div class="hint" id="itemHint">Tip: for concrete, the price is for a stack of 64. For diamond, the price is for 1 diamond.</div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="cart-head">
+        <div>
+          <div style="font-weight:700; font-size:1.1rem;">Cart</div>
+          <div class="sub" id="cartCount">0 items</div>
+        </div>
+        <div class="pill">10% VAT</div>
+      </div>
+
+      <div id="cartList" class="cart-list"></div>
+
+      <div class="totals">
+        <div class="total-row"><span class="k">Subtotal</span><span id="subtotal">0.00€</span></div>
+        <div class="total-row"><span class="k">VAT</span><span id="vat">0.00€</span></div>
+        <div class="total-row grand"><span>Total</span><span id="grand">0.00€</span></div>
+      </div>
+
+      <div class="hint">Barcelona is the base city. Madrid is always cheaper. Search suggestions work even if you type only a few letters like <b>dia</b> or <b>conc</b>.</div>
+    </aside>
+  </div>
+
+  <script>
+    const VAT_RATE = 0.10;
+    const MADRID_DISCOUNT = 0.85;
+
+    // Price data provided in source
+    const bcnRaw = `Dirt - 1€\nCoarse Dirt - 2€\nRooted Dirt - 2€\nGrass Block - 1€\nPodzol - 2€\nMycelium - 6€\nStone - 2€\nCobblestone - 2€\nMoss Block - 6€\nMoss Carpet - 2€\nClay - 5€\nMud - 2€\nPacked Mud - 4€\nGravel - 1€\nSand - 2€\nRed Sand - 2€\nSnow Block - 3€\nIce - 4€\nPacked Ice - 8€\nBlue Ice - 15€\nObsidian - 10€\nCrying Obsidian - 14€\nSoul Sand - 3€\nSoul Soil - 3€\nNetherrack - 2€\nGlowstone - 8€\nEnd Stone - 4€\nPrismarine - 8€\nPrismarine Bricks - 10€\nDark Prismarine - 10€\nDripstone Block - 4€\nPointed Dripstone - 3€\nCalcite - 5€\nTuff - 3€\nAmethyst Block - 12€\nStone - 2€\nSmooth Stone - 3€\nAndesite - 2€\nPolished Andesite - 5€\nDiorite - 2€\nPolished Diorite - 5€\nGranite - 2€\nPolished Granite - 5€\nDeepslate - 3€\nCobbled Deepslate - 3€\nPolished Deepslate - 6€\nDeepslate Bricks - 7€\nDeepslate Tiles - 7€\nStone Bricks - 4€\nCracked Stone Bricks - 4€\nMossy Stone Bricks - 5€\nBricks - 6€\nNether Bricks - 6€\nRed Nether Bricks - 8€\nBlackstone - 5€\nPolished Blackstone - 7€\nPolished Blackstone Bricks - 8€\nEnd Stone Bricks - 6€\nSandstone - 4€\nCut Sandstone - 5€\nChiseled Sandstone - 5€\nRed Sandstone - 4€\nCut Red Sandstone - 5€\nChiseled Red Sandstone - 5€\nQuartz Block - 8€\nSmooth Quartz - 10€\nQuartz Pillar - 12€\nPurpur Block - 9€\nPurpur Pillar - 10€\nSea Lantern - 15€\nReinforced Deepslate - 0€\nOak Log - 4€\nSpruce Log - 4€\nBirch Log - 4€\nJungle Log - 5€\nAcacia Log - 5€\nDark Oak Log - 5€\nMangrove Log - 5€\nCherry Log - 6€\nBamboo Block - 4€\nStripped Oak Log - 5€\nStripped Spruce Log - 5€\nStripped Birch Log - 5€\nStripped Jungle Log - 6€\nStripped Acacia Log - 6€\nStripped Dark Oak Log - 6€\nStripped Mangrove Log - 6€\nStripped Cherry Log - 7€\nOak Planks - 2€\nSpruce Planks - 2€\nBirch Planks - 2€\nJungle Planks - 2€\nAcacia Planks - 2€\nDark Oak Planks - 2€\nMangrove Planks - 2€\nCherry Planks - 3€\nBamboo Planks - 2€\nSticks - 1€\nWooden Slab - 1€\nWooden Stairs - 3€\nWooden Fence - 3€\nWooden Fence Gate - 4€\nWooden Door - 5€\nWooden Trapdoor - 4€\nWooden Pressure Plate - 2€\nWooden Button - 1€\nWooden Sign - 2€\nWooden Hanging Sign - 3€\nWooden Boat - 5€\nBoat with Chest - 12€\nLeaves - 1€\nSapling - 2€\nAzalea - 3€\nFlowering Azalea - 4€\nVines - 2€\nScaffolding - 8€\nBamboo - 1€\nBamboo Mosaic - 4€\nBamboo Mosaic Slab - 2€\nBamboo Mosaic Stairs - 6€\nBamboo Fence - 3€\nBamboo Door - 5€\nBamboo Trapdoor - 4€\nWool - 4€\nCarpet - 2€\nCandle - 6€\nBanner - 8€\nBed - 10€\nConcrete Powder - 4€\nConcrete - 8€\nTerracotta - 5€\nGlazed Terracotta - 8€\nStained Glass - 5€\nStained Glass Pane - 3€\nGlass - 3€\nGlass Pane - 2€\nColored Shulker Box - 40€\nCrafting Table - 3€\nFurnace - 5€\nBlast Furnace - 15€\nSmoker - 15€\nCartography Table - 12€\nLoom - 12€\nSmithing Table - 20€\nStonecutter - 10€\nEnchantment Table - 40€\nAnvil - 35€\nChipped Anvil - 25€\nDamaged Anvil - 15€\nGrindstone - 10€\nBarrel - 5€\nChest - 5€\nTrapped Chest - 6€\nEnder Chest - 30€\nShulker Box - 35€\nHopper - 25€\nDispenser - 15€\nDropper - 10€\nObserver - 20€\nComparator - 12€\nRepeater - 8€\nPiston - 15€\nSticky Piston - 20€\nLever - 2€\nButton - 1€\nPressure Plate - 2€\nDaylight Sensor - 18€\nBell - 25€\nLectern - 15€\nComposter - 8€\nBeacon - 250€\nConduit - 180€\nRespawn Anchor - 60€\nLodestone - 50€\nTarget Block - 12€\nNote Block - 8€\nJukebox - 25€\nMusic Disc - 15€\nSpore Blossom - 8€\nHoney Block - 10€\nHoneycomb Block - 12€\nSlime Block - 15€\nTNT - 30€\nCampfire - 10€\nSoul Campfire - 12€\nSea Pickle - 6€\nCauldron - 8€\nLightning Rod - 15€\nRedstone Dust - 6€\nRedstone Torch - 4€\nRedstone Block - 25€\nRedstone Lamp - 12€\nTripwire Hook - 5€\nRail - 2€\nPowered Rail - 6€\nDetector Rail - 10€\nActivator Rail - 10€\nMinecart - 10€\nMinecart with Chest - 18€\nMinecart with Furnace - 18€\nMinecart with Hopper - 20€\nMinecart with TNT - 25€\nSculk Sensor - 20€\nCalibrated Sculk Sensor - 25€\nCoal - 4€\nCharcoal - 4€\nCopper Ingot - 5€\nRaw Copper - 3€\nCopper Block - 25€\nIron Nugget - 1€\nRaw Iron - 6€\nIron Ingot - 8€\nIron Block - 45€\nGold Nugget - 2€\nRaw Gold - 10€\nGold Ingot - 15€\nGold Block - 90€\nLapis Lazuli - 8€\nEmerald - 20€\nDiamond - 40€\nNether Quartz - 8€\nAncient Debris - 120€\nNetherite Scrap - 100€\nNetherite Ingot - 250€\nAmethyst Shard - 6€\nPrismarine Shard - 8€\nPrismarine Crystal - 10€\nGlow Ink Sac - 8€\nInk Sac - 3€\nSlime Ball - 6€\nMagma Cream - 8€\nBlaze Rod - 15€\nBlaze Powder - 10€\nEnder Pearl - 12€\nGhast Tear - 18€\nPhantom Membrane - 12€\nHoney Bottle - 6€\nHoneycomb - 4€\nQuartz - 8€\nRaw Iron Block - 45€\nRaw Gold Block - 90€\nRaw Copper Block - 25€\nWheat - 1€\nWheat Seeds - 1€\nCarrot - 2€\nPotato - 1€\nPoisonous Potato - 1€\nBeetroot - 1€\nBeetroot Seeds - 1€\nSugar Cane - 1€\nMelon Slice - 1€\nPumpkin - 3€\nPumpkin Pie - 5€\nApple - 2€\nSweet Berries - 2€\nGlow Berries - 3€\nMushroom Stew - 5€\nBeetroot Soup - 4€\nBread - 3€\nBaked Potato - 3€\nRaw Chicken - 3€\nCooked Chicken - 5€\nRaw Beef - 4€\nCooked Beef - 7€\nRaw Porkchop - 4€\nCooked Porkchop - 7€\nRaw Mutton - 3€\nCooked Mutton - 5€\nRaw Rabbit - 4€\nCooked Rabbit - 6€\nRaw Cod - 3€\nCooked Cod - 4€\nRaw Salmon - 4€\nCooked Salmon - 5€\nTropical Fish - 4€\nPufferfish - 3€\nCake - 20€\nCookie - 2€\nMilk Bucket - 3€\nGolden Carrot - 25€\nGolden Apple - 35€\nEnchanted Golden Apple - 250€\nDried Kelp - 2€\nTea / Juice / Drink - 5€\nLeather - 4€\nString - 2€\nFeather - 2€\nBone - 2€\nArrow - 2€\nGunpowder - 4€\nRotten Flesh - 1€\nSpider Eye - 2€\nRabbit Hide - 3€\nRabbit Foot - 5€\nNether Wart - 6€\nWither Skeleton Skull - 120€\nDragon Breath - 150€\nWooden Pickaxe - 5€\nWooden Axe - 5€\nWooden Shovel - 4€\nWooden Hoe - 4€\nWooden Sword - 5€\nStone Pickaxe - 8€\nStone Axe - 8€\nStone Shovel - 7€\nStone Hoe - 7€\nStone Sword - 8€\nIron Pickaxe - 20€\nIron Axe - 20€\nIron Shovel - 18€\nIron Hoe - 18€\nIron Sword - 20€\nDiamond Pickaxe - 50€\nDiamond Axe - 50€\nDiamond Shovel - 45€\nDiamond Hoe - 45€\nDiamond Sword - 50€\nNetherite Pickaxe - 150€\nNetherite Axe - 150€\nNetherite Shovel - 140€\nNetherite Hoe - 140€\nNetherite Sword - 150€\nShears - 12€\nFishing Rod - 10€\nFlint and Steel - 8€\nCompass - 20€\nClock - 15€\nMap - 10€\nLead - 10€\nCarrot on a Stick - 8€\nWarped Fungus on a Stick - 8€\nSaddle - 30€\nShield - 20€\nTotem of Undying - 120€\nElytra - 200€\nLeather Helmet - 6€\nLeather Chestplate - 8€\nLeather Leggings - 7€\nLeather Boots - 5€\nChain Helmet - 12€\nChain Chestplate - 15€\nChain Leggings - 14€\nChain Boots - 10€\nIron Helmet - 20€\nIron Chestplate - 25€\nIron Leggings - 22€\nIron Boots - 15€\nDiamond Helmet - 50€\nDiamond Chestplate - 60€\nDiamond Leggings - 55€\nDiamond Boots - 35€\nNetherite Helmet - 120€\nNetherite Chestplate - 140€\nNetherite Leggings - 130€\nNetherite Boots - 90€\nLeather Horse Armor - 20€\nIron Horse Armor - 40€\nGolden Horse Armor - 45€\nDiamond Horse Armor - 80€\nBoat - 5€\nLocal Metro Ticket - 8€\nLocal Bus Ticket - 5€\nTaxi Ride - 15€\nBarcelona to Madrid Train Ticket - 150€\nAirport Trip - 100€\nParking Spot - 25€\nSmall House - 400€\nMedium House - 800€\nBig House - 1500€\nMansion - 3000€\nCity Plot - 200€\nShop Space - 500€\nOffice Space - 600€\nTower Floor - 700€\nApartment Rent - 40€\nStorefront Rent - 60€\nSmall Shop License - 100€\nRestaurant License - 120€\nHotel License - 150€\nBank License - 300€\nConstruction Company License - 200€\nTransport Company License - 200€\nTrident - 80€\nHeart of the Sea - 60€\nNether Star - 300€\nDragon Egg - 500€\nDragon Head - 180€\nShulker Shell - 40€\nElytra Repair - 50€`;
+
+    const madRaw = `Dirt - 1€\nCoarse Dirt - 1€\nRooted Dirt - 1€\nGrass Block - 1€\nPodzol - 1€\nMycelium - 5€\nStone - 1€\nCobblestone - 1€\nMoss Block - 5€\nMoss Carpet - 1€\nClay - 4€\nMud - 1€\nPacked Mud - 3€\nGravel - 1€\nSand - 1€\nRed Sand - 1€\nSnow Block - 2€\nIce - 3€\nPacked Ice - 6€\nBlue Ice - 12€\nObsidian - 8€\nCrying Obsidian - 11€\nSoul Sand - 2€\nSoul Soil - 2€\nNetherrack - 1€\nGlowstone - 6€\nEnd Stone - 3€\nPrismarine - 6€\nPrismarine Bricks - 8€\nDark Prismarine - 8€\nDripstone Block - 3€\nPointed Dripstone - 2€\nCalcite - 4€\nTuff - 2€\nAmethyst Block - 10€\nStone - 1€\nSmooth Stone - 2€\nAndesite - 1€\nPolished Andesite - 4€\nDiorite - 1€\nPolished Diorite - 4€\nGranite - 1€\nPolished Granite - 4€\nDeepslate - 2€\nCobbled Deepslate - 2€\nPolished Deepslate - 5€\nDeepslate Bricks - 5€\nDeepslate Tiles - 5€\nStone Bricks - 3€\nCracked Stone Bricks - 3€\nMossy Stone Bricks - 4€\nBricks - 5€\nNether Bricks - 5€\nRed Nether Bricks - 6€\nBlackstone - 4€\nPolished Blackstone - 5€\nPolished Blackstone Bricks - 6€\nEnd Stone Bricks - 5€\nSandstone - 3€\nCut Sandstone - 4€\nChiseled Sandstone - 4€\nRed Sandstone - 3€\nCut Red Sandstone - 4€\nChiseled Red Sandstone - 4€\nQuartz Block - 6€\nSmooth Quartz - 8€\nQuartz Pillar - 10€\nPurpur Block - 7€\nPurpur Pillar - 8€\nSea Lantern - 12€\nReinforced Deepslate - 0€\nOak Log - 3€\nSpruce Log - 3€\nBirch Log - 3€\nJungle Log - 4€\nAcacia Log - 4€\nDark Oak Log - 4€\nMangrove Log - 4€\nCherry Log - 5€\nBamboo Block - 3€\nStripped Oak Log - 4€\nStripped Spruce Log - 4€\nStripped Birch Log - 4€\nStripped Jungle Log - 5€\nStripped Acacia Log - 5€\nStripped Dark Oak Log - 5€\nStripped Mangrove Log - 5€\nStripped Cherry Log - 5€\nOak Planks - 1€\nSpruce Planks - 1€\nBirch Planks - 1€\nJungle Planks - 1€\nAcacia Planks - 1€\nDark Oak Planks - 1€\nMangrove Planks - 1€\nCherry Planks - 2€\nBamboo Planks - 1€\nSticks - 1€\nWooden Slab - 1€\nWooden Stairs - 2€\nWooden Fence - 2€\nWooden Fence Gate - 3€\nWooden Door - 4€\nWooden Trapdoor - 3€\nWooden Pressure Plate - 1€\nWooden Button - 1€\nWooden Sign - 1€\nWooden Hanging Sign - 2€\nWooden Boat - 4€\nBoat with Chest - 10€\nLeaves - 1€\nSapling - 1€\nAzalea - 2€\nFlowering Azalea - 3€\nVines - 1€\nScaffolding - 6€\nBamboo - 1€\nBamboo Mosaic - 3€\nBamboo Mosaic Slab - 1€\nBamboo Mosaic Stairs - 5€\nBamboo Fence - 2€\nBamboo Door - 4€\nBamboo Trapdoor - 3€\nWool - 3€\nCarpet - 1€\nCandle - 5€\nBanner - 6€\nBed - 8€\nConcrete Powder - 3€\nConcrete - 6€\nTerracotta - 4€\nGlazed Terracotta - 6€\nStained Glass - 4€\nStained Glass Pane - 2€\nGlass - 2€\nGlass Pane - 1€\nColored Shulker Box - 34€\nCrafting Table - 2€\nFurnace - 4€\nBlast Furnace - 12€\nSmoker - 12€\nCartography Table - 10€\nLoom - 10€\nSmithing Table - 17€\nStonecutter - 8€\nEnchantment Table - 34€\nAnvil - 29€\nChipped Anvil - 21€\nDamaged Anvil - 12€\nGrindstone - 8€\nBarrel - 4€\nChest - 4€\nTrapped Chest - 5€\nEnder Chest - 25€\nShulker Box - 29€\nHopper - 21€\nDispenser - 12€\nDropper - 8€\nObserver - 17€\nComparator - 10€\nRepeater - 6€\nPiston - 12€\nSticky Piston - 17€\nLever - 1€\nButton - 1€\nPressure Plate - 1€\nDaylight Sensor - 15€\nBell - 21€\nLectern - 12€\nComposter - 6€\nBeacon - 212€\nConduit - 153€\nRespawn Anchor - 51€\nLodestone - 42€\nTarget Block - 10€\nNote Block - 6€\nJukebox - 21€\nMusic Disc - 12€\nSpore Blossom - 6€\nHoney Block - 8€\nHoneycomb Block - 10€\nSlime Block - 12€\nTNT - 25€\nCampfire - 8€\nSoul Campfire - 10€\nSea Pickle - 5€\nCauldron - 6€\nLightning Rod - 12€\nRedstone Dust - 5€\nRedstone Torch - 3€\nRedstone Block - 21€\nRedstone Lamp - 10€\nTripwire Hook - 4€\nRail - 1€\nPowered Rail - 5€\nDetector Rail - 8€\nActivator Rail - 8€\nMinecart - 8€\nMinecart with Chest - 15€\nMinecart with Furnace - 15€\nMinecart with Hopper - 17€\nMinecart with TNT - 21€\nSculk Sensor - 17€\nCalibrated Sculk Sensor - 21€\nCoal - 3€\nCharcoal - 3€\nCopper Ingot - 4€\nRaw Copper - 2€\nCopper Block - 21€\nIron Nugget - 1€\nRaw Iron - 5€\nIron Ingot - 6€\nIron Block - 38€\nGold Nugget - 1€\nRaw Gold - 8€\nGold Ingot - 12€\nGold Block - 76€\nLapis Lazuli - 6€\nEmerald - 17€\nDiamond - 34€\nNether Quartz - 6€\nAncient Debris - 102€\nNetherite Scrap - 85€\nNetherite Ingot - 212€\nAmethyst Shard - 5€\nPrismarine Shard - 6€\nPrismarine Crystal - 8€\nGlow Ink Sac - 6€\nInk Sac - 2€\nSlime Ball - 5€\nMagma Cream - 6€\nBlaze Rod - 12€\nBlaze Powder - 8€\nEnder Pearl - 10€\nGhast Tear - 15€\nPhantom Membrane - 10€\nHoney Bottle - 5€\nHoneycomb - 3€\nQuartz - 6€\nRaw Iron Block - 38€\nRaw Gold Block - 76€\nRaw Copper Block - 21€\nWheat - 1€\nWheat Seeds - 1€\nCarrot - 1€\nPotato - 1€\nPoisonous Potato - 1€\nBeetroot - 1€\nBeetroot Seeds - 1€\nSugar Cane - 1€\nMelon Slice - 1€\nPumpkin - 2€\nPumpkin Pie - 4€\nApple - 1€\nSweet Berries - 1€\nGlow Berries - 2€\nMushroom Stew - 4€\nBeetroot Soup - 3€\nBread - 2€\nBaked Potato - 2€\nRaw Chicken - 2€\nCooked Chicken - 4€\nRaw Beef - 3€\nCooked Beef - 5€\nRaw Porkchop - 3€\nCooked Porkchop - 5€\nRaw Mutton - 2€\nCooked Mutton - 4€\nRaw Rabbit - 3€\nCooked Rabbit - 5€\nRaw Cod - 2€\nCooked Cod - 3€\nRaw Salmon - 3€\nCooked Salmon - 4€\nTropical Fish - 3€\nPufferfish - 2€\nCake - 17€\nCookie - 1€\nMilk Bucket - 2€\nGolden Carrot - 21€\nGolden Apple - 29€\nEnchanted Golden Apple - 212€\nDried Kelp - 1€\nTea / Juice / Drink - 4€\nLeather - 3€\nString - 1€\nFeather - 1€\nBone - 1€\nArrow - 1€\nGunpowder - 3€\nRotten Flesh - 1€\nSpider Eye - 1€\nRabbit Hide - 2€\nRabbit Foot - 4€\nNether Wart - 5€\nWither Skeleton Skull - 102€\nDragon Breath - 127€\nWooden Pickaxe - 4€\nWooden Axe - 4€\nWooden Shovel - 3€\nWooden Hoe - 3€\nWooden Sword - 4€\nStone Pickaxe - 6€\nStone Axe - 6€\nStone Shovel - 5€\nStone Hoe - 5€\nStone Sword - 6€\nIron Pickaxe - 17€\nIron Axe - 17€\nIron Shovel - 15€\nIron Hoe - 15€\nIron Sword - 17€\nDiamond Pickaxe - 42€\nDiamond Axe - 42€\nDiamond Shovel - 38€\nDiamond Hoe - 38€\nDiamond Sword - 42€\nNetherite Pickaxe - 127€\nNetherite Axe - 127€\nNetherite Shovel - 119€\nNetherite Hoe - 119€\nNetherite Sword - 127€\nShears - 10€\nFishing Rod - 8€\nFlint and Steel - 6€\nCompass - 17€\nClock - 12€\nMap - 8€\nLead - 8€\nCarrot on a Stick - 6€\nWarped Fungus on a Stick - 6€\nSaddle - 25€\nShield - 17€\nTotem of Undying - 102€\nElytra - 170€\nLeather Helmet - 5€\nLeather Chestplate - 6€\nLeather Leggings - 5€\nLeather Boots - 4€\nChain Helmet - 10€\nChain Chestplate - 12€\nChain Leggings - 11€\nChain Boots - 8€\nIron Helmet - 17€\nIron Chestplate - 21€\nIron Leggings - 18€\nIron Boots - 12€\nDiamond Helmet - 42€\nDiamond Chestplate - 51€\nDiamond Leggings - 46€\nDiamond Boots - 29€\nNetherite Helmet - 102€\nNetherite Chestplate - 119€\nNetherite Leggings - 110€\nNetherite Boots - 76€\nLeather Horse Armor - 17€\nIron Horse Armor - 34€\nGolden Horse Armor - 38€\nDiamond Horse Armor - 68€\nBoat - 4€\nLocal Metro Ticket - 6€\nLocal Bus Ticket - 4€\nTaxi Ride - 12€\nBarcelona to Madrid Train Ticket - 127€\nAirport Trip - 85€\nParking Spot - 21€\nSmall House - 340€\nMedium House - 680€\nBig House - 1275€\nMansion - 2550€\nCity Plot - 170€\nShop Space - 425€\nOffice Space - 510€\nTower Floor - 595€\nApartment Rent - 34€\nStorefront Rent - 51€\nSmall Shop License - 85€\nRestaurant License - 102€\nHotel License - 127€\nBank License - 255€\nConstruction Company License - 170€\nTransport Company License - 170€\nTrident - 68€\nHeart of the Sea - 51€\nNether Star - 255€\nDragon Egg - 425€\nDragon Head - 153€\nShulker Shell - 34€\nElytra Repair - 42€`;
+
+    const data = new Map();
+
+    function norm(s) {
+      return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
+    function roundPrice(n) {
+      return Math.max(1, Math.floor(Number(n) || 0));
+    }
+
+    function parse(raw, city) {
+      raw.split(/\n/).forEach(line => {
+        const m = line.match(/^(.+?)\s-\s([0-9]+(?:\.[0-9]+)?)€/);
+        if (!m) return;
+        const name = m[1].trim();
+        const price = Number(m[2]);
+        if (!data.has(name)) data.set(name, { name, prices: {} });
+        data.get(name).prices[city] = price;
+      });
+    }
+
+    parse(bcnRaw, 'Barcelona');
+    parse(madRaw, 'Madrid');
+
+    // Extras with stack/unit logic
+    const extras = [
+      ['Diamond Block', 360, 'Single block'],
+      ['Diamond Ore', 45, 'Single block'],
+      ['Deepslate Diamond Ore', 55, 'Single block'],
+      ['Emerald Block', 180, 'Single block'],
+      ['Iron Block', 72, 'Single block'],
+      ['Gold Block', 135, 'Single block'],
+      ['Copper Block', 30, 'Single block'],
+      ['Coal Block', 30, 'Single block'],
+      ['Lapis Block', 45, 'Single block'],
+      ['Redstone Block', 30, 'Single block'],
+      ['Netherite Block', 1800, 'Single block'],
+      ['Diamond Horse Armor', 80, 'Single item'],
+      ['Horse Armor', 50, 'Single item'],
+      ['Name Tag', 25, 'Single item'],
+      ['Spyglass', 20, 'Single item'],
+      ['Bundle', 12, 'Single item'],
+      ['Book and Quill', 6, 'Single item']
+    ];
+
+    for (const [name, bcn, unit] of extras) {
+      if (!data.has(name)) data.set(name, { name, prices: {} });
+      data.get(name).prices.Barcelona = bcn;
+      data.get(name).prices.Madrid = roundPrice(bcn * MADRID_DISCOUNT);
+      data.get(name).unit = unit;
+      data.get(name).category = 'Extra';
+    }
+
+    const stackItems = new Set([
+      'Dirt','Coarse Dirt','Rooted Dirt','Grass Block','Podzol','Mycelium','Stone','Cobblestone','Moss Block','Moss Carpet','Clay','Mud','Packed Mud','Gravel','Sand','Red Sand','Snow Block','Ice','Packed Ice','Blue Ice','Obsidian','Crying Obsidian','Soul Sand','Soul Soil','Netherrack','Glowstone','End Stone','Prismarine','Prismarine Bricks','Dark Prismarine','Dripstone Block','Pointed Dripstone','Calcite','Tuff','Amethyst Block',
+      'Smooth Stone','Andesite','Polished Andesite','Diorite','Polished Diorite','Granite','Polished Granite','Deepslate','Cobbled Deepslate','Polished Deepslate','Deepslate Bricks','Deepslate Tiles','Stone Bricks','Cracked Stone Bricks','Mossy Stone Bricks','Bricks','Nether Bricks','Red Nether Bricks','Blackstone','Polished Blackstone','Polished Blackstone Bricks','End Stone Bricks','Sandstone','Cut Sandstone','Chiseled Sandstone','Red Sandstone','Cut Red Sandstone','Chiseled Red Sandstone','Quartz Block','Smooth Quartz','Quartz Pillar','Purpur Block','Purpur Pillar','Sea Lantern',
+      'Oak Log','Spruce Log','Birch Log','Jungle Log','Acacia Log','Dark Oak Log','Mangrove Log','Cherry Log','Bamboo Block','Stripped Oak Log','Stripped Spruce Log','Stripped Birch Log','Stripped Jungle Log','Stripped Acacia Log','Stripped Dark Oak Log','Stripped Mangrove Log','Stripped Cherry Log','Oak Planks','Spruce Planks','Birch Planks','Jungle Planks','Acacia Planks','Dark Oak Planks','Mangrove Planks','Cherry Planks','Bamboo Planks','Sticks','Wooden Slab','Wooden Stairs','Wooden Fence','Wooden Fence Gate','Wooden Door','Wooden Trapdoor','Wooden Pressure Plate','Wooden Button','Wooden Sign','Wooden Hanging Sign','Wooden Boat','Boat with Chest','Leaves','Sapling','Azalea','Flowering Azalea','Vines','Scaffolding','Bamboo','Bamboo Mosaic','Bamboo Mosaic Slab','Bamboo Mosaic Stairs','Bamboo Fence','Bamboo Door','Bamboo Trapdoor',
+      'Wool','Carpet','Candle','Banner','Bed','Concrete Powder','Concrete','Terracotta','Glazed Terracotta','Stained Glass','Stained Glass Pane','Glass','Glass Pane',
+      'Crafting Table','Furnace','Blast Furnace','Smoker','Cartography Table','Loom','Smithing Table','Stonecutter','Barrel','Chest','Trapped Chest','Hopper','Dispenser','Dropper','Observer','Comparator','Repeater','Piston','Sticky Piston','Lever','Button','Pressure Plate','Daylight Sensor','Bell','Lectern','Composter','Target Block','Note Block','Jukebox','Spore Blossom','Honey Block','Honeycomb Block','Slime Block','Campfire','Soul Campfire','Sea Pickle','Cauldron','Lightning Rod',
+      'Rail','Powered Rail','Detector Rail','Activator Rail',
+      'Copper Ore','Deepslate Copper Ore','Copper Block','Raw Copper Block','Raw Copper','Copper Ingot','Coal','Charcoal','Raw Iron','Raw Iron Block','Iron Ingot','Iron Nugget','Lapis Lazuli','Redstone Dust','Nether Quartz','Quartz','Amethyst Shard','Prismarine Shard','Prismarine Crystal','Glow Ink Sac','Ink Sac','Slime Ball','Magma Cream','Blaze Powder','Bamboo','Honeycomb','Honey Bottle','Dried Kelp','Nether Wart',
+      'Wheat','Wheat Seeds','Carrot','Potato','Poisonous Potato','Beetroot','Beetroot Seeds','Sugar Cane','Melon Slice','Pumpkin','Pumpkin Pie','Apple','Sweet Berries','Glow Berries','Mushroom Stew','Beetroot Soup','Bread','Baked Potato','Raw Chicken','Cooked Chicken','Raw Beef','Cooked Beef','Raw Porkchop','Cooked Porkchop','Raw Mutton','Cooked Mutton','Raw Rabbit','Cooked Rabbit','Raw Cod','Cooked Cod','Raw Salmon','Cooked Salmon','Tropical Fish','Pufferfish','Cake','Cookie','Milk Bucket',
+      'Leather','String','Feather','Bone','Arrow','Gunpowder','Rotten Flesh','Spider Eye','Rabbit Hide','Rabbit Foot','Wither Skeleton Skull'
+    ]);
+
+    const singleItems = new Set([
+      'Iron Block','Gold Block','Diamond Block','Emerald Block','Coal Block','Lapis Block','Redstone Block','Netherite Block','Diamond Ore','Deepslate Diamond Ore','Ancient Debris','Netherite Scrap','Netherite Ingot','Diamond','Emerald','Gold Ingot','Gold Nugget','Iron Helmet','Iron Chestplate','Iron Leggings','Iron Boots','Diamond Helmet','Diamond Chestplate','Diamond Leggings','Diamond Boots','Netherite Helmet','Netherite Chestplate','Netherite Leggings','Netherite Boots','Wooden Pickaxe','Wooden Axe','Wooden Shovel','Wooden Hoe','Wooden Sword','Stone Pickaxe','Stone Axe','Stone Shovel','Stone Hoe','Stone Sword','Iron Pickaxe','Iron Axe','Iron Shovel','Iron Hoe','Iron Sword','Diamond Pickaxe','Diamond Axe','Diamond Shovel','Diamond Hoe','Diamond Sword','Netherite Pickaxe','Netherite Axe','Netherite Shovel','Netherite Hoe','Netherite Sword','Shears','Fishing Rod','Flint and Steel','Compass','Clock','Map','Lead','Carrot on a Stick','Warped Fungus on a Stick','Saddle','Shield','Totem of Undying','Elytra','Trident','Heart of the Sea','Nether Star','Dragon Egg','Dragon Head','Shulker Shell','Conduit','Beacon','Lodestone','Respawn Anchor','Ender Chest','Shulker Box','Colored Shulker Box','Minecart','Minecart with Chest','Minecart with Furnace','Minecart with Hopper','Minecart with TNT','Boat','Bus Ticket','Metro Ticket','Taxi Ride','Barcelona to Madrid Train Ticket','Airport Trip','Parking Spot','Small House','Medium House','Big House','Mansion','City Plot','Shop Space','Office Space','Tower Floor','Apartment Rent','Storefront Rent','Small Shop License','Restaurant License','Hotel License','Bank License','Construction Company License','Transport Company License','Elytra Repair'
+    ]);
+
+    function unitInfo(name) {
+      if (singleItems.has(name)) return { label: '1 item', kind: 'item' };
+      if (stackItems.has(name)) return { label: 'stack of 64', kind: 'stack' };
+      if (/block|planks|slab|stairs|fence|gate|wall|glass|pane|carpet|concrete|terracotta|wool|brick|stone|sandstone|quartz|purpur|prismarine|mud|dirt|sand|gravel|ice|snow|moss|netherrack|soul|end stone|dripstone|calcite|tuff/i.test(name)) {
+        return { label: 'stack of 64', kind: 'stack' };
+      }
+      return { label: '1 item', kind: 'item' };
+    }
+
+    const citySelect = document.getElementById('citySelect');
+    const searchInput = document.getElementById('searchInput');
+    const results = document.getElementById('results');
+    const detail = document.getElementById('detail');
+    const itemName = document.getElementById('itemName');
+    const itemCategory = document.getElementById('itemCategory');
+    const itemUnitPill = document.getElementById('itemUnitPill');
+    const cityPrice = document.getElementById('cityPrice');
+    const cityPriceVat = document.getElementById('cityPriceVat');
+    const qtyType = document.getElementById('qtyType');
+    const selectedQty = document.getElementById('selectedQty');
+    const qtyInput = document.getElementById('qtyInput');
+    const qtyLabel = document.getElementById('qtyLabel');
+    const itemHint = document.getElementById('itemHint');
+    const cartList = document.getElementById('cartList');
+    const cartCount = document.getElementById('cartCount');
+    const subtotalEl = document.getElementById('subtotal');
+    const vatEl = document.getElementById('vat');
+    const grandEl = document.getElementById('grand');
+    const resetQtyBtn = document.getElementById('resetQtyBtn');
+    const addBtn = document.getElementById('addBtn');
+
+    let currentItem = null;
+    let currentQty = 1;
+    const cart = [];
+
+    function getCity() { return citySelect.value; }
+    function formatMoney(n) { return `${Number(n).toFixed(2)}€`; }
+
+    function getPrice(name, city) {
+      const row = data.get(name);
+      if (!row) return 0;
+      if (typeof row.prices[city] === 'number') return row.prices[city];
+      if (city === 'Madrid' && typeof row.prices.Barcelona === 'number') return roundPrice(row.prices.Barcelona * MADRID_DISCOUNT);
+      return row.prices.Barcelona || 0;
+    }
+
+    function filteredNames(q) {
+      const query = norm(q);
+      if (!query) return [];
+      const names = [...data.keys()];
+      const scored = names.map(name => {
+        const n = norm(name);
+        let score = 0;
+        if (n === query) score += 1000;
+        if (n.startsWith(query)) score += 500;
+        if (n.includes(query)) score += 200;
+        let i = 0;
+        for (const ch of query) { i = n.indexOf(ch, i); if (i === -1) break; i += 1; }
+        if (i !== -1) score += 80;
+        if (score === 0) return null;
+        return { name, score };
+      }).filter(Boolean);
+      scored.sort((a,b) => b.score - a.score || a.name.localeCompare(b.name));
+      return scored.slice(0, 12).map(x => x.name);
+    }
+
+    function renderResults() {
+      const q = searchInput.value.trim();
+      const city = getCity();
+      const matches = filteredNames(q);
+      results.innerHTML = '';
+      if (!q || !matches.length) { results.style.display = 'none'; return; }
+      for (const name of matches) {
+        const price = getPrice(name, city);
+        const u = unitInfo(name);
+        const div = document.createElement('div');
+        div.className = 'result';
+        div.innerHTML = `<div><div>${name}</div><small>${city} · ${formatMoney(price)} / ${u.label}</small></div><div style="text-align:right;"><div style="color: var(--primary); font-weight:700;">${formatMoney(price)}</div><small style="color: var(--tax);">${formatMoney(price * (1 + VAT_RATE))} with VAT</small></div>`;
+        div.onclick = () => selectItem(name);
+        results.appendChild(div);
+      }
+      results.style.display = 'block';
+    }
+
+    function selectItem(name) {
+      currentItem = name;
+      const city = getCity();
+      const price = getPrice(name, city);
+      const u = unitInfo(name);
+      itemName.textContent = name;
+      itemCategory.textContent = `${city} · ${data.get(name)?.category || 'Item'}`;
+      itemUnitPill.textContent = u.label;
+      cityPrice.textContent = formatMoney(price);
+      cityPriceVat.textContent = formatMoney(price * (1 + VAT_RATE));
+      qtyType.textContent = u.label;
+      qtyLabel.textContent = u.kind === 'stack' ? 'Quantity (stacks of 64)' : 'Quantity (items)';
+      itemHint.textContent = u.kind === 'stack' ? `This price is for one stack of 64 ${name}.` : `This price is for one ${name}.`;
+      detail.classList.add('active');
+      currentQty = 1; qtyInput.value = 1; selectedQty.textContent = '1';
+      results.style.display = 'none';
+    }
+
+    function updateCart() {
+      cartList.innerHTML = '';
+      let sub = 0; let count = 0;
+      cart.forEach((item, idx) => {
+        const line = item.price * item.qty;
+        sub += line; count += item.qty;
+        const el = document.createElement('div');
+        el.className = 'cart-item';
+        el.innerHTML = `<div><div class="name">${item.name}</div><div class="meta">${item.city} · ${item.qty} ${item.qtyUnit} · ${formatMoney(item.price)} each</div></div><div class="cart-right"><div class="line">${formatMoney(line)}</div><div class="meta">VAT: ${formatMoney(line * VAT_RATE)}</div><div class="cart-actions"><button class="tiny" data-act="minus">-</button><button class="tiny" data-act="plus">+</button><button class="tiny red" data-act="remove">Remove</button></div></div>`;
+        el.querySelector('[data-act="remove"]').onclick = () => { cart.splice(idx,1); updateCart(); };
+        el.querySelector('[data-act="plus"]').onclick = () => { cart[idx].qty += 1; updateCart(); };
+        el.querySelector('[data-act="minus"]').onclick = () => { cart[idx].qty -= 1; if (cart[idx].qty <= 0) cart.splice(idx,1); updateCart(); };
+        cartList.appendChild(el);
+      });
+      cartCount.textContent = `${cart.length} lines · ${count} units`;
+      subtotalEl.textContent = formatMoney(sub);
+      vatEl.textContent = formatMoney(sub * VAT_RATE);
+      grandEl.textContent = formatMoney(sub * (1 + VAT_RATE));
+    }
+
+    searchInput.addEventListener('input', renderResults);
+    citySelect.addEventListener('change', () => { renderResults(); if (currentItem) selectItem(currentItem); });
+    qtyInput.addEventListener('input', () => { currentQty = Math.max(1, parseInt(qtyInput.value || '1', 10)); qtyInput.value = currentQty; selectedQty.textContent = String(currentQty); });
+    resetQtyBtn.addEventListener('click', () => { currentQty = 1; qtyInput.value = 1; selectedQty.textContent = '1'; });
+    addBtn.addEventListener('click', () => { if (!currentItem) return; const u = unitInfo(currentItem); cart.push({ name: currentItem, city: getCity(), price: getPrice(currentItem, getCity()), qty: currentQty, qtyUnit: u.kind === 'stack' ? 'stacks' : 'items' }); updateCart(); });
+    updateCart();
+  </script>
 </body>
 </html>
