@@ -1,541 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minecraft Economy Market</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        /* Modern CSS Reset & Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
 
-<style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#111827;
-    color:white;
-}
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+        }
 
-header{
-    background:#1f2937;
-    padding:20px;
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-}
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+            font-size: 1.5em;
+        }
 
-.container{
-    max-width:1200px;
-    margin:auto;
-    padding:20px;
-}
+        /* Products Section */
+        .product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f3f4;
+        }
 
-.search-box{
-    position:relative;
-}
+        .product:last-child {
+            border-bottom: none;
+        }
 
-input{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    font-size:18px;
-    outline:none;
-}
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease-in-out;
+        }
 
-.suggestions{
-    position:absolute;
-    top:60px;
-    width:100%;
-    background:#1f2937;
-    border-radius:10px;
-    max-height:300px;
-    overflow-y:auto;
-    z-index:999;
-}
+        button:hover {
+            background-color: #2980b9;
+        }
 
-.suggestion{
-    padding:12px;
-    cursor:pointer;
-    border-bottom:1px solid #374151;
-}
+        /* Cart Section */
+        .cart-item {
+            display: flex;
+            flex-direction: column;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f3f4;
+            gap: 12px;
+        }
 
-.suggestion:hover{
-    background:#374151;
-}
+        .cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #2c3e50;
+        }
 
-.card{
-    background:#1f2937;
-    margin-top:20px;
-    padding:20px;
-    border-radius:15px;
-}
+        .cart-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.price{
-    color:#22c55e;
-    font-weight:bold;
-}
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
 
-.city{
-    margin-top:10px;
-}
+        .quantity-control input {
+            width: 60px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-family: inherit;
+        }
 
-button{
-    margin-top:15px;
-    padding:12px 20px;
-    border:none;
-    border-radius:10px;
-    background:#2563eb;
-    color:white;
-    cursor:pointer;
-    font-size:16px;
-}
+        .remove-btn {
+            background-color: #e74c3c;
+            font-size: 0.85em;
+            padding: 6px 12px;
+        }
 
-button:hover{
-    background:#1d4ed8;
-}
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
 
-.cart-item{
-    padding:10px 0;
-    border-bottom:1px solid #374151;
-}
+        /* Totals Section */
+        .totals {
+            margin-top: 25px;
+            background: #fafbfc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ecf0f1;
+        }
 
-.total{
-    margin-top:15px;
-    font-size:22px;
-    color:#22c55e;
-    font-weight:bold;
-}
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #7f8c8d;
+        }
 
-select{
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    font-size:16px;
-    margin-top:10px;
-}
+        .grand-total {
+            font-size: 1.25em;
+            font-weight: bold;
+            color: #2c3e50;
+            border-top: 2px solid #bdc3c7;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
 
-.small{
-    color:#9ca3af;
-    font-size:14px;
-}
-</style>
+        .empty-cart {
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+            padding: 30px 0;
+        }
+    </style>
 </head>
 <body>
 
-<header>
-Minecraft Barcelona & Madrid Market
-</header>
-
-<div class="container">
-
-<label>Select City:</label>
-<select id="citySelect">
-    <option value="Barcelona">Barcelona</option>
-    <option value="Madrid">Madrid</option>
-</select>
-
-<div class="search-box">
-    <input type="text" id="search" placeholder="Search item...">
-    <div class="suggestions" id="suggestions"></div>
-</div>
-
-<div id="itemCard"></div>
-
-<div class="card">
-    <h2>🛒 Cart</h2>
-    <div id="cart"></div>
-    <div class="total" id="total">Total: 0€</div>
-</div>
-
-</div>
-
-<script>
-
-const VAT = 0.10;
-
-const items = [
-
-{
-name:"Bread",
-quantity:"1 Bread",
-buyBarcelona:1,
-buyMadrid:1,
-sellBarcelona:2,
-sellMadrid:1
-},
-
-{
-name:"Cookie",
-quantity:"1 Cookie",
-buyBarcelona:1,
-buyMadrid:1,
-sellBarcelona:2,
-sellMadrid:1
-},
-
-{
-name:"Cake",
-quantity:"1 Cake",
-buyBarcelona:15,
-buyMadrid:12,
-sellBarcelona:20,
-sellMadrid:16
-},
-
-{
-name:"Steak",
-quantity:"1 Steak",
-buyBarcelona:5,
-buyMadrid:4,
-sellBarcelona:8,
-sellMadrid:6
-},
-
-{
-name:"Cooked Chicken",
-quantity:"1 Chicken",
-buyBarcelona:4,
-buyMadrid:3,
-sellBarcelona:6,
-sellMadrid:5
-},
-
-{
-name:"Potato",
-quantity:"1 Potato",
-buyBarcelona:1,
-buyMadrid:1,
-sellBarcelona:2,
-sellMadrid:1
-},
-
-{
-name:"Carrot",
-quantity:"1 Carrot",
-buyBarcelona:1,
-buyMadrid:1,
-sellBarcelona:2,
-sellMadrid:1
-},
-
-{
-name:"Apple",
-quantity:"1 Apple",
-buyBarcelona:2,
-buyMadrid:1,
-sellBarcelona:3,
-sellMadrid:2
-},
-
-{
-name:"Concrete",
-quantity:"64 Blocks",
-buyBarcelona:8,
-buyMadrid:6,
-sellBarcelona:12,
-sellMadrid:9
-},
-
-{
-name:"Stone",
-quantity:"64 Blocks",
-buyBarcelona:4,
-buyMadrid:3,
-sellBarcelona:6,
-sellMadrid:5
-},
-
-{
-name:"Cobblestone",
-quantity:"64 Blocks",
-buyBarcelona:3,
-buyMadrid:2,
-sellBarcelona:5,
-sellMadrid:4
-},
-
-{
-name:"Oak Planks",
-quantity:"64 Blocks",
-buyBarcelona:6,
-buyMadrid:5,
-sellBarcelona:9,
-sellMadrid:7
-},
-
-{
-name:"Glass",
-quantity:"64 Blocks",
-buyBarcelona:12,
-buyMadrid:10,
-sellBarcelona:16,
-sellMadrid:13
-},
-
-{
-name:"Diamond",
-quantity:"1 Diamond",
-buyBarcelona:35,
-buyMadrid:28,
-sellBarcelona:50,
-sellMadrid:40
-},
-
-{
-name:"Diamond Block",
-quantity:"1 Block",
-buyBarcelona:300,
-buyMadrid:250,
-sellBarcelona:380,
-sellMadrid:320
-},
-
-{
-name:"Iron Ingot",
-quantity:"1 Ingot",
-buyBarcelona:5,
-buyMadrid:4,
-sellBarcelona:8,
-sellMadrid:6
-},
-
-{
-name:"Gold Ingot",
-quantity:"1 Ingot",
-buyBarcelona:8,
-buyMadrid:6,
-sellBarcelona:12,
-sellMadrid:10
-},
-
-{
-name:"Netherite Ingot",
-quantity:"1 Ingot",
-buyBarcelona:200,
-buyMadrid:170,
-sellBarcelona:260,
-sellMadrid:220
-},
-
-{
-name:"Rail",
-quantity:"64 Rails",
-buyBarcelona:20,
-buyMadrid:16,
-sellBarcelona:28,
-sellMadrid:22
-},
-
-{
-name:"Powered Rail",
-quantity:"32 Rails",
-buyBarcelona:30,
-buyMadrid:25,
-sellBarcelona:40,
-sellMadrid:32
-},
-
-{
-name:"Minecart",
-quantity:"1 Minecart",
-buyBarcelona:10,
-buyMadrid:8,
-sellBarcelona:15,
-sellMadrid:12
-},
-
-{
-name:"Torch",
-quantity:"64 Torches",
-buyBarcelona:4,
-buyMadrid:3,
-sellBarcelona:6,
-sellMadrid:5
-},
-
-{
-name:"Lantern",
-quantity:"1 Lantern",
-buyBarcelona:6,
-buyMadrid:5,
-sellBarcelona:9,
-sellMadrid:7
-},
-
-{
-name:"Furnace",
-quantity:"1 Furnace",
-buyBarcelona:5,
-buyMadrid:4,
-sellBarcelona:8,
-sellMadrid:6
-},
-
-{
-name:"Chest",
-quantity:"1 Chest",
-buyBarcelona:4,
-buyMadrid:3,
-sellBarcelona:6,
-sellMadrid:5
-},
-
-{
-name:"Bed",
-quantity:"1 Bed",
-buyBarcelona:10,
-buyMadrid:8,
-sellBarcelona:14,
-sellMadrid:11
-}
-
-];
-
-const search = document.getElementById("search");
-const suggestions = document.getElementById("suggestions");
-const itemCard = document.getElementById("itemCard");
-const cartDiv = document.getElementById("cart");
-const totalDiv = document.getElementById("total");
-
-let cart = [];
-
-search.addEventListener("input", ()=>{
-
-const value = search.value.toLowerCase();
-
-suggestions.innerHTML = "";
-
-if(value.length === 0) return;
-
-const filtered = items.filter(item =>
-item.name.toLowerCase().includes(value)
-);
-
-filtered.forEach(item=>{
-
-const div = document.createElement("div");
-div.className = "suggestion";
-div.innerText = item.name;
-
-div.onclick = ()=>{
-showItem(item);
-suggestions.innerHTML = "";
-search.value = item.name;
-};
-
-suggestions.appendChild(div);
-
-});
-
-});
-
-function showItem(item){
-
-const city = document.getElementById("citySelect").value;
-
-const buyPrice = city === "Barcelona"
-? item.buyBarcelona
-: item.buyMadrid;
-
-const sellPrice = city === "Barcelona"
-? item.sellBarcelona
-: item.sellMadrid;
-
-const finalPrice = (buyPrice * (1+VAT)).toFixed(2);
-
-itemCard.innerHTML = `
-<div class="card">
-<h2>${item.name}</h2>
-
-<p><b>Quantity:</b> ${item.quantity}</p>
-
-<p>
-<b>Original Price:</b>
-<span class="price">${buyPrice}€</span>
-</p>
-
-<p>
-<b>Price With VAT:</b>
-<span class="price">${finalPrice}€</span>
-</p>
-
-<p class="city">
-🏙️ Recommended Selling Price in Barcelona:
-<span class="price">${item.sellBarcelona}€</span>
-</p>
-
-<p class="city">
-🌾 Recommended Selling Price in Madrid:
-<span class="price">${item.sellMadrid}€</span>
-</p>
-
-<p class="small">
-Madrid is cheaper because it is the farming/industrial city.
-Barcelona is richer and sells items higher.
-</p>
-
-<button onclick='addToCart("${item.name}")'>
-Add To Cart
-</button>
-
-</div>
-`;
-
-}
-
-function addToCart(name){
-
-const city = document.getElementById("citySelect").value;
-
-const item = items.find(i=>i.name===name);
-
-const buyPrice = city === "Barcelona"
-? item.buyBarcelona
-: item.buyMadrid;
-
-const final = buyPrice * (1+VAT);
-
-cart.push({
-name:item.name,
-price:final
-});
-
-renderCart();
-
-}
-
-function renderCart(){
-
-cartDiv.innerHTML = "";
-
-let total = 0;
-
-cart.forEach(item=>{
-
-total += item.price;
-
-const div = document.createElement("div");
-
-div.className = "cart-item";
-
-div.innerHTML = `
-${item.name}
--
-<span class="price">
-${item.price.toFixed(2)}€
-</span>
-`;
-
-cartDiv.appendChild(div);
-
-});
-
-totalDiv.innerHTML = `
-Total:
-${total.toFixed(2)}€
-`;
-
-}
-
-</script>
-
+    <div class="container">
+        <h2>Store Catalog</h2>
+        <div class="product">
+            <span>Wireless Mouse ($25.00)</span>
+            <button onclick="addToCart(1, 'Wireless Mouse', 25.00)">Add to Cart</button>
+        </div>
+        <div class="product">
+            <span>Mechanical Keyboard ($75.00)</span>
+            <button onclick="addToCart(2, 'Mechanical Keyboard', 75.00)">Add to Cart</button>
+        </div>
+        <div class="product">
+            <span>USB-C Hub ($40.00)</span>
+            <button onclick="addToCart(3, 'USB-C Hub', 40.00)">Add to Cart</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Your Cart</h2>
+        <div id="cart-items">
+            <div class="empty-cart">Your cart is currently empty.</div>
+        </div>
+
+        <div class="totals" id="cart-totals" style="display: none;">
+            <div class="totals-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            <div class="totals-row">
+                <span>VAT (10%):</span>
+                <span id="vat">$0.00</span>
+            </div>
+            <div class="totals-row grand-total">
+                <span>Total:</span>
+                <span id="grand-total">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addToCart(id, name, price) {
+            // Check if the item already exists in the cart array
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                // If it exists, just increase the quantity
+                existingItem.quantity += 1;
+            } else {
+                // If it's a new item, push it to the array
+                cart.push({ id, name, price, quantity: 1 });
+            }
+            
+            updateCartUI();
+        }
+
+        function updateQuantity(id, newQuantity) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity = parseInt(newQuantity);
+                // If the user sets the quantity to 0 or a negative number, remove the item entirely
+                if (item.quantity <= 0) {
+                    removeItem(id);
+                } else {
+                    updateCartUI();
+                }
+            }
+        }
+
+        function removeItem(id) {
+            // Filter out the item that matches the ID we want to remove
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotalsContainer = document.getElementById('cart-totals');
+            
+            // Clear current UI to prevent duplicates
+            cartItemsContainer.innerHTML = '';
+
+            // Handle empty cart state
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is currently empty.</div>';
+                cartTotalsContainer.style.display = 'none';
+                return;
+            }
+
+            let subtotal = 0;
+
+            // Generate HTML for each item in the cart
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+                itemDiv.innerHTML = `
+                    <div class="cart-item-header">
+                        <span>${item.name}</span>
+                        <span>$${itemTotal.toFixed(2)}</span>
+                    </div>
+                    <div class="cart-controls">
+                        <div class="quantity-control">
+                            <label for="qty-${item.id}">Qty:</label>
+                            <input type="number" id="qty-${item.id}" value="${item.quantity}" min="1" onchange="updateQuantity(${item.id}, this.value)">
+                        </div>
+                        <button class="remove-btn" onclick="removeItem(${item.id})">Remove</button>
+                    </div>
+                `;
+                cartItemsContainer.appendChild(itemDiv);
+            });
+
+            // VAT calculation (10%)
+            const vatRate = 0.10; 
+            const vatAmount = subtotal * vatRate;
+            const grandTotal = subtotal + vatAmount;
+
+            // Update the text for the totals
+            document.getElementById('subtotal').innerText = '$' + subtotal.toFixed(2);
+            document.getElementById('vat').innerText = '$' + vatAmount.toFixed(2);
+            document.getElementById('grand-total').innerText = '$' + grandTotal.toFixed(2);
+            
+            // Make sure the totals box is visible
+            cartTotalsContainer.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
