@@ -408,6 +408,9 @@
         </div>
         <div class="cart-list" id="cart-items"></div>
         <div style="border-top: 1px solid #334155; padding-top: 1rem;">
+            <div class="price-row" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 5px;">
+                <span>Total without tax:</span><span id="cart-net">0.00€</span>
+            </div>
             <div class="price-row" style="font-size: 1.4rem; font-weight: 700;">
                 <span>Total:</span><span id="cart-total">0.00€</span>
             </div>
@@ -715,16 +718,17 @@
 
         function updateCart() {
             const list = document.getElementById('cart-items');
+            const netEl = document.getElementById('cart-net');
             const totalEl = document.getElementById('cart-total');
-            const vatEl = document.getElementById('cart-vat'); // New reference for VAT
+            const vatEl = document.getElementById('cart-vat');
             const countEl = document.getElementById('cart-count');
-            
+
             list.innerHTML = '';
-            let total = 0;
-            
+            let grossTotal = 0;
+
             cart.forEach((entry, i) => {
                 const sub = entry.price * entry.qty;
-                total += sub;
+                grossTotal += sub;
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
@@ -737,11 +741,11 @@
                 list.appendChild(div);
             });
 
-            // VAT Calculation: Since prices in cart already include 10% VAT,
-            // we calculate the VAT amount as: Total - (Total / 1.1)
-            const vatAmount = total - (total / 1.1);
-            
-            totalEl.innerText = total.toFixed(2) + "€";
+            const netTotal = grossTotal / 1.1;
+            const vatAmount = grossTotal - netTotal;
+
+            netEl.innerText = netTotal.toFixed(2) + "€";
+            totalEl.innerText = grossTotal.toFixed(2) + "€";
             vatEl.innerText = vatAmount.toFixed(2) + "€";
             countEl.innerText = cart.length;
         }
