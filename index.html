@@ -408,9 +408,6 @@
         </div>
         <div class="cart-list" id="cart-items"></div>
         <div style="border-top: 1px solid #334155; padding-top: 1rem;">
-            <div class="price-row" style="font-size: 0.95rem; color: var(--text-dim); margin-top: 5px;">
-                <span>Total without tax:</span><span id="cart-net">0.00€</span>
-            </div>
             <div class="price-row" style="font-size: 1.4rem; font-weight: 700;">
                 <span>Total:</span><span id="cart-total">0.00€</span>
             </div>
@@ -430,6 +427,330 @@
     </div>
 
     <script>
+
+        function round2(n) {
+            return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+        }
+
+        function makeItem(name, unit, bBuy, sellFactor = 1.5, category = 'General', mBuyOverride = null) {
+            const b_buy = Number(bBuy);
+            const m_buy = mBuyOverride === null ? Math.max(1, Math.floor(b_buy * 0.85)) : Number(mBuyOverride);
+            const b_vat = round2(b_buy * 1.1);
+            const m_vat = round2(m_buy * 1.1);
+            const b_sell_vat = round2(b_buy * sellFactor * 1.1);
+            const m_sell_vat = round2(b_sell_vat * 0.85);
+            return { name, unit, b_buy, b_vat, b_sell_vat, m_buy, m_vat, m_sell_vat, category };
+        }
+
+        function generateItems() {
+            const items = [];
+            const add = (name, unit, bBuy, sellFactor, category, mBuyOverride = null) =>
+                items.push(makeItem(name, unit, bBuy, sellFactor, category, mBuyOverride));
+
+            // Terrain / common blocks
+            [
+                ['Dirt', 1], ['Coarse Dirt', 2], ['Rooted Dirt', 2], ['Grass Block', 1],
+                ['Podzol', 3], ['Mycelium', 5], ['Sand', 2], ['Red Sand', 3], ['Gravel', 2],
+                ['Clay', 5], ['Mud', 2], ['Packed Mud', 4], ['Moss Block', 6], ['Moss Carpet', 2],
+                ['Snow Block', 3], ['Ice', 4], ['Packed Ice', 8], ['Blue Ice', 15],
+                ['Obsidian', 10], ['Crying Obsidian', 14], ['Glowstone', 8], ['Netherrack', 2],
+                ['Soul Sand', 3], ['Soul Soil', 3], ['End Stone', 4], ['End Stone Bricks', 6],
+                ['Prismarine', 8], ['Prismarine Bricks', 10], ['Dark Prismarine', 10],
+                ['Dripstone Block', 4], ['Pointed Dripstone', 3], ['Calcite', 5], ['Tuff', 4],
+                ['Amethyst Block', 12], ['Budding Amethyst', 0], ['Quartz Block', 8],
+                ['Smooth Quartz', 10], ['Quartz Pillar', 12], ['Purpur Block', 9], ['Purpur Pillar', 10],
+                ['Sea Lantern', 15], ['Sponge', 12], ['Wet Sponge', 14], ['Magma Block', 8],
+                ['Glow Lichen', 1], ['Spore Blossom', 8], ['Sculk', 8], ['Sculk Vein', 4],
+                ['Sculk Catalyst', 20], ['Sculk Sensor', 20], ['Calibrated Sculk Sensor', 25],
+                ['Sculk Shrieker', 18], ['Reinforced Deepslate', 0]
+            ].forEach(([n, p]) => add(n, 'stack of 64', p, 1.5, 'Blocks'));
+
+            // Stone / masonry families
+            [
+                ['Stone', 3], ['Smooth Stone', 4], ['Cobblestone', 2], ['Andesite', 3],
+                ['Polished Andesite', 5], ['Diorite', 3], ['Polished Diorite', 5],
+                ['Granite', 3], ['Polished Granite', 5], ['Deepslate', 4], ['Cobbled Deepslate', 3],
+                ['Polished Deepslate', 6], ['Deepslate Bricks', 7], ['Deepslate Tiles', 7],
+                ['Chiseled Deepslate', 7], ['Bricks', 6], ['Stone Bricks', 4],
+                ['Cracked Stone Bricks', 4], ['Mossy Stone Bricks', 5], ['Blackstone', 5],
+                ['Polished Blackstone', 7], ['Polished Blackstone Bricks', 8],
+                ['Cracked Polished Blackstone Bricks', 8], ['Nether Bricks', 6],
+                ['Red Nether Bricks', 8], ['Sandstone', 4], ['Cut Sandstone', 5],
+                ['Chiseled Sandstone', 5], ['Red Sandstone', 4], ['Cut Red Sandstone', 5],
+                ['Chiseled Red Sandstone', 5], ['Copper Block', 25], ['Cut Copper', 28],
+                ['Exposed Copper', 26], ['Weathered Copper', 24], ['Oxidized Copper', 22],
+                ['Waxed Copper Block', 26], ['Waxed Cut Copper', 29], ['Waxed Exposed Copper', 27],
+                ['Waxed Weathered Copper', 25], ['Waxed Oxidized Copper', 23], ['Iron Block', 45],
+                ['Gold Block', 90], ['Coal Block', 25], ['Lapis Block', 45], ['Diamond Block', 1800],
+                ['Emerald Block', 900], ['Netherite Block', 9000], ['Raw Iron Block', 45],
+                ['Raw Copper Block', 25], ['Raw Gold Block', 90]
+            ].forEach(([n, p]) => add(n, 'stack of 64', p, 1.45, 'Masonry'));
+
+            // Wood families
+            const woods = [
+                { base: 'Oak', log: 4, plank: 3, sapling: 2, leaves: 1, stripped: 5, boat: 5, boatChest: 12 },
+                { base: 'Spruce', log: 4, plank: 3, sapling: 2, leaves: 1, stripped: 5, boat: 5, boatChest: 12 },
+                { base: 'Birch', log: 4, plank: 3, sapling: 2, leaves: 1, stripped: 5, boat: 5, boatChest: 12 },
+                { base: 'Jungle', log: 5, plank: 4, sapling: 3, leaves: 1, stripped: 6, boat: 5, boatChest: 12 },
+                { base: 'Acacia', log: 5, plank: 4, sapling: 3, leaves: 1, stripped: 6, boat: 5, boatChest: 12 },
+                { base: 'Dark Oak', log: 5, plank: 4, sapling: 3, leaves: 1, stripped: 6, boat: 5, boatChest: 12 },
+                { base: 'Mangrove', log: 5, plank: 4, sapling: 3, leaves: 1, stripped: 6, boat: 6, boatChest: 13 },
+                { base: 'Cherry', log: 6, plank: 5, sapling: 3, leaves: 1, stripped: 7, boat: 6, boatChest: 13 },
+            ];
+            woods.forEach(w => {
+                const b = w.base;
+                add(`${b} Log`, 'stack of 64', w.log, 1.5, 'Wood');
+                add(`${b} Wood`, 'stack of 64', w.log + 1, 1.5, 'Wood');
+                add(`Stripped ${b} Log`, 'stack of 64', w.stripped, 1.5, 'Wood');
+                add(`Stripped ${b} Wood`, 'stack of 64', w.stripped + 1, 1.5, 'Wood');
+                add(`${b} Planks`, 'stack of 64', w.plank, 1.5, 'Wood');
+                add(`${b} Slab`, 'stack of 64', Math.max(1, Math.floor(w.plank / 2)), 1.5, 'Wood');
+                add(`${b} Stairs`, 'stack of 64', w.plank + 1, 1.5, 'Wood');
+                add(`${b} Fence`, 'stack of 64', w.plank + 1, 1.5, 'Wood');
+                add(`${b} Fence Gate`, '1 item', w.plank + 2, 1.5, 'Wood');
+                add(`${b} Door`, '1 item', w.plank + 3, 1.5, 'Wood');
+                add(`${b} Trapdoor`, '1 item', w.plank + 2, 1.5, 'Wood');
+                add(`${b} Button`, '1 item', 1, 1.5, 'Wood');
+                add(`${b} Pressure Plate`, '1 item', 1, 1.5, 'Wood');
+                add(`${b} Sign`, '1 item', 2, 1.5, 'Wood');
+                add(`${b} Hanging Sign`, '1 item', 3, 1.5, 'Wood');
+                add(`${b} Boat`, '1 item', w.boat, 1.5, 'Transport');
+                add(`${b} Chest Boat`, '1 item', w.boatChest, 1.5, 'Transport');
+                add(`${b} Leaves`, 'stack of 64', w.leaves, 1.5, 'Wood');
+                add(`${b} Sapling`, 'stack of 64', w.sapling, 1.5, 'Wood');
+            });
+
+            // Nether wood / fungus
+            [
+                ['Crimson Stem', 5], ['Crimson Hyphae', 6], ['Stripped Crimson Stem', 6], ['Stripped Crimson Hyphae', 7],
+                ['Warped Stem', 5], ['Warped Hyphae', 6], ['Stripped Warped Stem', 6], ['Stripped Warped Hyphae', 7]
+            ].forEach(([n,p]) => add(n, 'stack of 64', p, 1.5, 'Nether Wood'));
+
+            ['Crimson Planks','Warped Planks'].forEach(n => add(n, 'stack of 64', 7, 1.5, 'Nether Wood'));
+            ['Crimson Slab','Warped Slab'].forEach(n => add(n, 'stack of 64', 3, 1.5, 'Nether Wood'));
+            ['Crimson Stairs','Warped Stairs'].forEach(n => add(n, 'stack of 64', 8, 1.5, 'Nether Wood'));
+            ['Crimson Fence','Warped Fence'].forEach(n => add(n, 'stack of 64', 8, 1.5, 'Nether Wood'));
+            ['Crimson Fence Gate','Warped Fence Gate'].forEach(n => add(n, '1 item', 10, 1.5, 'Nether Wood'));
+            ['Crimson Door','Warped Door'].forEach(n => add(n, '1 item', 9, 1.5, 'Nether Wood'));
+            ['Crimson Trapdoor','Warped Trapdoor'].forEach(n => add(n, '1 item', 8, 1.5, 'Nether Wood'));
+            ['Crimson Button','Warped Button'].forEach(n => add(n, '1 item', 1, 1.5, 'Nether Wood'));
+            ['Crimson Pressure Plate','Warped Pressure Plate'].forEach(n => add(n, '1 item', 1, 1.5, 'Nether Wood'));
+            ['Crimson Sign','Warped Sign'].forEach(n => add(n, '1 item', 2, 1.5, 'Nether Wood'));
+            ['Crimson Hanging Sign','Warped Hanging Sign'].forEach(n => add(n, '1 item', 3, 1.5, 'Nether Wood'));
+            ['Crimson Fungus','Warped Fungus'].forEach(n => add(n, 'stack of 64', 3, 1.5, 'Nether Wood'));
+            ['Crimson Roots','Warped Roots'].forEach(n => add(n, 'stack of 64', 2, 1.5, 'Nether Wood'));
+
+            // Bamboo family
+            [
+                ['Bamboo', 1], ['Bamboo Block', 4], ['Stripped Bamboo Block', 5],
+                ['Bamboo Planks', 2], ['Bamboo Mosaic', 4], ['Bamboo Mosaic Slab', 2],
+                ['Bamboo Mosaic Stairs', 6], ['Bamboo Slab', 1], ['Bamboo Stairs', 3],
+                ['Bamboo Fence', 3], ['Bamboo Fence Gate', 4], ['Bamboo Door', 5],
+                ['Bamboo Trapdoor', 4], ['Bamboo Button', 1], ['Bamboo Pressure Plate', 1],
+                ['Bamboo Sign', 2], ['Bamboo Hanging Sign', 3], ['Bamboo Raft', 5],
+                ['Bamboo Chest Raft', 12]
+            ].forEach(([n,p]) => add(n, n.includes('Bamboo') && !n.includes('Block') && !n.includes('Planks') && !n.includes('Mosaic') ? 'stack of 64' : '1 item', p, 1.5, 'Bamboo'));
+
+            // Colored variants
+            const colors = [
+                ['White', 1], ['Orange', 2], ['Magenta', 2], ['Light Blue', 2], ['Yellow', 2], ['Lime', 2],
+                ['Pink', 2], ['Gray', 2], ['Light Gray', 2], ['Cyan', 2], ['Purple', 2], ['Blue', 2],
+                ['Brown', 2], ['Green', 2], ['Red', 2], ['Black', 2]
+            ];
+            colors.forEach(([c, dyePrice]) => {
+                add(`${c} Dye`, '1 item', dyePrice, 1.3, 'Dyes');
+                add(`${c} Wool`, 'stack of 64', 4, 1.5, 'Colored Blocks');
+                add(`${c} Carpet`, 'stack of 64', 2, 1.5, 'Colored Blocks');
+                add(`${c} Concrete Powder`, 'stack of 64', 4, 1.5, 'Colored Blocks');
+                add(`${c} Concrete`, 'stack of 64', 8, 1.5, 'Colored Blocks');
+                add(`${c} Terracotta`, 'stack of 64', 5, 1.5, 'Colored Blocks');
+                add(`${c} Glazed Terracotta`, 'stack of 64', 8, 1.5, 'Colored Blocks');
+                add(`${c} Stained Glass`, 'stack of 64', 5, 1.5, 'Colored Blocks');
+                add(`${c} Stained Glass Pane`, 'stack of 64', 3, 1.5, 'Colored Blocks');
+                add(`${c} Bed`, '1 item', 10, 1.5, 'Colored Blocks');
+                add(`${c} Candle`, 'stack of 64', 6, 1.5, 'Colored Blocks');
+                add(`${c} Banner`, '1 item', 8, 1.5, 'Colored Blocks');
+                add(`${c} Shulker Box`, '1 item', 35, 1.5, 'Colored Blocks');
+            });
+
+            // Functional / redstone / transport
+            [
+                ['Crafting Table', 3], ['Furnace', 5], ['Blast Furnace', 15], ['Smoker', 15],
+                ['Cartography Table', 12], ['Loom', 12], ['Smithing Table', 20], ['Stonecutter', 10],
+                ['Enchanting Table', 40], ['Anvil', 35], ['Chipped Anvil', 25], ['Damaged Anvil', 15],
+                ['Grindstone', 10], ['Barrel', 5], ['Chest', 5], ['Trapped Chest', 6], ['Ender Chest', 30],
+                ['Shulker Box', 35], ['Hopper', 25], ['Dispenser', 15], ['Dropper', 10], ['Observer', 20],
+                ['Comparator', 12], ['Repeater', 8], ['Piston', 15], ['Sticky Piston', 20], ['Lever', 2],
+                ['Button', 1], ['Pressure Plate', 2], ['Daylight Detector', 18], ['Bell', 25],
+                ['Lectern', 15], ['Composter', 8], ['Beacon', 250], ['Conduit', 180], ['Respawn Anchor', 60],
+                ['Lodestone', 50], ['Target Block', 12], ['Note Block', 8], ['Jukebox', 25], ['Music Disc', 15],
+                ['Campfire', 10], ['Soul Campfire', 12], ['Sea Pickle', 6], ['Cauldron', 8], ['Lightning Rod', 15],
+                ['Torch', 1], ['Soul Torch', 1], ['Lantern', 8], ['Soul Lantern', 10], ['Redstone Torch', 4],
+                ['Redstone Block', 25], ['Redstone Lamp', 12], ['Tripwire Hook', 5], ['Rail', 2],
+                ['Powered Rail', 6], ['Detector Rail', 10], ['Activator Rail', 10], ['Minecart', 10],
+                ['Minecart with Chest', 18], ['Minecart with Furnace', 18], ['Minecart with Hopper', 20],
+                ['Minecart with TNT', 25], ['Boat with Chest', 12], ['Lead', 10], ['Saddle', 30],
+                ['Compass', 20], ['Clock', 15], ['Map', 10], ['Spyglass', 20], ['Brush', 15],
+                ['Name Tag', 25], ['Bundle', 12], ['Item Frame', 4], ['Glow Item Frame', 6],
+                ['Bucket', 10], ['Water Bucket', 12], ['Lava Bucket', 20], ['Milk Bucket', 3],
+                ['Powder Snow Bucket', 12], ['Axolotl Bucket', 25], ['Cod Bucket', 20], ['Salmon Bucket', 20],
+                ['Tropical Fish Bucket', 20], ['Pufferfish Bucket', 20], ['Fishing Rod', 10],
+                ['Flint and Steel', 8], ['Shears', 12], ['Bow', 15], ['Crossbow', 30], ['Shield', 20],
+                ['Trident', 80], ['Elytra', 200], ['Recovery Compass', 60], ['Echo Shard', 35]
+            ].forEach(([n, p]) => {
+                const stacky = /Rail|Torch|Block|Lantern|Item Frame|Dye|Seed|Powder|Wool|Carpet|Glass|Pane|Planks|Slab|Stairs|Fence|Leaves|Sapling|Roots|Wart|Berry|Flower|Dust|Lichen|Pickles|Mosaic|Brick|Tiles|Stone|Dirt|Sand|Gravel|Clay|Mud|Concrete|Terracotta|Sculk|Sign|Banner/i.test(n) && !/with Chest|with Furnace|with Hopper|with TNT|Item Frame|Glow Item Frame|Bucket|Compass|Clock|Map|Spyglass|Brush|Name Tag|Bundle|Bucket|Bow|Crossbow|Shield|Trident|Elytra|Recovery Compass|Echo Shard|Lead|Saddle|Flint and Steel|Shears|Fishing Rod|Lodestone|Beacon|Conduit|Respawn Anchor|Chest|Minecart/.test(n);
+                add(n, stacky ? 'stack of 64' : '1 item', p, 1.45, 'Utility');
+            });
+
+            // Ores / raw / valuables
+            [
+                ['Coal', 4], ['Charcoal', 4], ['Raw Iron', 6], ['Iron Ingot', 8], ['Raw Copper', 3],
+                ['Copper Ingot', 5], ['Raw Gold', 10], ['Gold Ingot', 15], ['Lapis Lazuli', 8],
+                ['Redstone Dust', 6], ['Emerald', 100], ['Diamond', 40], ['Nether Quartz', 8],
+                ['Ancient Debris', 120], ['Netherite Scrap', 100], ['Netherite Ingot', 250],
+                ['Amethyst Shard', 6], ['Prismarine Shard', 8], ['Prismarine Crystal', 10],
+                ['Glow Ink Sac', 8], ['Ink Sac', 3], ['Slime Ball', 6], ['Magma Cream', 8],
+                ['Blaze Rod', 15], ['Blaze Powder', 10], ['Ender Pearl', 12], ['Ghast Tear', 18],
+                ['Phantom Membrane', 12], ['Honeycomb', 4], ['Honey Bottle', 6], ['Nether Wart', 6],
+                ['Dragon Breath', 150], ['Wither Skeleton Skull', 120], ['Shulker Shell', 40],
+                ['Heart of the Sea', 60], ['Nautilus Shell', 20], ['Totem of Undying', 120],
+                ['Nether Star', 300], ['Dragon Egg', 500], ['Dragon Head', 180], ['Echo Shard', 35]
+            ].forEach(([n, p]) => add(n, '1 item', p, 1.35, 'Valuables'));
+
+            // Food / crops
+            [
+                ['Apple', 2], ['Bread', 3], ['Carrot', 2], ['Potato', 1], ['Baked Potato', 3],
+                ['Beetroot', 1], ['Beetroot Soup', 4], ['Mushroom Stew', 5], ['Rabbit Stew', 10],
+                ['Pumpkin Pie', 5], ['Cake', 20], ['Cookie', 2], ['Melon Slice', 1], ['Sweet Berries', 2],
+                ['Glow Berries', 3], ['Wheat', 1], ['Wheat Seeds', 1], ['Beetroot Seeds', 1],
+                ['Pumpkin Seeds', 1], ['Melon Seeds', 1], ['Sugar Cane', 1], ['Cocoa Beans', 2],
+                ['Kelp', 1], ['Dried Kelp', 2], ['Bamboo', 1], ['Chorus Fruit', 4], ['Suspicious Stew', 8],
+                ['Honey Bottle', 6], ['Sugar', 1], ['Egg', 2], ['Raw Chicken', 3], ['Cooked Chicken', 5],
+                ['Raw Beef', 4], ['Steak', 7], ['Raw Porkchop', 4], ['Cooked Porkchop', 7],
+                ['Raw Mutton', 3], ['Cooked Mutton', 5], ['Raw Rabbit', 4], ['Cooked Rabbit', 6],
+                ['Raw Cod', 3], ['Cooked Cod', 4], ['Raw Salmon', 4], ['Cooked Salmon', 5],
+                ['Tropical Fish', 4], ['Pufferfish', 3], ['Rotten Flesh', 1], ['Spider Eye', 2],
+                ['Poisonous Potato', 1], ['Golden Apple', 35], ['Enchanted Golden Apple', 250],
+                ['Golden Carrot', 25], ['Glistering Melon Slice', 6], ['Rabbit Hide', 3], ['Rabbit Foot', 5]
+            ].forEach(([n, p]) => {
+                const stacky = /Seeds|Wheat|Beetroot|Sugar Cane|Bamboo|Kelp|Dried Kelp|Cocoa Beans|Chorus Fruit|Sweet Berries|Glow Berries|Melon Slice|Pumpkin Seeds|Egg|Apple|Carrot|Potato|Apple|Raw|Cooked|Fish|Rotten Flesh|Spider Eye|Poisonous Potato|Rabbit Hide|Rabbit Foot|Sugar/i.test(n);
+                add(n, stacky ? 'stack of 64' : '1 item', p, 1.7, 'Food');
+            });
+
+            // Tools / weapons / armor
+            const toolTiers = [
+                ['Wooden', 5, 4],
+                ['Stone', 8, 7],
+                ['Iron', 20, 17],
+                ['Diamond', 50, 42],
+                ['Netherite', 150, 127]
+            ];
+            const tools = ['Pickaxe', 'Axe', 'Shovel', 'Hoe', 'Sword'];
+            toolTiers.forEach(([tier, base, mBase]) => {
+                tools.forEach((tool, i) => {
+                    const price = base + (i === 2 ? -1 : 0);
+                    add(`${tier} ${tool}`, '1 item', price, tier === 'Netherite' ? 1.55 : 1.5, 'Tools', mBase + (i === 2 ? -1 : 0));
+                });
+            });
+
+            [
+                ['Shears', 12], ['Fishing Rod', 10], ['Flint and Steel', 8], ['Compass', 20],
+                ['Clock', 15], ['Map', 10], ['Lead', 10], ['Carrot on a Stick', 8],
+                ['Warped Fungus on a Stick', 8], ['Saddle', 30], ['Shield', 20], ['Spyglass', 20],
+                ['Brush', 15], ['Name Tag', 25], ['Bundle', 12], ['Totem of Undying', 120],
+                ['Elytra', 200], ['Recovery Compass', 60], ['Echo Shard', 35], ['Lodestone Compass', 70]
+            ].forEach(([n, p]) => add(n, '1 item', p, 1.5, 'Tools'));
+
+            ['Leather', 'Chainmail', 'Iron', 'Diamond', 'Netherite'].forEach(tier => {
+                const vals = {
+                    Leather: [6, 8, 7, 5],
+                    Chainmail: [12, 15, 14, 10],
+                    Iron: [20, 25, 22, 15],
+                    Diamond: [50, 60, 55, 35],
+                    Netherite: [120, 140, 130, 90]
+                }[tier];
+                ['Helmet', 'Chestplate', 'Leggings', 'Boots'].forEach((piece, idx) => {
+                    add(`${tier} ${piece}`, '1 item', vals[idx], tier === 'Netherite' ? 1.55 : 1.5, 'Armor');
+                });
+            });
+            [
+                ['Leather Horse Armor', 20], ['Iron Horse Armor', 40], ['Golden Horse Armor', 45], ['Diamond Horse Armor', 80]
+            ].forEach(([n,p]) => add(n, '1 item', p, 1.5, 'Armor'));
+
+            // Potions / bottles
+            [
+                ['Water Bottle', 1], ['Potion Bottle', 4], ['Awkward Potion', 4], ['Healing Potion', 20],
+                ['Swiftness Potion', 18], ['Strength Potion', 22], ['Fire Resistance Potion', 18],
+                ['Night Vision Potion', 18], ['Water Breathing Potion', 18], ['Invisibility Potion', 22],
+                ['Poison Potion', 16], ['Regeneration Potion', 24], ['Slow Falling Potion', 20],
+                ['Leaping Potion', 18], ['Turtle Master Potion', 25], ['Weakness Potion', 12],
+                ['Harming Potion', 20], ['Splash Potion', 6], ['Lingering Potion', 8]
+            ].forEach(([n,p]) => add(n, '1 item', p, 1.4, 'Potions'));
+
+            // Music discs / misc
+            [
+                ['Music Disc 13', 15], ['Music Disc Cat', 15], ['Music Disc Blocks', 15], ['Music Disc Chirp', 15],
+                ['Music Disc Far', 15], ['Music Disc Mall', 20], ['Music Disc Mellohi', 15],
+                ['Music Disc Stal', 15], ['Music Disc Strad', 15], ['Music Disc Ward', 15],
+                ['Music Disc 11', 20], ['Music Disc Wait', 15], ['Music Disc Otherside', 20],
+                ['Music Disc 5', 20], ['Music Disc Pigstep', 25], ['Music Disc Relic', 25],
+                ['Music Disc Creator', 25], ['Music Disc Creator (Music Box)', 25], ['Music Disc Precipice', 25]
+            ].forEach(([n,p]) => add(n, '1 item', p, 1.4, 'Music'));
+
+            [
+                ['Paper', 1], ['Book', 3], ['Written Book', 5], ['Book and Quill', 6],
+                ['Enchanting Book', 25], ['Enchanted Book', 25], ['Arrow', 2], ['Spectral Arrow', 4],
+                ['Tipped Arrow', 4], ['Firework Rocket', 4], ['Firework Star', 3], ['Leather', 4],
+                ['Feather', 2], ['Bone', 2], ['String', 2], ['Slimeball', 6], ['Honeycomb', 4],
+                ['Prismarine Crystals', 10], ['Prismarine Shards', 8], ['Ink Sac', 3], ['Glow Ink Sac', 8]
+            ].forEach(([n,p]) => add(n, '1 item', p, 1.35, 'Misc'));
+
+            // Spawn eggs (common 1.20.1 mobs)
+            const spawnEggs = [
+                ['Allay Spawn Egg', 60], ['Axolotl Spawn Egg', 20], ['Bat Spawn Egg', 10],
+                ['Bee Spawn Egg', 20], ['Blaze Spawn Egg', 35], ['Camel Spawn Egg', 30],
+                ['Cat Spawn Egg', 15], ['Cave Spider Spawn Egg', 20], ['Chicken Spawn Egg', 10],
+                ['Cod Spawn Egg', 10], ['Cow Spawn Egg', 10], ['Creeper Spawn Egg', 25],
+                ['Dolphin Spawn Egg', 25], ['Donkey Spawn Egg', 20], ['Drowned Spawn Egg', 20],
+                ['Elder Guardian Spawn Egg', 50], ['Ender Dragon Spawn Egg', 500], ['Enderman Spawn Egg', 30],
+                ['Endermite Spawn Egg', 15], ['Evoker Spawn Egg', 45], ['Fox Spawn Egg', 20],
+                ['Frog Spawn Egg', 15], ['Ghast Spawn Egg', 45], ['Glow Squid Spawn Egg', 15],
+                ['Goat Spawn Egg', 15], ['Guardian Spawn Egg', 30], ['Hoglin Spawn Egg', 25],
+                ['Horse Spawn Egg', 25], ['Husk Spawn Egg', 20], ['Iron Golem Spawn Egg', 60],
+                ['Llama Spawn Egg', 20], ['Magma Cube Spawn Egg', 25], ['Mooshroom Spawn Egg', 20],
+                ['Mule Spawn Egg', 20], ['Ocelot Spawn Egg', 20], ['Panda Spawn Egg', 25],
+                ['Parrot Spawn Egg', 25], ['Phantom Spawn Egg', 25], ['Pig Spawn Egg', 10],
+                ['Piglin Spawn Egg', 25], ['Piglin Brute Spawn Egg', 35], ['Pillager Spawn Egg', 25],
+                ['Polar Bear Spawn Egg', 20], ['Pufferfish Spawn Egg', 10], ['Rabbit Spawn Egg', 10],
+                ['Ravager Spawn Egg', 60], ['Salmon Spawn Egg', 10], ['Sheep Spawn Egg', 10],
+                ['Shulker Spawn Egg', 40], ['Silverfish Spawn Egg', 15], ['Skeleton Spawn Egg', 20],
+                ['Skeleton Horse Spawn Egg', 30], ['Slime Spawn Egg', 20], ['Sniffer Spawn Egg', 35],
+                ['Snow Golem Spawn Egg', 15], ['Spider Spawn Egg', 20], ['Squid Spawn Egg', 10],
+                ['Strider Spawn Egg', 20], ['Tadpole Spawn Egg', 10], ['Trader Llama Spawn Egg', 20],
+                ['Tropical Fish Spawn Egg', 10], ['Turtle Spawn Egg', 15], ['Vex Spawn Egg', 25],
+                ['Villager Spawn Egg', 25], ['Vindicator Spawn Egg', 30], ['Wandering Trader Spawn Egg', 30],
+                ['Warden Spawn Egg', 100], ['Witch Spawn Egg', 25], ['Wither Spawn Egg', 500],
+                ['Wither Skeleton Spawn Egg', 35], ['Wolf Spawn Egg', 15], ['Zoglin Spawn Egg', 35],
+                ['Zombie Spawn Egg', 20], ['Zombie Horse Spawn Egg', 30], ['Zombie Villager Spawn Egg', 20],
+                ['Hoglin Spawn Egg', 25], ['Strider Spawn Egg', 20], ['Camel Spawn Egg', 30],
+                ['Turtle Spawn Egg', 15], ['Camel Spawn Egg', 30]
+            ];
+            spawnEggs.forEach(([n, p]) => add(n, '1 item', p, 1.4, 'Spawn Eggs'));
+
+            // Smithing templates / trims / sherds
+            [
+                ['Netherite Upgrade Smithing Template', 100],
+                ['Armor Trim - Dune', 25], ['Armor Trim - Coast', 25], ['Armor Trim - Wild', 25],
+                ['Armor Trim - Sentry', 25], ['Armor Trim - Vex', 25], ['Armor Trim - Tide', 25],
+                ['Armor Trim - Ward', 25], ['Armor Trim - Snout', 25], ['Armor Trim - Rib', 25],
+                ['Armor Trim - Eye', 25], ['Armor Trim - Spire', 25], ['Armor Trim - Wayfinder', 25],
+                ['Armor Trim - Shaper', 25], ['Armor Trim - Host', 25], ['Armor Trim - Raiser', 25],
+                ['Armor Trim - Silence', 50], ['Pottery Sherd', 10]
+            ].forEach(([n,p]) => add(n, '1 item', p, 1.35, 'Special'));
+
+            return items;
+        }
+
         const economyData = {
             rules: [
                 "Normal player tax: 5€ / day", 
@@ -450,182 +771,8 @@
                 "Metro fare: 10€",
                 "Long metro / Express fare: 25€"
             ],
-            items: [
-                { name: "Dirt", unit: "stack of 64", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "Coarse Dirt", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Rooted Dirt", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Mud", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Grass Block", unit: "stack of 64", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "Podzol", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Mycelium", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 6.6, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Sand", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Red Sand", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Gravel", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Cobblestone", unit: "stack of 64", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Stone", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Andesite", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Diorite", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Granite", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Deepslate", unit: "stack of 64", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Tuff", unit: "stack of 64", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Calcite", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 6.6, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Obsidian", unit: "stack of 64", b_buy: 64, b_vat: 70.4, b_sell_vat: 88, m_buy: 54, m_vat: 59.4, m_sell_vat: 77 },
-                { name: "Crying Obsidian", unit: "stack of 64", b_buy: 128, b_vat: 140.8, b_sell_vat: 176, m_buy: 108, m_vat: 118.8, m_sell_vat: 154 },
-                { name: "Bedrock (Admin)", unit: "1 item", b_buy: 9999, b_vat: 10998.9, b_sell_vat: 12000, m_buy: 8499, m_vat: 9348.9, m_sell_vat: 11000 },
-                { name: "Oak Log", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Spruce Log", unit: "stack of 64", b_buy: 12, b_vat: 13.2, b_sell_vat: 24.2, m_buy: 10, m_vat: 11, m_sell_vat: 20.9 },
-                { name: "Birch Log", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Jungle Log", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Acacia Log", unit: "stack of 64", b_buy: 12, b_vat: 13.2, b_sell_vat: 24.2, m_buy: 10, m_vat: 11, m_sell_vat: 20.9 },
-                { name: "Dark Oak Log", unit: "stack of 64", b_buy: 12, b_vat: 13.2, b_sell_vat: 24.2, m_buy: 10, m_vat: 11, m_sell_vat: 20.9 },
-                { name: "Mangrove Log", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Cherry Log", unit: "stack of 64", b_buy: 18, b_vat: 19.8, b_sell_vat: 30.8, m_buy: 15, m_vat: 16.5, m_sell_vat: 26.4 },
-                { name: "Bamboo Block", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Crimson Stem", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Warped Stem", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Oak Planks", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Spruce Planks", unit: "stack of 64", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Birch Planks", unit: "stack of 64", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 4.4 },
-                { name: "Jungle Planks", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 6.6, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Acacia Planks", unit: "stack of 64", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Dark Oak Planks", unit: "stack of 64", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Mangrove Planks", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 6.6, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Cherry Planks", unit: "stack of 64", b_buy: 6, b_vat: 6.6, b_sell_vat: 7.7, m_buy: 5, m_vat: 5.5, m_sell_vat: 7.7 },
-                { name: "Bamboo Planks", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 6.6, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Crimson Planks", unit: "stack of 64", b_buy: 7, b_vat: 7.7, b_sell_vat: 8.8, m_buy: 5, m_vat: 5.5, m_sell_vat: 8.8 },
-                { name: "Warped Planks", unit: "stack of 64", b_buy: 7, b_vat: 7.7, b_sell_vat: 8.8, m_buy: 5, m_vat: 5.5, m_sell_vat: 8.8 },
-                { name: "Coal", unit: "1 item", b_buy: 2, b_vat: 2.2, b_sell_vat: 4.4, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Iron Ingot", unit: "1 item", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Copper Ingot", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Gold Ingot", unit: "1 item", b_buy: 50, b_vat: 55, b_sell_vat: 82.5, m_buy: 42, m_vat: 46.2, m_sell_vat: 69.3 },
-                { name: "Redstone Dust", unit: "1 item", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "Lapis Lazuli", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Diamond", unit: "1 item", b_buy: 200, b_vat: 220, b_sell_vat: 330, m_buy: 170, m_vat: 187, m_sell_vat: 280.5 },
-                { name: "Emerald", unit: "1 item", b_buy: 100, b_vat: 110, b_sell_vat: 165, m_buy: 85, m_vat: 93.5, m_sell_vat: 140.25 },
-                { name: "Netherite Scrap", unit: "1 item", b_buy: 200, b_vat: 220, b_sell_vat: 330, m_buy: 170, m_vat: 187, m_sell_vat: 280.5 },
-                { name: "Netherite Ingot", unit: "1 item", b_buy: 1000, b_vat: 1100, b_sell_vat: 1650, m_buy: 850, m_vat: 935, m_sell_vat: 1402.5 },
-                { name: "Quartz", unit: "1 item", b_buy: 2, b_vat: 2.2, b_sell_vat: 4.4, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Amethyst Shard", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 16.5, m_buy: 8, m_vat: 8.8, m_sell_vat: 14.3 },
-                { name: "Coal Block", unit: "1 item", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Iron Block", unit: "1 item", b_buy: 135, b_vat: 148.5, b_sell_vat: 222.75, m_buy: 114, m_vat: 125.4, m_sell_vat: 188.1 },
-                { name: "Copper Block", unit: "1 item", b_buy: 45, b_vat: 49.5, b_sell_vat: 74.25, m_buy: 38, m_vat: 41.8, m_sell_vat: 62.7 },
-                { name: "Gold Block", unit: "1 item", b_buy: 450, b_vat: 495, b_sell_vat: 742.5, m_buy: 382, m_vat: 420.2, m_sell_vat: 630.3 },
-                { name: "Redstone Block", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 16.5, m_buy: 8, m_vat: 8.8, m_sell_vat: 14.3 },
-                { name: "Lapis Block", unit: "1 item", b_buy: 45, b_vat: 49.5, b_sell_vat: 74.25, m_buy: 38, m_vat: 41.8, m_sell_vat: 62.7 },
-                { name: "Diamond Block", unit: "1 item", b_buy: 1800, b_vat: 1980, b_sell_vat: 2970, m_buy: 1530, m_vat: 1683, m_sell_vat: 2524.5 },
-                { name: "Emerald Block", unit: "1 item", b_buy: 900, b_vat: 990, b_sell_vat: 1485, m_buy: 765, m_vat: 841.5, m_sell_vat: 1262.25 },
-                { name: "Netherite Block", unit: "1 item", b_buy: 9000, b_vat: 9900, b_sell_vat: 14850, m_buy: 7650, m_vat: 8415, m_sell_vat: 12622.5 },
-                { name: "Quartz Block", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 16.5, m_buy: 8, m_vat: 8.8, m_sell_vat: 14.3 },
-                { name: "Amethyst Block", unit: "1 item", b_buy: 40, b_vat: 44, b_sell_vat: 66, m_buy: 34, m_vat: 37.4, m_sell_vat: 56.1 },
-                { name: "Raw Iron", unit: "1 item", b_buy: 12, b_vat: 13.2, b_sell_vat: 19.8, m_buy: 10, m_vat: 11, m_sell_vat: 16.5 },
-                { name: "Raw Copper", unit: "1 item", b_buy: 4, b_vat: 4.4, b_sell_vat: 6.6, m_buy: 3, m_vat: 3.3, m_sell_vat: 5.5 },
-                { name: "Raw Gold", unit: "1 item", b_buy: 40, b_vat: 44, b_sell_vat: 66, m_buy: 34, m_vat: 37.4, m_sell_vat: 56.1 },
-                { name: "White Wool", unit: "stack of 64", b_buy: 32, b_vat: 35.2, b_sell_vat: 44, m_buy: 27, m_vat: 29.7, m_sell_vat: 38.5 },
-                { name: "Coloured Wool", unit: "stack of 64", b_buy: 40, b_vat: 44, b_sell_vat: 55, m_buy: 34, m_vat: 37.4, m_sell_vat: 48.4 },
-                { name: "White Terracotta", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Coloured Terracotta", unit: "stack of 64", b_buy: 25, b_vat: 27.5, b_sell_vat: 38.5, m_buy: 21, m_vat: 23.1, m_sell_vat: 33 },
-                { name: "Glazed Terracotta", unit: "stack of 64", b_buy: 35, b_vat: 38.5, b_sell_vat: 49.5, m_buy: 29, m_vat: 31.9, m_sell_vat: 42.9 },
-                { name: "White Concrete", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Coloured Concrete", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Glass", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Coloured Glass", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Tinted Glass", unit: "stack of 64", b_buy: 50, b_vat: 55, b_sell_vat: 77, m_buy: 42, m_vat: 46.2, m_sell_vat: 68.2 },
-                { name: "Wheat", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Carrot", unit: "stack of 64", b_buy: 12, b_vat: 13.2, b_sell_vat: 24.2, m_buy: 10, m_vat: 11, m_sell_vat: 20.9 },
-                { name: "Potato", unit: "stack of 64", b_buy: 12, b_vat: 13.2, b_sell_vat: 24.2, m_buy: 10, m_vat: 11, m_sell_vat: 20.9 },
-                { name: "Beetroot", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Melon Slice", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Pumpkin", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Sugar Cane", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Bamboo", unit: "stack of 64", b_buy: 8, b_vat: 8.8, b_sell_vat: 16.5, m_buy: 6, m_vat: 6.6, m_sell_vat: 14.3 },
-                { name: "Sweet Berries", unit: "stack of 64", b_buy: 10, b_vat: 11, b_sell_vat: 22, m_buy: 8, m_vat: 8.8, m_sell_vat: 18.7 },
-                { name: "Glow Berries", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Apple", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Bread", unit: "stack of 64", b_buy: 25, b_vat: 27.5, b_sell_vat: 38.5, m_buy: 21, m_vat: 23.1, m_sell_vat: 33 },
-                { name: "Cookie", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Pumpkin Pie", unit: "stack of 64", b_buy: 40, b_vat: 44, b_sell_vat: 55, m_buy: 34, m_vat: 37.4, m_sell_vat: 48.4 },
-                { name: "Cake", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 16.5, m_buy: 8, m_vat: 8.8, m_sell_vat: 14.3 },
-                { name: "Golden Apple", unit: "1 item", b_buy: 150, b_vat: 165, b_sell_vat: 220, m_buy: 127, m_vat: 139.7, m_sell_vat: 192.5 },
-                { name: "Enchanted Golden Apple", unit: "1 item", b_buy: 2000, b_vat: 2200, b_sell_vat: 3300, m_buy: 1700, m_vat: 1870, m_sell_vat: 2805 },
-                { name: "Beef (Raw)", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Steak", unit: "stack of 64", b_buy: 35, b_vat: 38.5, b_sell_vat: 49.5, m_buy: 29, m_vat: 31.9, m_sell_vat: 42.9 },
-                { name: "Porkchop (Raw)", unit: "stack of 64", b_buy: 18, b_vat: 19.8, b_sell_vat: 30.8, m_buy: 15, m_vat: 16.5, m_sell_vat: 26.4 },
-                { name: "Cooked Porkchop", unit: "stack of 64", b_buy: 32, b_vat: 35.2, b_sell_vat: 44, m_buy: 27, m_vat: 29.7, m_sell_vat: 38.5 },
-                { name: "Chicken (Raw)", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Cooked Chicken", unit: "stack of 64", b_buy: 28, b_vat: 30.8, b_sell_vat: 41.8, m_buy: 23, m_vat: 25.3, m_sell_vat: 35.2 },
-                { name: "Mutton (Raw)", unit: "stack of 64", b_buy: 18, b_vat: 19.8, b_sell_vat: 30.8, m_buy: 15, m_vat: 16.5, m_sell_vat: 26.4 },
-                { name: "Cooked Mutton", unit: "stack of 64", b_buy: 32, b_vat: 35.2, b_sell_vat: 44, m_buy: 27, m_vat: 29.7, m_sell_vat: 38.5 },
-                { name: "Rabbit (Raw)", unit: "stack of 64", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Cooked Rabbit", unit: "stack of 64", b_buy: 35, b_vat: 38.5, b_sell_vat: 49.5, m_buy: 29, m_vat: 31.9, m_sell_vat: 42.9 },
-                { name: "Cod (Raw)", unit: "stack of 64", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Cooked Cod", unit: "stack of 64", b_buy: 28, b_vat: 30.8, b_sell_vat: 41.8, m_buy: 23, m_vat: 25.3, m_sell_vat: 35.2 },
-                { name: "Salmon (Raw)", unit: "stack of 64", b_buy: 18, b_vat: 19.8, b_sell_vat: 30.8, m_buy: 15, m_vat: 16.5, m_sell_vat: 26.4 },
-                { name: "Cooked Salmon", unit: "stack of 64", b_buy: 32, b_vat: 35.2, b_sell_vat: 44, m_buy: 27, m_vat: 29.7, m_sell_vat: 38.5 },
-                { name: "Tropical Fish", unit: "stack of 64", b_buy: 50, b_vat: 55, b_sell_vat: 77, m_buy: 42, m_vat: 46.2, m_sell_vat: 68.2 },
-                { name: "Pufferfish", unit: "stack of 64", b_buy: 60, b_vat: 66, b_sell_vat: 88, m_buy: 51, m_vat: 56.1, m_sell_vat: 77 },
-                { name: "Mushroom Stew", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 8.8, m_buy: 4, m_vat: 4.4, m_sell_vat: 7.7 },
-                { name: "Rabbit Stew", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 14.3, m_buy: 8, m_vat: 8.8, m_sell_vat: 12.1 },
-                { name: "Honey Bottle", unit: "1 item", b_buy: 8, b_vat: 8.8, b_sell_vat: 13.2, m_buy: 6, m_vat: 6.6, m_sell_vat: 11 },
-                { name: "Chorus Fruit", unit: "stack of 64", b_buy: 40, b_vat: 44, b_sell_vat: 55, m_buy: 34, m_vat: 37.4, m_sell_vat: 48.4 },
-                { name: "Rotten Flesh", unit: "stack of 64", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Spider Eye", unit: "1 item", b_buy: 2, b_vat: 2.2, b_sell_vat: 3.3, m_buy: 1, m_vat: 1.1, m_sell_vat: 3.3 },
-                { name: "Gunpowder", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Bone", unit: "1 item", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "String", unit: "1 item", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "Feather", unit: "1 item", b_buy: 1, b_vat: 1.1, b_sell_vat: 2.2, m_buy: 1, m_vat: 1.1, m_sell_vat: 2.2 },
-                { name: "Leather", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 11, m_buy: 4, m_vat: 4.4, m_sell_vat: 8.8 },
-                { name: "Rabbit Hide", unit: "1 item", b_buy: 3, b_vat: 3.3, b_sell_vat: 4.4, m_buy: 2, m_vat: 2.2, m_sell_vat: 3.3 },
-                { name: "Rabbit Foot", unit: "1 item", b_buy: 5, b_vat: 5.5, b_sell_vat: 7.7, m_buy: 4, m_vat: 4.4, m_sell_vat: 6.6 },
-                { name: "Slimeball", unit: "1 item", b_buy: 10, b_vat: 11, b_sell_vat: 16.5, m_buy: 8, m_vat: 8.8, m_sell_vat: 14.3 },
-                { name: "Magma Cream", unit: "1 item", b_buy: 12, b_vat: 13.2, b_sell_vat: 18.7, m_buy: 10, m_vat: 11, m_sell_vat: 16.5 },
-                { name: "Blaze Rod", unit: "1 item", b_buy: 15, b_vat: 16.5, b_sell_vat: 22, m_buy: 12, m_vat: 13.2, m_sell_vat: 19.8 },
-                { name: "Ghast Tear", unit: "1 item", b_buy: 50, b_vat: 55, b_sell_vat: 77, m_buy: 42, m_vat: 46.2, m_sell_vat: 68.2 },
-                { name: "Ender Pearl", unit: "1 item", b_buy: 20, b_vat: 22, b_sell_vat: 33, m_buy: 17, m_vat: 18.7, m_sell_vat: 28.6 },
-                { name: "Eye of Ender", unit: "1 item", b_buy: 35, b_vat: 38.5, b_sell_vat: 49.5, m_buy: 29, m_vat: 31.9, m_sell_vat: 42.9 },
-                { name: "Shulker Shell", unit: "1 item", b_buy: 150, b_vat: 165, b_sell_vat: 220, m_buy: 127, m_vat: 139.7, m_sell_vat: 192.5 },
-                { name: "Nether Star", unit: "1 item", b_buy: 5000, b_vat: 5500, b_sell_vat: 7700, m_buy: 4250, m_vat: 4675, m_sell_vat: 6545 },
-                { name: "Dragon Breath", unit: "1 item", b_buy: 100, b_vat: 110, b_sell_vat: 165, m_buy: 85, m_vat: 93.5, m_sell_vat: 140.25 },
-                { name: "Phantom Membrane", unit: "1 item", b_buy: 30, b_vat: 33, b_sell_vat: 44, m_buy: 25, m_vat: 27.5, m_sell_vat: 38.5 },
-                { name: "Nautilus Shell", unit: "1 item", b_buy: 50, b_vat: 55, b_sell_vat: 77, m_buy: 42, m_vat: 46.2, m_sell_vat: 68.2 },
-                { name: "Heart of the Sea", unit: "1 item", b_buy: 500, b_vat: 550, b_sell_vat: 770, m_buy: 425, m_vat: 467.5, m_sell_vat: 654.5 },
-                { name: "Totem of Undying", unit: "1 item", b_buy: 1000, b_vat: 1100, b_sell_vat: 1650, m_buy: 850, m_vat: 935, m_sell_vat: 1402.5 },
-                { name: "Iron Sword", unit: "1 item", b_buy: 35, b_vat: 38.5, b_sell_vat: 55, m_buy: 29, m_vat: 31.9, m_sell_vat: 48.4 },
-                { name: "Diamond Sword", unit: "1 item", b_buy: 410, b_vat: 451, b_sell_vat: 605, m_buy: 348, m_vat: 382.8, m_sell_vat: 528 },
-                { name: "Netherite Sword", unit: "1 item", b_buy: 1500, b_vat: 1650, b_sell_vat: 2200, m_buy: 1275, m_vat: 1402.5, m_sell_vat: 1925 },
-                { name: "Iron Pickaxe", unit: "1 item", b_buy: 50, b_vat: 55, b_sell_vat: 77, m_buy: 42, m_vat: 46.2, m_sell_vat: 68.2 },
-                { name: "Diamond Pickaxe", unit: "1 item", b_buy: 610, b_vat: 671, b_sell_vat: 880, m_buy: 518, m_vat: 569.8, m_sell_vat: 770 },
-                { name: "Netherite Pickaxe", unit: "1 item", b_buy: 1700, b_vat: 1870, b_sell_vat: 2530, m_buy: 1445, m_vat: 1589.5, m_sell_vat: 2211 },
-                { name: "Bow", unit: "1 item", b_buy: 15, b_vat: 16.5, b_sell_vat: 27.5, m_buy: 12, m_vat: 13.2, m_sell_vat: 23.1 },
-                { name: "Crossbow", unit: "1 item", b_buy: 30, b_vat: 33, b_sell_vat: 44, m_buy: 25, m_vat: 27.5, m_sell_vat: 38.5 },
-                { name: "Shield", unit: "1 item", b_buy: 25, b_vat: 27.5, b_sell_vat: 38.5, m_buy: 21, m_vat: 23.1, m_sell_vat: 33 },
-                { name: "Trident", unit: "1 item", b_buy: 1500, b_vat: 1650, b_sell_vat: 2200, m_buy: 1275, m_vat: 1402.5, m_sell_vat: 1925 },
-                { name: "Iron Helmet", unit: "1 item", b_buy: 80, b_vat: 88, b_sell_vat: 121, m_buy: 68, m_vat: 74.8, m_sell_vat: 105.6 },
-                { name: "Iron Chestplate", unit: "1 item", b_buy: 125, b_vat: 137.5, b_sell_vat: 187, m_buy: 106, m_vat: 116.6, m_sell_vat: 165 },
-                { name: "Iron Leggings", unit: "1 item", b_buy: 110, b_vat: 121, b_sell_vat: 165, m_buy: 93, m_vat: 102.3, m_sell_vat: 145.2 },
-                { name: "Iron Boots", unit: "1 item", b_buy: 65, b_vat: 71.5, b_sell_vat: 99, m_buy: 55, m_vat: 60.5, m_sell_vat: 86.9 },
-                { name: "Diamond Helmet", unit: "1 item", b_buy: 1010, b_vat: 1111, b_sell_vat: 1540, m_buy: 858, m_vat: 943.8, m_sell_vat: 1347.5 },
-                { name: "Diamond Chestplate", unit: "1 item", b_buy: 1610, b_vat: 1771, b_sell_vat: 2420, m_buy: 1368, m_vat: 1504.8, m_sell_vat: 2117.5 },
-                { name: "Diamond Leggings", unit: "1 item", b_buy: 1410, b_vat: 1551, b_sell_vat: 2090, m_buy: 1198, m_vat: 1317.8, m_sell_vat: 1828.75 },
-                { name: "Diamond Boots", unit: "1 item", b_buy: 810, b_vat: 891, b_sell_vat: 1210, m_buy: 688, m_vat: 756.8, m_sell_vat: 1058.75 },
-                { name: "Netherite Helmet", unit: "1 item", b_buy: 2100, b_vat: 2310, b_sell_vat: 3300, m_buy: 1785, m_vat: 1963.5, m_sell_vat: 2887.5 },
-                { name: "Netherite Chestplate", unit: "1 item", b_buy: 2700, b_vat: 2970, b_sell_vat: 4180, m_buy: 2295, m_vat: 2524.5, m_sell_vat: 3657.5 },
-                { name: "Netherite Leggings", unit: "1 item", b_buy: 2500, b_vat: 2750, b_sell_vat: 3850, m_buy: 2125, m_vat: 2337.5, m_sell_vat: 3368.75 },
-                { name: "Netherite Boots", unit: "1 item", b_buy: 1900, b_vat: 2090, b_sell_vat: 2970, m_buy: 1615, m_vat: 1776.5, m_sell_vat: 2598.75 },
-                { name: "Elytra", unit: "1 item", b_buy: 2500, b_vat: 2750, b_sell_vat: 4125, m_buy: 2125, m_vat: 2337.5, m_sell_vat: 3506.25 },
-                { name: "Beacon", unit: "1 item", b_buy: 2500, b_vat: 2750, b_sell_vat: 4125, m_buy: 2125, m_vat: 2337.5, m_sell_vat: 3506.25 },
-                { name: "Saddle", unit: "1 item", b_buy: 150, b_vat: 165, b_sell_vat: 275, m_buy: 127, m_vat: 139.7, m_sell_vat: 240.9 },
-                { name: "Horse Armour (Iron)", unit: "1 item", b_buy: 100, b_vat: 110, b_sell_vat: 165, m_buy: 85, m_vat: 93.5, m_sell_vat: 140.25 },
-                { name: "Horse Armour (Gold)", unit: "1 item", b_buy: 250, b_vat: 275, b_sell_vat: 385, m_buy: 212, m_vat: 233.2, m_sell_vat: 330 },
-                { name: "Horse Armour (Diamond)", unit: "1 item", b_buy: 750, b_vat: 825, b_sell_vat: 1100, m_buy: 637, m_vat: 700.7, m_sell_vat: 962.5 },
-                { name: "Potion Bottle", unit: "1 item", b_buy: 4, b_vat: 4.4, b_sell_vat: 5.5, m_buy: 3, m_vat: 3.3, m_sell_vat: 4.4 },
-                { name: "Splash Potion", unit: "1 item", b_buy: 6, b_vat: 6.6, b_sell_vat: 8.8, m_buy: 5, m_vat: 5.5, m_sell_vat: 7.7 },
-                { name: "Lingering Potion", unit: "1 item", b_buy: 8, b_vat: 8.8, b_sell_vat: 11, m_buy: 6, m_vat: 6.6, m_sell_vat: 8.8 },
-                { name: "Healing Potion", unit: "1 item", b_buy: 20, b_vat: 22, b_sell_vat: 27.5, m_buy: 17, m_vat: 18.7, m_sell_vat: 23.1 },
-                { name: "Swiftness Potion", unit: "1 item", b_buy: 18, b_vat: 19.8, b_sell_vat: 24.2, m_buy: 15, m_vat: 16.5, m_sell_vat: 20.9 },
-                { name: "Strength Potion", unit: "1 item", b_buy: 22, b_vat: 24.2, b_sell_vat: 30.8, m_buy: 18, m_vat: 19.8, m_sell_vat: 26.4 }
-            ]
+            items: generateItems()
         };
-        
         let currentCity = '';
         let currentItemIndex = null;
         let cart = [];
@@ -718,17 +865,16 @@
 
         function updateCart() {
             const list = document.getElementById('cart-items');
-            const netEl = document.getElementById('cart-net');
             const totalEl = document.getElementById('cart-total');
-            const vatEl = document.getElementById('cart-vat');
+            const vatEl = document.getElementById('cart-vat'); // New reference for VAT
             const countEl = document.getElementById('cart-count');
-
+            
             list.innerHTML = '';
-            let grossTotal = 0;
-
+            let total = 0;
+            
             cart.forEach((entry, i) => {
                 const sub = entry.price * entry.qty;
-                grossTotal += sub;
+                total += sub;
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
@@ -741,11 +887,11 @@
                 list.appendChild(div);
             });
 
-            const netTotal = grossTotal / 1.1;
-            const vatAmount = grossTotal - netTotal;
-
-            netEl.innerText = netTotal.toFixed(2) + "€";
-            totalEl.innerText = grossTotal.toFixed(2) + "€";
+            // VAT Calculation: Since prices in cart already include 10% VAT,
+            // we calculate the VAT amount as: Total - (Total / 1.1)
+            const vatAmount = total - (total / 1.1);
+            
+            totalEl.innerText = total.toFixed(2) + "€";
             vatEl.innerText = vatAmount.toFixed(2) + "€";
             countEl.innerText = cart.length;
         }
